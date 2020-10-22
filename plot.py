@@ -1,23 +1,37 @@
 
 import csv
+import numpy as np
 from datetime import datetime as dt
 import matplotlib.pyplot as plt
 import matplotlib.ticker as tkr
 
-def plot():
+# compute n day average of time series, using maximum possible number of days at start of series
+def n_day_avg(xs,n):
+    return [np.mean(xs[max(0,i+1-n):i+1]) for i in range(xs.shape[0])]
+
+def plot(figname,avg=True): # avg indicates seven day average of new cases should be used
     with open("cases.csv", "r") as file:
         reader = csv.reader(file, delimiter=",")
-        casesData = [(line[3], int(line[4])) for line in reader]
+        casesData = [[line[3], int(line[4])] for line in reader]
         casesDict = dict(casesData)
-        casesDates = [dt.strptime(x[0], "%Y-%m-%d") for x in casesData]
-        cases = [x[1] for x in casesData]
+        # convert to np array and separate dates from case counts
+        casesData = np.array(casesData)
+        casesDates = casesData[:,0]
+        cases = casesData[:,1].astype(np.float)
+        casesDates = [dt.strptime(x, "%Y-%m-%d") for x in casesDates]
+        # compute seven day average of cases if enabled
+        if avg:
+            cases = n_day_avg(cases,7)
 
     with open("tests.csv", "r") as file:
         reader = csv.reader(file, delimiter=",")
         testsData = [(line[3], int(line[8])) for line in reader]
-        testRawDates = [x[0] for x in testsData]
-        testDates = [dt.strptime(x[0], "%Y-%m-%d") for x in testsData]
-        tests = [x[1] for x in testsData]
+        testsData = np.array(testsData)
+        testRawDates = testsData[:,0]
+        testDates = [dt.strptime(x, "%Y-%m-%d") for x in testRawDates]
+        tests = testsData[:,1].astype(np.float)
+        # if avg:
+        #     tests = n_day_avg(tests,7)
 
     for j, date in enumerate(testRawDates):
         if date in casesDict:
@@ -25,25 +39,41 @@ def plot():
         else:
             tests[j] = 0
 
-    figname = "COVID"
+    if avg:
+        tests = n_day_avg(tests,7)
+
     plt.figure()
     _, ax = plt.subplots()
 
     ax.set_title("UK COVID-19 cases compared to percentage of positive tests")
 
     ax.bar(casesDates, cases)
-    ax.set_ylabel("Daily COVID-19 Cases in the UK", color="C0")
+    if avg:
+        ax.set_ylabel("Daily COVID-19 Cases in the UK (seven day average)", color="C0")
+    else:
+        ax.set_ylabel("Daily COVID-19 Cases in the UK", color="C0")
 
     ax2 = ax.twinx()
     ax2.plot_date(testDates, tests, "white", linewidth=3)
     ax2.plot_date(testDates, tests, "orangered", linewidth=2)
-    ax2.set_ylabel(
-        "Daily COVID-19 Tests in the UK",
-        color="orangered",
-        rotation=270,
-        ha="center",
-        va="bottom",
-    )
+    if avg:
+            ax2.set_ylabel(
+                "Percent positive tests per day (seven day average)",
+                color="orangered",
+                rotation=270,
+                ha="center",
+                va="bottom",
+            )
+    else:
+            ax2.set_ylabel(
+                "Percent positive tests per day",
+                color="orangered",
+                rotation=270,
+                ha="center",
+                va="bottom",
+            )
+
+    ax2.set_ylim(bottom=0)
 
     ax.xaxis_date()
     ax.set_xlim(
@@ -59,7 +89,10 @@ def plot():
         xmax=dt.strptime("2020-11-01", "%Y-%m-%d"),
         linestyles="dotted",
         color="black",
+        label='WHO 5% reopening threshold'
     )
+
+    plt.legend()
 
     plt.gcf().set_size_inches(12, 7.5)
     ax.spines["top"].set_visible(False)
@@ -85,4 +118,5 @@ def threeFigureFormatter(x, pos):
 
 
 if __name__ == "__main__":
-    plot()
+    plot('PercentPositive',avg=False)
+    plot('PercentPositiveAvg')
