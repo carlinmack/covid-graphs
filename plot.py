@@ -6,7 +6,7 @@ import matplotlib.ticker as tkr
 import numpy as np
 
 
-def n_day_avg(xs, n):
+def n_day_avg(xs, n=7):
     """compute n day average of time series, using maximum possible number of days at
     start of series"""
     return [np.mean(xs[max(0, i + 1 - n) : i + 1]) for i in range(xs.shape[0])]
@@ -118,6 +118,8 @@ def plot(avg=True):
 
     ax.set_title("UK COVID-19 cases compared to percentage of positive tests")
 
+    if avg:
+        testTotal = n_day_avg(testTotal, 7)
     ax.bar(testDates, testTotal, color="C0", label="Total tests")
     ax.bar(casesDates, cases, color="orangered", label="Positive tests")
     ax.xaxis_date()
