@@ -1,3 +1,3 @@
 ![image](PercentPositiveAvg.png)
 
-![image](DoubleBarChart.png)
+![image](DoubleBarChartAvg.png)
