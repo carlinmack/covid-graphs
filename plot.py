@@ -12,7 +12,7 @@ def n_day_avg(xs, n):
     return [np.mean(xs[max(0, i + 1 - n) : i + 1]) for i in range(xs.shape[0])]
 
 
-def plot(figname, avg=True):
+def plot(avg=True):
     """avg indicates seven day average of new cases should be used"""
     with open("cases.csv", "r") as file:
         reader = csv.reader(file, delimiter=",")
@@ -37,6 +37,7 @@ def plot(figname, avg=True):
         # if avg:
         #     tests = n_day_avg(tests,7)
 
+    testTotal = np.copy(tests)
     for j, date in enumerate(testRawDates):
         if date in casesDict:
             tests[j] = casesDict[date] / tests[j] * 100
@@ -48,6 +49,10 @@ def plot(figname, avg=True):
 
     plt.figure()
     _, ax = plt.subplots()
+
+    figname = "PercentPositive"
+    if avg:
+        figname += "Avg"
 
     ax.set_title("UK COVID-19 cases compared to percentage of positive tests")
 
@@ -104,6 +109,30 @@ def plot(figname, avg=True):
 
     savePlot(figname)
 
+    # Double bar chart
+    figname = "DoubleBarChart"
+    if avg:
+        figname += "Avg"
+    plt.figure()
+    _, ax = plt.subplots()
+
+    ax.set_title("UK COVID-19 cases compared to percentage of positive tests")
+
+    ax.bar(testDates, testTotal, color="C0", label="Total tests")
+    ax.bar(casesDates, cases, color="orangered", label="Positive tests")
+    ax.xaxis_date()
+
+    ax.set_xlim(
+        left=dt.strptime("2020-03-31", "%Y-%m-%d"),
+        right=dt.strptime("2020-10-19", "%Y-%m-%d"),
+    )
+    
+    plt.gcf().set_size_inches(12, 7.5)
+    ax.spines["top"].set_visible(False)
+    
+    ax.legend()
+
+    savePlot(figname)
 
 def savePlot(figname):
     plt.savefig(figname, bbox_inches="tight", pad_inches=0.25, dpi=200)
@@ -124,5 +153,5 @@ def threeFigureFormatter(x, pos):
 
 
 if __name__ == "__main__":
-    plot("PercentPositive", avg=False)
-    plot("PercentPositiveAvg")
+    plot(avg=False)
+    plot()
