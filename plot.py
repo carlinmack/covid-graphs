@@ -116,18 +116,24 @@ def plot(avg=True):
     plt.figure()
     _, ax = plt.subplots()
 
-    ax.set_title("UK COVID-19 cases compared to percentage of positive tests")
+    ax.set_title("Number of tests vs positive tests")
 
     if avg:
         testTotal = n_day_avg(testTotal, 7)
     ax.bar(testDates, testTotal, color="C0", label="Total tests")
     ax.bar(casesDates, cases, color="orangered", label="Positive tests")
+    
     ax.xaxis_date()
-
     ax.set_xlim(
-        left=dt.strptime("2020-03-31", "%Y-%m-%d"),
-        right=dt.strptime("2020-10-19", "%Y-%m-%d"),
+        left=dt.strptime("2020-03-01", "%Y-%m-%d"),
+        right=dt.strptime("2020-10-22", "%Y-%m-%d"),
     )
+
+    yLabel = "Number of tests per day"
+    if avg:
+        yLabel += " (seven day average)"
+    ax.set_ylabel(yLabel)
+    ax.yaxis.set_major_formatter(tkr.FuncFormatter(threeFigureFormatter))
     
     plt.gcf().set_size_inches(12, 7.5)
     ax.spines["top"].set_visible(False)
