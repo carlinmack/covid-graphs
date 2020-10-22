@@ -1,1 +1,1 @@
-![image](COVID.png)
+![image](PercentPositiveAvg.png)
