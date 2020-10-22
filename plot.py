@@ -1,10 +1,24 @@
 import csv
+import os
+import requests
 from datetime import datetime as dt
 
 import matplotlib.pyplot as plt
 import matplotlib.ticker as tkr
 import numpy as np
 
+
+def getData(dataDir):
+    nations = ["Scotland", "England", "Northern%2520Ireland", "Wales"]
+    testingURL = "https://api.coronavirus.data.gov.uk/v1/data?filters=areaType=nation;areaName={nation}&structure=%7B%22date%22:%22date%22,%22newPillarOneTestsByPublishDate%22:%22newPillarOneTestsByPublishDate%22,%22newPillarTwoTestsByPublishDate%22:%22newPillarTwoTestsByPublishDate%22,%22newPillarFourTestsByPublishDate%22:%22newPillarFourTestsByPublishDate%22%7D&format=csv"
+
+    for nation in nations:
+        r = requests.get(testingURL.format(nation=nation))
+        text = r.text
+
+        fileName = dataDir + nation + ".testing." + dt.today().strftime('%Y-%m-%d') + ".csv"
+        with open(fileName, "w") as file:
+            file.writelines(text)
 
 def n_day_avg(xs, n=7):
     """compute n day average of time series, using maximum possible number of days at
@@ -14,6 +28,7 @@ def n_day_avg(xs, n=7):
 
 def plot(avg=True):
     """avg indicates seven day average of new cases should be used"""
+
     with open("cases.csv", "r") as file:
         reader = csv.reader(file, delimiter=",")
         casesData = [[line[3], int(line[4])] for line in reader]
@@ -161,5 +176,12 @@ def threeFigureFormatter(x, pos):
 
 
 if __name__ == "__main__":
+    dataDir = "data/"
+
+    if not os.path.exists(dataDir):
+        os.mkdir(dataDir)
+
+    getData(dataDir)
+
     plot(avg=False)
     plot()
