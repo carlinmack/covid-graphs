@@ -54,17 +54,6 @@ def getData(dataDir):
             file.writelines(text)
 
 
-def n_day_avg(xs, n=7):
-    """compute n day average of time series, using maximum possible number of days at
-    start of series"""
-    return [np.mean(xs[max(0, i + 1 - n) : i + 1]) for i in range(xs.shape[0])]
-
-
-def parseInt(str):
-    str = str.strip()
-    return int(str) if str else 0
-
-
 def ukPlot(dataDir="data/", plotsDir="plots/", avg=True):
     """avg indicates seven day average of new cases should be used"""
     today = dt.today()
@@ -113,7 +102,7 @@ def ukPlot(dataDir="data/", plotsDir="plots/", avg=True):
     skip = 2
     cases = cases[skip:]
     casesDates = casesDates[skip:]
-    tests = tests[skip:] 
+    tests = tests[skip:]
     testTotal = testTotal[skip:]
     testDates = testDates[skip:]
 
@@ -148,9 +137,7 @@ def ukPlot(dataDir="data/", plotsDir="plots/", avg=True):
     ax2.set_ylim(bottom=0)
 
     ax.xaxis_date()
-    ax.set_xlim(
-        left=dt.strptime("2020-03-01", "%Y-%m-%d"), right=today
-    )
+    ax.set_xlim(left=dt.strptime("2020-03-01", "%Y-%m-%d"), right=today)
     ax.yaxis.set_major_formatter(tkr.FuncFormatter(threeFigureFormatter))
 
     ax2.yaxis.set_major_formatter(tkr.PercentFormatter(decimals=0))
@@ -294,9 +281,7 @@ def nationPlot(dataDir="data/", plotsDir="plots/", avg=True):
     ax.set_ylim(bottom=0)
 
     ax.xaxis_date()
-    ax.set_xlim(
-        left=dt.strptime("2020-03-01", "%Y-%m-%d"), right=today
-    )
+    ax.set_xlim(left=dt.strptime("2020-03-01", "%Y-%m-%d"), right=today)
 
     ax.yaxis.set_major_formatter(tkr.PercentFormatter(decimals=0))
     ax.hlines(
@@ -369,6 +354,9 @@ def nationPlot(dataDir="data/", plotsDir="plots/", avg=True):
     savePlot(figname)
 
 
+# Helpers ------------------------------------------------------------------------------
+
+
 def savePlot(figname):
     plt.savefig(figname, bbox_inches="tight", pad_inches=0.25, dpi=200)
     plt.cla()
@@ -385,6 +373,17 @@ def threeFigureFormatter(x, pos):
         return s + ",".join(reversed(groups))
     else:
         return s
+
+
+def n_day_avg(xs, n=7):
+    """compute n day average of time series, using maximum possible number of days at
+    start of series"""
+    return [np.mean(xs[max(0, i + 1 - n) : i + 1]) for i in range(xs.shape[0])]
+
+
+def parseInt(str):
+    str = str.strip()
+    return int(str) if str else 0
 
 
 if __name__ == "__main__":
