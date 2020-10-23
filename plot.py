@@ -148,7 +148,11 @@ def ukPlot(dataDir="data/", avg=True):
 
     if avg:
         testTotal = n_day_avg(testTotal, 7)
+    
+    fivePercent = [x * 0.05 for x in testTotal]
+
     ax.bar(testDates, testTotal, color="C0", label="Total tests")
+    ax.bar(testDates, fivePercent, color="black", label="WHO 5% reopening threshold")
     ax.bar(casesDates, cases, color="orangered", label="Positive tests")
 
     ax.xaxis_date()
@@ -282,7 +286,11 @@ def nationPlot(dataDir="data/", avg=True):
 
     # if avg:
     #     testTotal = n_day_avg(testTotal, 7)
+    
+    # fivePercent = [x * 0.05 for x in testTotal]
+
     # ax.bar(testDates, testTotal, color="C0", label="Total tests")
+    # ax.bar(testDates, fivePercent, color="black", label="WHO 5% reopening threshold")
     # ax.bar(casesDates, cases, color="orangered", label="Positive tests")
 
     # ax.xaxis_date()
