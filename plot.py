@@ -13,7 +13,7 @@ def getData(dataDir):
     nations = ["Scotland", "England", "Northern%2520Ireland", "Wales"]
     testingURL = "https://api.coronavirus.data.gov.uk/v1/data?filters=areaType=nation;areaName={nation}&structure=%7B%22date%22:%22date%22,%22newPillarOneTestsByPublishDate%22:%22newPillarOneTestsByPublishDate%22,%22newPillarTwoTestsByPublishDate%22:%22newPillarTwoTestsByPublishDate%22,%22newPillarFourTestsByPublishDate%22:%22newPillarFourTestsByPublishDate%22%7D&format=csv"
 
-    casesURL = "https://api.coronavirus.data.gov.uk/v1/data?filters=areaType=nation&structure=%7B%22date%22:%22date%22,%22newCasesBySpecimenDate%22:%22newCasesBySpecimenDate%22%7D&format=csv"
+    casesURL = "https://api.coronavirus.data.gov.uk/v1/data?filters=areaType=nation;areaName={nation}&structure=%7B%22date%22:%22date%22,%22newCasesBySpecimenDate%22:%22newCasesBySpecimenDate%22%7D&format=csv"
 
     dataURLs = [testingURL, casesURL]
     names = ["testing", "cases"]
@@ -46,7 +46,7 @@ def ukPlot(dataDir="data/", avg=True):
     """avg indicates seven day average of new cases should be used"""
     today = dt.today()
 
-    with open("cases.csv", "r") as file:
+    with open(dataDir + "cases.csv", "r") as file:
         reader = csv.reader(file, delimiter=",")
         casesData = [[line[3], int(line[4])] for line in reader]
         casesDict = dict(casesData)
@@ -59,7 +59,7 @@ def ukPlot(dataDir="data/", avg=True):
         if avg:
             cases = n_day_avg(cases, 7)
 
-    with open("tests.csv", "r") as file:
+    with open(dataDir + "tests.csv", "r") as file:
         reader = csv.reader(file, delimiter=",")
         testsData = [(line[3], int(line[8])) for line in reader]
         testsData = np.array(testsData)
