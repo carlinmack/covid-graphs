@@ -47,7 +47,7 @@ def parseInt(str):
     return int(str) if str else 0
 
 
-def ukPlot(dataDir="data/", avg=True):
+def ukPlot(dataDir="data/", plotsDir="plots/", avg=True):
     """avg indicates seven day average of new cases should be used"""
     today = dt.today()
 
@@ -85,9 +85,9 @@ def ukPlot(dataDir="data/", avg=True):
     plt.figure()
     _, ax = plt.subplots()
 
-    figname = "PercentPositive"
+    figname = plotsDir + "PercentPositive"
     if avg:
-        figname += "Avg"
+        figname += "-Avg"
 
     ax.set_title("UK COVID-19 cases compared to percentage of positive tests")
 
@@ -136,9 +136,9 @@ def ukPlot(dataDir="data/", avg=True):
     savePlot(figname)
 
     # Double bar chart
-    figname = "DoubleBarChart"
+    figname = plotsDir + "DoubleBarChart"
     if avg:
-        figname += "Avg"
+        figname += "-Avg"
     plt.figure()
     _, ax = plt.subplots()
 
@@ -173,7 +173,7 @@ def ukPlot(dataDir="data/", avg=True):
     savePlot(figname)
 
 
-def nationPlot(dataDir="data/", avg=True):
+def nationPlot(dataDir="data/", plotsDir="plots/", avg=True):
     """avg indicates seven day average of new cases should be used"""
     nationsCases = []
     nationCasesDates = []
@@ -234,9 +234,9 @@ def nationPlot(dataDir="data/", avg=True):
     plt.figure()
     _, ax = plt.subplots()
 
-    figname = "NationPercentPositive"
+    figname = plotsDir + "PercentPositive-Nation"
     if avg:
-        figname += "Avg"
+        figname += "-Avg"
 
     ax.set_title("UK COVID-19 cases compared to percentage of positive tests")
 
@@ -247,7 +247,7 @@ def nationPlot(dataDir="data/", avg=True):
             nationTestDates[i], nation, colors[i], linewidth=2, label=nations[i]
         )
 
-    yLabel = "Percent positive tests per day"
+    yLabel = plotsDir + "Percent positive tests per day"
     if avg:
         yLabel += " (seven day average)"
 
@@ -281,9 +281,9 @@ def nationPlot(dataDir="data/", avg=True):
     savePlot(figname)
 
     # Double bar chart
-    figname = "NationDoubleBarChart"
+    figname = plotsDir + "DoubleBarChart-Nation"
     if avg:
-        figname += "Avg"
+        figname += "-Avg"
     plt.figure()
     fig, axs = plt.subplots(2, 2, sharex=True)
     axs = axs.flatten()
@@ -351,14 +351,19 @@ def threeFigureFormatter(x, pos):
 
 if __name__ == "__main__":
     dataDir = "data/"
+    plotsDir = "plots/"
 
     if not os.path.exists(dataDir):
         os.mkdir(dataDir)
 
+    if not os.path.exists(plotsDir):
+        os.mkdir(plotsDir)
+
     # getData(dataDir)
 
-    ukPlot(dataDir, avg=False)
-    ukPlot(dataDir,)
+    ukPlot(dataDir, plotsDir, avg=False)
+    ukPlot(dataDir, plotsDir)
 
-    nationPlot(dataDir, avg=False)
-    nationPlot(dataDir,)
+    nationPlot(dataDir, plotsDir, avg=False)
+    nationPlot(dataDir, plotsDir)
+
