@@ -35,6 +35,24 @@ def getData(dataDir):
             with open(fileName, "w") as file:
                 file.writelines(text)
 
+    ukTestingURL = """https://api.coronavirus.data.gov.uk/v1/data?filters=areaType=overview&structure=%7B"date":"date","newPillarOneTestsByPublishDate":"newPillarOneTestsByPublishDate","newPillarTwoTestsByPublishDate":"newPillarTwoTestsByPublishDate","newPillarFourTestsByPublishDate":"newPillarFourTestsByPublishDate"%7D&format=csv"""
+    ukCasesURL = """https://api.coronavirus.data.gov.uk/v1/data?filters=areaType=overview&structure=%7B"date":"date","newCasesBySpecimenDate":"newCasesBySpecimenDate"%7D&format=csv"""
+
+    URLs = [ukTestingURL, ukCasesURL]
+
+    for j, url in enumerate(URLs):
+        r = requests.get(url)
+        text = r.text
+        filePrefix = dataDir + "UK." + names[j] + "."
+
+        yesterdaysFileName = filePrefix + yesterday.strftime("%Y-%m-%d") + ".csv"
+        if os.path.exists(yesterdaysFileName):
+            os.remove(yesterdaysFileName)
+
+        fileName = filePrefix + today.strftime("%Y-%m-%d") + ".csv"
+        with open(fileName, "w") as file:
+            file.writelines(text)
+
 
 def n_day_avg(xs, n=7):
     """compute n day average of time series, using maximum possible number of days at
@@ -51,9 +69,14 @@ def ukPlot(dataDir="data/", plotsDir="plots/", avg=True):
     """avg indicates seven day average of new cases should be used"""
     today = dt.today()
 
-    with open(dataDir + "cases.csv", "r") as file:
+    filePrefix = dataDir + "UK"
+    casesFileName = filePrefix + ".cases." + today.strftime("%Y-%m-%d") + ".csv"
+    testsFileName = filePrefix + ".testing." + today.strftime("%Y-%m-%d") + ".csv"
+
+    with open(casesFileName, "r") as file:
+        next(file)
         reader = csv.reader(file, delimiter=",")
-        casesData = [[line[3], int(line[4])] for line in reader]
+        casesData = [[line[0], int(line[1])] for line in reader]
         casesDict = dict(casesData)
         # convert to np array and separate dates from case counts
         casesData = np.array(casesData)
@@ -64,9 +87,13 @@ def ukPlot(dataDir="data/", plotsDir="plots/", avg=True):
         if avg:
             cases = n_day_avg(cases, 7)
 
-    with open(dataDir + "tests.csv", "r") as file:
+    with open(testsFileName, "r") as file:
+        next(file)
         reader = csv.reader(file, delimiter=",")
-        testsData = [(line[3], int(line[8])) for line in reader]
+        testsData = [
+            (line[0], parseInt(line[1]) + parseInt(line[2]) + parseInt(line[3]))
+            for line in reader
+        ]
         testsData = np.array(testsData)
         testRawDates = testsData[:, 0]
         testDates = [dt.strptime(x, "%Y-%m-%d") for x in testRawDates]
@@ -81,6 +108,14 @@ def ukPlot(dataDir="data/", plotsDir="plots/", avg=True):
 
     if avg:
         tests = n_day_avg(tests, 7)
+
+    # remove the most recent two dates as they won't be accurate yet
+    skip = 2
+    cases = cases[skip:]
+    casesDates = casesDates[skip:]
+    tests = tests[skip:] 
+    testTotal = testTotal[skip:]
+    testDates = testDates[skip:]
 
     plt.figure()
     _, ax = plt.subplots()
@@ -98,6 +133,7 @@ def ukPlot(dataDir="data/", plotsDir="plots/", avg=True):
         ax.set_ylabel("Daily COVID-19 Cases in the UK", color="C0")
 
     ax2 = ax.twinx()
+
     ax2.plot_date(testDates, tests, "white", linewidth=3)
     ax2.plot_date(testDates, tests, "orangered", linewidth=2)
 
@@ -113,7 +149,7 @@ def ukPlot(dataDir="data/", plotsDir="plots/", avg=True):
 
     ax.xaxis_date()
     ax.set_xlim(
-        left=dt.strptime("2020-03-01", "%Y-%m-%d"), right=today,
+        left=dt.strptime("2020-03-01", "%Y-%m-%d"), right=today
     )
     ax.yaxis.set_major_formatter(tkr.FuncFormatter(threeFigureFormatter))
 
@@ -224,12 +260,14 @@ def nationPlot(dataDir="data/", plotsDir="plots/", avg=True):
             else:
                 tests[j] = 0
 
-        nationsCases.append(cases)
-        nationCasesDates.append(casesDates)
+        # remove the most recent two dates as they won't be accurate yet
+        skip = 2
+        nationsCases.append(cases[skip:])
+        nationCasesDates.append(casesDates[skip:])
 
-        testsData.append(tests)
-        testTotalData.append(testTotal)
-        nationTestDates.append(testDates)
+        testsData.append(tests[skip:])
+        testTotalData.append(testTotal[skip:])
+        nationTestDates.append(testDates[skip:])
 
     plt.figure()
     _, ax = plt.subplots()
@@ -257,7 +295,7 @@ def nationPlot(dataDir="data/", plotsDir="plots/", avg=True):
 
     ax.xaxis_date()
     ax.set_xlim(
-        left=dt.strptime("2020-03-01", "%Y-%m-%d"), right=today - timedelta(days=5),
+        left=dt.strptime("2020-03-01", "%Y-%m-%d"), right=today
     )
 
     ax.yaxis.set_major_formatter(tkr.PercentFormatter(decimals=0))
