@@ -42,6 +42,11 @@ def n_day_avg(xs, n=7):
     return [np.mean(xs[max(0, i + 1 - n) : i + 1]) for i in range(xs.shape[0])]
 
 
+def parseInt(str):
+    str = str.strip()
+    return int(str) if str else 0
+
+
 def ukPlot(dataDir="data/", avg=True):
     """avg indicates seven day average of new cases should be used"""
     today = dt.today()
@@ -97,29 +102,20 @@ def ukPlot(dataDir="data/", avg=True):
     ax2 = ax.twinx()
     ax2.plot_date(testDates, tests, "white", linewidth=3)
     ax2.plot_date(testDates, tests, "orangered", linewidth=2)
+
+    yLabel = "Percent positive tests per day"
     if avg:
-        ax2.set_ylabel(
-            "Percent positive tests per day (seven day average)",
-            color="orangered",
-            rotation=270,
-            ha="center",
-            va="bottom",
-        )
-    else:
-        ax2.set_ylabel(
-            "Percent positive tests per day",
-            color="orangered",
-            rotation=270,
-            ha="center",
-            va="bottom",
-        )
+        yLabel += " (seven day average)"
+
+    ax2.set_ylabel(
+        yLabel, color="orangered", rotation=270, ha="center", va="bottom",
+    )
 
     ax2.set_ylim(bottom=0)
 
     ax.xaxis_date()
     ax.set_xlim(
-        left=dt.strptime("2020-03-01", "%Y-%m-%d"),
-        right=today,
+        left=dt.strptime("2020-03-01", "%Y-%m-%d"), right=today,
     )
     ax.yaxis.set_major_formatter(tkr.FuncFormatter(threeFigureFormatter))
 
@@ -154,11 +150,10 @@ def ukPlot(dataDir="data/", avg=True):
         testTotal = n_day_avg(testTotal, 7)
     ax.bar(testDates, testTotal, color="C0", label="Total tests")
     ax.bar(casesDates, cases, color="orangered", label="Positive tests")
-    
+
     ax.xaxis_date()
     ax.set_xlim(
-        left=dt.strptime("2020-03-01", "%Y-%m-%d"),
-        right=today,
+        left=dt.strptime("2020-03-01", "%Y-%m-%d"), right=today,
     )
 
     yLabel = "Number of tests per day"
@@ -166,11 +161,11 @@ def ukPlot(dataDir="data/", avg=True):
         yLabel += " (seven day average)"
     ax.set_ylabel(yLabel)
     ax.yaxis.set_major_formatter(tkr.FuncFormatter(threeFigureFormatter))
-    
+
     plt.gcf().set_size_inches(12, 7.5)
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
-    
+
     ax.legend()
 
     savePlot(figname)
@@ -178,22 +173,23 @@ def ukPlot(dataDir="data/", avg=True):
 
 def nationPlot(dataDir="data/", avg=True):
     """avg indicates seven day average of new cases should be used"""
-    casesData = []
     testsData = []
+    nationDates = []
 
     nations = ["Scotland", "England", "Northern%2520Ireland", "Wales"]
     colors = ["#003078", "#5694CA", "#FFDD00", "#D4351C"]
-            
+
     today = dt.today()
 
     for nation in nations:
-        filePrefix = dataDir + nation 
+        filePrefix = dataDir + nation
         testsFileName = filePrefix + ".testing." + today.strftime("%Y-%m-%d") + ".csv"
         casesFileName = filePrefix + ".cases." + today.strftime("%Y-%m-%d") + ".csv"
 
-        with open(dataDir + casesFileName, "r") as file:
+        with open(casesFileName, "r") as file:
+            next(file)  # skip first line
             reader = csv.reader(file, delimiter=",")
-            casesData = [[line[3], int(line[4])] for line in reader]
+            casesData = [[line[0], int(line[1])] for line in reader]
             casesDict = dict(casesData)
             # convert to np array and separate dates from case counts
             casesData = np.array(casesData)
@@ -204,20 +200,27 @@ def nationPlot(dataDir="data/", avg=True):
             if avg:
                 cases = n_day_avg(cases, 7)
 
-        with open(dataDir + testsFileName, "r") as file:
+        with open(testsFileName, "r") as file:
+            next(file)  # skip first line
             reader = csv.reader(file, delimiter=",")
-            testsData = [(line[3], int(line[8])) for line in reader]
-            testsData = np.array(testsData)
-            testRawDates = testsData[:, 0]
+            nationTestData = [
+                (line[0], parseInt(line[1]) + parseInt(line[2]) + parseInt(line[3]))
+                for line in reader
+            ]
+            nationTestData = np.array(nationTestData)
+            testRawDates = nationTestData[:, 0]
             testDates = [dt.strptime(x, "%Y-%m-%d") for x in testRawDates]
-            tests = testsData[:, 1].astype(np.float)
+            tests = nationTestData[:, 1].astype(np.float)
 
-    testTotal = np.copy(tests)
-    for j, date in enumerate(testRawDates):
-        if date in casesDict:
-            tests[j] = casesDict[date] / tests[j] * 100
-        else:
-            tests[j] = 0
+        testTotal = np.copy(tests)
+        for j, date in enumerate(testRawDates):
+            if date in casesDict:
+                tests[j] = casesDict[date] / tests[j] * 100
+            else:
+                tests[j] = 0
+
+        testsData.append(tests)
+        nationDates.append(testDates)
 
     if avg:
         tests = n_day_avg(tests, 7)
@@ -232,23 +235,13 @@ def nationPlot(dataDir="data/", avg=True):
     ax.set_title("UK COVID-19 cases compared to percentage of positive tests")
 
     for i, nation in enumerate(testsData):
-        ax.plot_date(testDates, nation, colors[i], linewidth=2)
+        ax.plot_date(nationDates[i], nation, colors[i], linewidth=2)
+
+    yLabel = "Percent positive tests per day"
     if avg:
-        ax.set_ylabel(
-            "Percent positive tests per day (seven day average)",
-            color="orangered",
-            rotation=270,
-            ha="center",
-            va="bottom",
-        )
-    else:
-        ax.set_ylabel(
-            "Percent positive tests per day",
-            color="orangered",
-            rotation=270,
-            ha="center",
-            va="bottom",
-        )
+        yLabel += " (seven day average)"
+
+    ax.set_ylabel(yLabel)
 
     ax.set_ylim(bottom=0)
 
@@ -277,37 +270,37 @@ def nationPlot(dataDir="data/", avg=True):
     savePlot(figname)
 
     # Double bar chart
-    figname = "NationDoubleBarChart"
-    if avg:
-        figname += "Avg"
-    plt.figure()
-    fig, axs = plt.subplots(2,2,sharey=True)
+    # figname = "NationDoubleBarChart"
+    # if avg:
+    #     figname += "Avg"
+    # plt.figure()
+    # fig, axs = plt.subplots(2,2,sharey=True)
 
-    fig.suptitle("Number of tests vs positive tests")
+    # fig.suptitle("Number of tests vs positive tests")
 
-    if avg:
-        testTotal = n_day_avg(testTotal, 7)
-    ax.bar(testDates, testTotal, color="C0", label="Total tests")
-    ax.bar(casesDates, cases, color="orangered", label="Positive tests")
+    # if avg:
+    #     testTotal = n_day_avg(testTotal, 7)
+    # ax.bar(testDates, testTotal, color="C0", label="Total tests")
+    # ax.bar(casesDates, cases, color="orangered", label="Positive tests")
 
-    ax.xaxis_date()
-    ax.set_xlim(
-        left=dt.strptime("2020-03-01", "%Y-%m-%d"),
-        right=dt.strptime("2020-10-22", "%Y-%m-%d"),
-    )
+    # ax.xaxis_date()
+    # ax.set_xlim(
+    #     left=dt.strptime("2020-03-01", "%Y-%m-%d"),
+    #     right=dt.strptime("2020-10-22", "%Y-%m-%d"),
+    # )
 
-    yLabel = "Number of tests per day"
-    if avg:
-        yLabel += " (seven day average)"
-    ax.set_ylabel(yLabel)
-    ax.yaxis.set_major_formatter(tkr.FuncFormatter(threeFigureFormatter))
+    # yLabel = "Number of tests per day"
+    # if avg:
+    #     yLabel += " (seven day average)"
+    # ax.set_ylabel(yLabel)
+    # ax.yaxis.set_major_formatter(tkr.FuncFormatter(threeFigureFormatter))
 
-    plt.gcf().set_size_inches(12, 7.5)
-    ax.spines["top"].set_visible(False)
+    # plt.gcf().set_size_inches(12, 7.5)
+    # ax.spines["top"].set_visible(False)
 
-    ax.legend()
+    # ax.legend()
 
-    savePlot(figname)
+    # savePlot(figname)
 
 
 def savePlot(figname):
@@ -336,8 +329,8 @@ if __name__ == "__main__":
 
     # getData(dataDir)
 
-    ukPlot(dataDir, avg=False)
-    ukPlot(dataDir,)
+    # ukPlot(dataDir, avg=False)
+    # ukPlot(dataDir,)
 
-    # nationPlot(dataDir, avg=False)
-    # nationPlot(dataDir,)
+    nationPlot(dataDir, avg=False)
+    nationPlot(dataDir,)
