@@ -10,7 +10,7 @@ import numpy as np
 
 
 def getData(dataDir):
-    nations = ["Scotland", "England", "Northern%2520Ireland", "Wales"]
+    nations = ["Scotland", "England", "Northern Ireland", "Wales"]
     testingURL = "https://api.coronavirus.data.gov.uk/v1/data?filters=areaType=nation;areaName={nation}&structure=%7B%22date%22:%22date%22,%22newPillarOneTestsByPublishDate%22:%22newPillarOneTestsByPublishDate%22,%22newPillarTwoTestsByPublishDate%22:%22newPillarTwoTestsByPublishDate%22,%22newPillarFourTestsByPublishDate%22:%22newPillarFourTestsByPublishDate%22%7D&format=csv"
 
     casesURL = "https://api.coronavirus.data.gov.uk/v1/data?filters=areaType=nation;areaName={nation}&structure=%7B%22date%22:%22date%22,%22newCasesBySpecimenDate%22:%22newCasesBySpecimenDate%22%7D&format=csv"
@@ -180,7 +180,7 @@ def nationPlot(dataDir="data/", avg=True):
     testsData = []
     nationDates = []
 
-    nations = ["Scotland", "England", "Northern%2520Ireland", "Wales"]
+    nations = ["Scotland", "England", "Northern Ireland", "Wales"]
     colors = ["#003078", "#5694CA", "#FFDD00", "#D4351C"]
 
     today = dt.today()
