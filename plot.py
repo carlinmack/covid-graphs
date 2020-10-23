@@ -222,8 +222,6 @@ def nationPlot(dataDir="data/", avg=True):
         testsData.append(tests)
         nationDates.append(testDates)
 
-    if avg:
-        tests = n_day_avg(tests, 7)
 
     plt.figure()
     _, ax = plt.subplots()
@@ -235,7 +233,9 @@ def nationPlot(dataDir="data/", avg=True):
     ax.set_title("UK COVID-19 cases compared to percentage of positive tests")
 
     for i, nation in enumerate(testsData):
-        ax.plot_date(nationDates[i], nation, colors[i], linewidth=2)
+        if avg:
+            nation = n_day_avg(nation, 7)
+        ax.plot_date(nationDates[i], nation, colors[i], linewidth=2, label=nations[i])
 
     yLabel = "Percent positive tests per day"
     if avg:
@@ -243,12 +243,12 @@ def nationPlot(dataDir="data/", avg=True):
 
     ax.set_ylabel(yLabel)
 
-    ax.set_ylim(bottom=0)
+    ax.set_ylim(bottom=0, top=50)
 
     ax.xaxis_date()
     ax.set_xlim(
         left=dt.strptime("2020-03-01", "%Y-%m-%d"),
-        right=dt.strptime("2020-10-22", "%Y-%m-%d"),
+        right=today-timedelta(days=5),
     )
 
     ax.yaxis.set_major_formatter(tkr.PercentFormatter(decimals=0))
@@ -260,6 +260,8 @@ def nationPlot(dataDir="data/", avg=True):
         color="black",
         label="WHO 5% reopening threshold",
     )
+
+    # ax.vlines(x=dt.strptime("2020-04-21", "%Y-%m-%d"), ymin=0, ymax=3000)
 
     plt.legend()
 
@@ -329,8 +331,8 @@ if __name__ == "__main__":
 
     # getData(dataDir)
 
-    # ukPlot(dataDir, avg=False)
-    # ukPlot(dataDir,)
+    ukPlot(dataDir, avg=False)
+    ukPlot(dataDir,)
 
     nationPlot(dataDir, avg=False)
     nationPlot(dataDir,)
