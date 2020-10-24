@@ -13,3 +13,5 @@
 ![image](DoubleBarChart-Nation.png)
 
 ![image](DoubleBarChart-Nation-Avg.png)
+
+![image](testsCasesHeatMap.png)

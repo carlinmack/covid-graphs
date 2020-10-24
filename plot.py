@@ -7,6 +7,7 @@ from datetime import timedelta
 import matplotlib.pyplot as plt
 import matplotlib.ticker as tkr
 import numpy as np
+import pandas as pd
 
 
 def getData(dataDir):
@@ -15,8 +16,10 @@ def getData(dataDir):
 
     casesURL = """https://api.coronavirus.data.gov.uk/v1/data?filters=areaType=nation;areaName={nation}&structure=%7B"date":"date","newCasesBySpecimenDate":"newCasesBySpecimenDate"%7D&format=csv"""
 
-    dataURLs = [testingURL, casesURL]
-    names = ["testing", "cases"]
+    reportedURL = """https://api.coronavirus.data.gov.uk/v1/data?filters=areaType=nation;areaName={nation}&structure=%7B""date":"date","newCasesByPublishDate":"newCasesByPublishDate"%7D&format=csv"""
+
+    dataURLs = [testingURL, casesURL, reportedURL]
+    names = ["testing", "cases", "cases.reported"]
 
     today = dt.today()
     yesterday = today - timedelta(days=1)
@@ -38,7 +41,9 @@ def getData(dataDir):
     ukTestingURL = """https://api.coronavirus.data.gov.uk/v1/data?filters=areaType=overview&structure=%7B"date":"date","newPillarOneTestsByPublishDate":"newPillarOneTestsByPublishDate","newPillarTwoTestsByPublishDate":"newPillarTwoTestsByPublishDate","newPillarFourTestsByPublishDate":"newPillarFourTestsByPublishDate"%7D&format=csv"""
     ukCasesURL = """https://api.coronavirus.data.gov.uk/v1/data?filters=areaType=overview&structure=%7B"date":"date","newCasesBySpecimenDate":"newCasesBySpecimenDate"%7D&format=csv"""
 
-    URLs = [ukTestingURL, ukCasesURL]
+    ukReportedURL = """https://api.coronavirus.data.gov.uk/v1/data?filters=areaName=United%2520Kingdom;areaType=overview&structure=%7B"date":"date","newCasesByPublishDate":"newCasesByPublishDate"%7D&format=csv"""
+
+    URLs = [ukTestingURL, ukCasesURL, ukReportedURL]
 
     for j, url in enumerate(URLs):
         r = requests.get(url)
@@ -354,6 +359,79 @@ def nationPlot(dataDir="data/", plotsDir="plots/", avg=True):
     savePlot(figname)
 
 
+def heatMapPlot(dataDir="data/", plotsDir="plots/"):
+    today = dt.today()
+
+    filePrefix = dataDir + "UK"
+    casesFileName = filePrefix + ".cases." + today.strftime("%Y-%m-%d") + ".csv"
+    reportedFileName = filePrefix + ".cases.reported." + today.strftime("%Y-%m-%d") + ".csv"
+    testsFileName = filePrefix + ".testing." + today.strftime("%Y-%m-%d") + ".csv"
+
+    with open(casesFileName, "r") as file:
+        next(file)
+        reader = csv.reader(file, delimiter=",")
+        casesData = [[line[0], int(line[1])] for line in reader]
+
+    with open(reportedFileName, "r") as file:
+        next(file)
+        reader = csv.reader(file, delimiter=",")
+        reportedData = [[line[0], int(line[1])] for line in reader]
+
+    with open(testsFileName, "r") as file:
+        next(file)
+        reader = csv.reader(file, delimiter=",")
+        testsData = [
+            (line[0], parseInt(line[1]) + parseInt(line[2]) + parseInt(line[3]))
+            for line in reader
+        ]
+
+    casesDf = pd.DataFrame(casesData, columns=["Date", "Cases"])
+    reportedDf = pd.DataFrame(reportedData, columns=["Date", "Cases"])
+    testsDf = pd.DataFrame(testsData, columns=["Date", "Tests"])
+
+    casesDf["Date"] = pd.to_datetime(casesDf["Date"])
+    reportedDf["Date"] = pd.to_datetime(reportedDf["Date"])
+    testsDf["Date"] = pd.to_datetime(testsDf["Date"])
+
+    days = [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday",
+    ]
+
+    casesWeekDf = casesDf.groupby(casesDf["Date"].dt.day_name()).mean().reindex(days)
+    reportedWeekDf = reportedDf.groupby(reportedDf["Date"].dt.day_name()).mean().reindex(days)
+    testsWeekDf = testsDf.groupby(testsDf["Date"].dt.day_name()).mean().reindex(days)
+
+    dataFrames = [testsWeekDf, reportedWeekDf, casesWeekDf]
+    names = ["Tests", "Cases (reported date)", "Cases (specimen date)"]
+
+    figname = plotsDir + "testsCasesHeatMap"
+    plt.figure()
+    fig, axs = plt.subplots(3, 1, sharex=True)
+
+    for j, ax in enumerate(axs):
+        ax.set_ylabel(names[j], rotation=0, ha="right", va="center")
+        ax.tick_params(axis="y", which="both", left=False, labelleft=False)
+        plt.xticks(ticks=list(range(7)), labels=days)
+
+        hm = ax.imshow(
+            [dataFrames[j]], cmap="plasma", interpolation="none", aspect="auto"
+        )
+        plt.colorbar(hm, ax=ax, format=threeFigureFormatter, aspect=10)
+
+        removeSpines(ax)
+
+    fig.suptitle("Heatmap of number of tests or cases per day")
+    plt.gcf().set_size_inches(10, 5)
+
+    savePlot(figname)
+
+
 # Helpers ------------------------------------------------------------------------------
 
 
@@ -373,6 +451,11 @@ def threeFigureFormatter(x, pos):
         return s + ",".join(reversed(groups))
     else:
         return s
+
+
+def removeSpines(ax):
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
 
 
 def n_day_avg(xs, n=7):
@@ -396,11 +479,13 @@ if __name__ == "__main__":
     if not os.path.exists(plotsDir):
         os.mkdir(plotsDir)
 
-    # getData(dataDir)
+    getData(dataDir)
 
-    ukPlot(dataDir, plotsDir, avg=False)
-    ukPlot(dataDir, plotsDir)
+    # ukPlot(dataDir, plotsDir, avg=False)
+    # ukPlot(dataDir, plotsDir)
 
-    nationPlot(dataDir, plotsDir, avg=False)
-    nationPlot(dataDir, plotsDir)
+    # nationPlot(dataDir, plotsDir, avg=False)
+    # nationPlot(dataDir, plotsDir)
+
+    # heatMapPlot(dataDir, plotsDir)
 
