@@ -506,14 +506,14 @@ def nationHeatMapPlot(dataDir="data/", plotsDir="plots/"):
     figname = plotsDir + "testsCasesHeatMap-Nation"
 
     fig = plt.figure(figsize=(20, 10))
-    outerAxs = gridspec.GridSpec(2, 2, wspace=0.3, hspace=0.3)
+    outerAxs = gridspec.GridSpec(2, 2, hspace=0.3)
 
     fig.suptitle("Heatmap of number of tests/cases per day")
 
+    names = ["Tests", "Cases\n(reported date)", "Cases\n(specimen date)"]
+
     for i in range(4):
         inner = outerAxs[i].subgridspec(3, 1, hspace=0.3)
-
-        names = ["Tests", "Cases (reported date)", "Cases (specimen date)"]
 
         for j in range(3):
             ax = fig.add_subplot(inner[j])
