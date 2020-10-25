@@ -591,11 +591,11 @@ if __name__ == "__main__":
 
     # getData(dataDir)
 
-    # ukPlot(dataDir, plotsDir, avg=False)
-    # ukPlot(dataDir, plotsDir)
+    ukPlot(dataDir, plotsDir, avg=False)
+    ukPlot(dataDir, plotsDir)
 
-    # nationPlot(dataDir, plotsDir, avg=False)
-    # nationPlot(dataDir, plotsDir)
+    nationPlot(dataDir, plotsDir, avg=False)
+    nationPlot(dataDir, plotsDir)
 
     heatMapPlot(dataDir, plotsDir)
     nationHeatMapPlot(dataDir, plotsDir)
