@@ -589,7 +589,7 @@ if __name__ == "__main__":
     if not os.path.exists(plotsDir):
         os.mkdir(plotsDir)
 
-    # getData(dataDir)
+    getData(dataDir)
 
     ukPlot(dataDir, plotsDir, avg=False)
     ukPlot(dataDir, plotsDir)
