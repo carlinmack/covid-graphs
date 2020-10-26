@@ -422,6 +422,8 @@ def nationReportedPlot(dataDir="data/", plotsDir="plots/", avg=True):
     ax.set_xlim(
         left=dt.strptime("2020-03-01", "%Y-%m-%d"), right=today,
     )
+    handles, labels = ax.get_legend_handles_labels()
+    ax.legend(reversed(handles), reversed(labels))
 
     yLabel = "Cases"
     if avg:
@@ -463,6 +465,8 @@ def nationReportedPlot(dataDir="data/", plotsDir="plots/", avg=True):
     ax.set_xlim(
         left=dt.strptime("2020-03-01", "%Y-%m-%d"), right=today,
     )
+    handles, labels = ax.get_legend_handles_labels()
+    ax.legend(reversed(handles), reversed(labels))
 
     yLabel = "Cases"
     if avg:
