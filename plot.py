@@ -403,7 +403,6 @@ def nationReportedPlot(dataDir="data/", plotsDir="plots/", avg=True):
 
     fignameSuffix = ["", "-Per-Capita"]
     titleSuffix = ["", ", per capita"]
-    yLabels = ["UK Population", "nation"]
     perCapita = [0, 1]
 
     for i in range(2):
@@ -425,13 +424,22 @@ def nationReportedPlot(dataDir="data/", plotsDir="plots/", avg=True):
             if perCapita[i]:
                 reportedData = [x / populations[j] * 100 for x in reportedData]
 
-            ax.bar(
-                nationDates[j],
-                reportedData,
-                color=colors[j],
-                label=nation,
-                bottom=bottom,
-            )
+            if perCapita[i]:
+                ax.plot(
+                    nationDates[j],
+                    reportedData,
+                    color=colors[j],
+                    label=nation,
+                    linewidth=2,
+                )
+            else:
+                ax.bar(
+                    nationDates[j],
+                    reportedData,
+                    color=colors[j],
+                    label=nation,
+                    bottom=bottom,
+                )
 
             bottom = list(map(add, reportedData, bottom))
 
@@ -443,13 +451,14 @@ def nationReportedPlot(dataDir="data/", plotsDir="plots/", avg=True):
         ax.legend(reversed(handles), reversed(labels))
 
         if perCapita[i]:
-            yLabel = "Percent cases per nation"
+            yLabel = "Percent of nation tested positive"
         else:
             yLabel = "Reported cases"
-        
+
         if avg:
             yLabel += " (seven day average)"
         ax.set_ylabel(yLabel)
+        ax.set_ylim(bottom=0)
 
         if perCapita[i]:
             ax.yaxis.set_major_formatter(tkr.PercentFormatter(decimals=2))
@@ -463,6 +472,7 @@ def nationReportedPlot(dataDir="data/", plotsDir="plots/", avg=True):
         savePlot(figname)
 
     # Cumulative
+    yLabels = ["UK population", "nation"]
 
     if not avg:
         for i in range(2):
@@ -482,13 +492,22 @@ def nationReportedPlot(dataDir="data/", plotsDir="plots/", avg=True):
                 # reversed cumulative sum
                 reportedData = np.cumsum(reportedData[::-1])[::-1]
 
-                ax.bar(
-                    nationDates[j],
-                    reportedData,
-                    color=colors[j],
-                    label=nation,
-                    bottom=bottom,
-                )
+                if perCapita[i]:
+                    ax.plot(
+                        nationDates[j],
+                        reportedData,
+                        color=colors[j],
+                        label=nation,
+                        linewidth=2,
+                    )
+                else:
+                    ax.bar(
+                        nationDates[j],
+                        reportedData,
+                        color=colors[j],
+                        label=nation,
+                        bottom=bottom,
+                    )
 
                 bottom = list(map(add, reportedData, bottom))
 
@@ -500,10 +519,11 @@ def nationReportedPlot(dataDir="data/", plotsDir="plots/", avg=True):
             ax.legend(reversed(handles), reversed(labels))
 
             ax.yaxis.set_major_formatter(tkr.PercentFormatter(decimals=2))
-            yLabel = "Percent cases per " + yLabels[i]
+            yLabel = "Percent of " + yLabels[i] + " tested positive"
             if avg:
                 yLabel += " (seven day average)"
             ax.set_ylabel(yLabel)
+            ax.set_ylim(bottom=0)
 
             removeSpines(ax)
             showGrid(ax, "y")
