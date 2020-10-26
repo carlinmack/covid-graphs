@@ -455,7 +455,7 @@ def nationReportedPlot(dataDir="data/", plotsDir="plots/", avg=True):
         if avg:
             reportedData = n_day_avg(reportedData, 7)
 
-        reportedData = [x / populations[j] for x in reportedData]
+        reportedData = [x / populations[j] * 100 for x in reportedData]
 
         ax.bar(nationDates[j], reportedData, color=colors[j], label=nation, bottom=bottom)
 
@@ -468,12 +468,11 @@ def nationReportedPlot(dataDir="data/", plotsDir="plots/", avg=True):
     handles, labels = ax.get_legend_handles_labels()
     ax.legend(reversed(handles), reversed(labels))
 
-    yLabel = "Cases"
+    ax.yaxis.set_major_formatter(tkr.PercentFormatter(decimals=2))
+    yLabel = "Cases as a percentage of population"
     if avg:
         yLabel += " (seven day average)"
     ax.set_ylabel(yLabel)
-    
-    ax.yaxis.set_major_formatter(tkr.FuncFormatter(threeFigureFormatter))
 
     removeSpines(ax)
 
