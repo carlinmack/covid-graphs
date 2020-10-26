@@ -24,7 +24,7 @@
 
 ![image](Stacked-Nation-Cumulative.png)
 
-![image](Stacked-Nation-Cumulative-Per-Capita-Avg.png)
+![image](Stacked-Nation-Cumulative-Per-Capita.png)
 
 ![image](testsCasesHeatMap.png)
 
