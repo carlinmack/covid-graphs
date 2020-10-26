@@ -3,6 +3,7 @@ import os
 import requests
 from datetime import datetime as dt
 from datetime import timedelta
+from operator import add
 
 import matplotlib.pyplot as plt
 import matplotlib.ticker as tkr
@@ -105,7 +106,7 @@ def ukPlot(dataDir="data/", plotsDir="plots/", avg=True):
         tests = n_day_avg(tests, 7)
 
     # remove the most recent two dates as they won't be accurate yet
-    skip = 2
+    skip = 3
     cases = cases[skip:]
     casesDates = casesDates[skip:]
     tests = tests[skip:]
@@ -254,7 +255,7 @@ def nationPlot(dataDir="data/", plotsDir="plots/", avg=True):
                 tests[j] = 0
 
         # remove the most recent two dates as they won't be accurate yet
-        skip = 2
+        skip = 3
         nationsCases.append(cases[skip:])
         nationCasesDates.append(casesDates[skip:])
 
@@ -354,6 +355,123 @@ def nationPlot(dataDir="data/", plotsDir="plots/", avg=True):
 
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
+
+    plt.gcf().set_size_inches(15, 9)
+
+    savePlot(figname)
+
+def nationReportedPlot(dataDir="data/", plotsDir="plots/", avg=True):    
+    nations = ["England", "Northern Ireland", "Scotland", "Wales"]
+    colors = ["#5694CA", "#FFDD00", "#003078", "#D4351C"]
+    populations = [56286961,1893667,5463300,3152879]
+
+    nationsReported = []
+    nationDates = []
+
+    days = [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday",
+    ]
+
+    today = dt.today()
+
+    for nation in nations:
+        filePrefix = dataDir + nation
+        reportedFileName = (
+            filePrefix + ".cases.reported." + today.strftime("%Y-%m-%d") + ".csv"
+        )
+
+        with open(reportedFileName, "r") as file:
+            next(file)
+            reader = csv.reader(file, delimiter=",")
+            reportedData = [[line[0], int(line[1])] for line in reader]
+            
+        reportedData = np.array(reportedData)
+        testDates = reportedData[:, 0]
+        testDates = [dt.strptime(x, "%Y-%m-%d") for x in testDates]
+        reportedData = reportedData[:, 1].astype(np.float)
+
+        nationsReported.append(reportedData)
+        nationDates.append(testDates)
+
+    figname = plotsDir + "Stacked-Nation"
+    if avg:
+        figname += "-Avg"
+    plt.figure()
+    _, ax = plt.subplots()
+    ax.set_title("Cases by date reported")
+
+    bottom = [0] * len(nationsReported[0])
+
+    for j, nation in enumerate(nations):
+        reportedData = nationsReported[j]
+
+        if avg:
+            reportedData = n_day_avg(reportedData, 7)
+
+        ax.bar(nationDates[j], reportedData, color=colors[j], label=nation, bottom=bottom)
+
+        bottom = list(map(add, reportedData, bottom)) 
+
+    ax.xaxis_date()
+    ax.set_xlim(
+        left=dt.strptime("2020-03-01", "%Y-%m-%d"), right=today,
+    )
+
+    yLabel = "Cases"
+    if avg:
+        yLabel += " (seven day average)"
+    ax.set_ylabel(yLabel)
+    
+    ax.yaxis.set_major_formatter(tkr.FuncFormatter(threeFigureFormatter))
+
+    removeSpines(ax)
+
+    plt.gcf().set_size_inches(15, 9)
+
+    savePlot(figname)
+
+    # Per Capita
+
+    figname = plotsDir + "Stacked-Nation-Per-Capita"
+    if avg:
+        figname += "-Avg"
+    plt.figure()
+    _, ax = plt.subplots()
+    ax.set_title("Cases by date reported, per capita")
+
+    bottom = [0] * len(nationsReported[0])
+
+    for j, nation in enumerate(nations):
+        reportedData = nationsReported[j]
+
+        if avg:
+            reportedData = n_day_avg(reportedData, 7)
+
+        reportedData = [x / populations[j] for x in reportedData]
+
+        ax.bar(nationDates[j], reportedData, color=colors[j], label=nation, bottom=bottom)
+
+        bottom = list(map(add, reportedData, bottom)) 
+
+    ax.xaxis_date()
+    ax.set_xlim(
+        left=dt.strptime("2020-03-01", "%Y-%m-%d"), right=today,
+    )
+
+    yLabel = "Cases"
+    if avg:
+        yLabel += " (seven day average)"
+    ax.set_ylabel(yLabel)
+    
+    ax.yaxis.set_major_formatter(tkr.FuncFormatter(threeFigureFormatter))
+
+    removeSpines(ax)
 
     plt.gcf().set_size_inches(15, 9)
 
@@ -481,11 +599,9 @@ def nationHeatMapPlot(dataDir="data/", plotsDir="plots/"):
                 for line in reader
             ]
 
-        # remove the most recent two dates as they won't be accurate yet
-        skip = 2
-        casesDf = pd.DataFrame(casesData[skip:], columns=["Date", "Cases"])
-        reportedDf = pd.DataFrame(reportedData[skip:], columns=["Date", "Cases"])
-        testsDf = pd.DataFrame(testsData[skip:], columns=["Date", "Tests"])
+        casesDf = pd.DataFrame(casesData, columns=["Date", "Cases"])
+        reportedDf = pd.DataFrame(reportedData, columns=["Date", "Cases"])
+        testsDf = pd.DataFrame(testsData, columns=["Date", "Tests"])
 
         casesDf["Date"] = pd.to_datetime(casesDf["Date"])
         reportedDf["Date"] = pd.to_datetime(reportedDf["Date"])
@@ -589,14 +705,17 @@ if __name__ == "__main__":
     if not os.path.exists(plotsDir):
         os.mkdir(plotsDir)
 
-    getData(dataDir)
+    # getData(dataDir)
 
-    ukPlot(dataDir, plotsDir, avg=False)
-    ukPlot(dataDir, plotsDir)
+    # ukPlot(dataDir, plotsDir, avg=False)
+    # ukPlot(dataDir, plotsDir)
 
-    nationPlot(dataDir, plotsDir, avg=False)
-    nationPlot(dataDir, plotsDir)
+    # nationPlot(dataDir, plotsDir, avg=False)
+    # nationPlot(dataDir, plotsDir)
 
-    heatMapPlot(dataDir, plotsDir)
-    nationHeatMapPlot(dataDir, plotsDir)
+    nationReportedPlot(dataDir, plotsDir)
+    nationReportedPlot(dataDir, plotsDir, avg=False)
+
+    # heatMapPlot(dataDir, plotsDir)
+    # nationHeatMapPlot(dataDir, plotsDir)
 

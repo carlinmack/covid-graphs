@@ -14,6 +14,14 @@
 
 ![image](DoubleBarChart-Nation-Avg.png)
 
+![image](Stacked-Nation.png)
+
+![image](Stacked-Nation-Avg.png)
+
+![image](Stacked-Nation-Per-Capita.png)
+
+![image](Stacked-Nation-Per-Capita-Avg.png)
+
 ![image](testsCasesHeatMap.png)
 
 ![image](testsCasesHeatMap-Nation.png)
