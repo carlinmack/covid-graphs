@@ -11,54 +11,58 @@ import numpy as np
 import pandas as pd
 import matplotlib.gridspec as gridspec
 
+import json 
 
 def getData(dataDir):
-    nations = ["Scotland", "England", "Northern Ireland", "Wales"]
-    testingURL = """https://api.coronavirus.data.gov.uk/v1/data?filters=areaType=nation;areaName={nation}&structure=%7B"date":"date","newPillarOneTestsByPublishDate":"newPillarOneTestsByPublishDate","newPillarTwoTestsByPublishDate":"newPillarTwoTestsByPublishDate","newPillarFourTestsByPublishDate":"newPillarFourTestsByPublishDate"%7D&format=csv"""
+    # check for if there is new data
+    with open(dataDir + "Last-Modified.txt") as file:
+        prevLastModified = file.read()
 
-    casesURL = """https://api.coronavirus.data.gov.uk/v1/data?filters=areaType=nation;areaName={nation}&structure=%7B"date":"date","newCasesBySpecimenDate":"newCasesBySpecimenDate"%7D&format=csv"""
+    url = 'https://api.coronavirus.data.gov.uk/v1/data?filters=areaType=nation;areaName=england&structure=%7B%22name%22:%22areaName%22%7D'
 
-    reportedURL = """https://api.coronavirus.data.gov.uk/v1/data?filters=areaType=nation;areaName={nation}&structure=%7B"date":"date","newCasesByPublishDate":"newCasesByPublishDate"%7D&format=csv"""
+    r = requests.get(url)
+    lastModified = r.headers["Last-Modified"]
 
-    dataURLs = [testingURL, casesURL, reportedURL]
-    names = ["testing", "cases", "cases.reported"]
+    if prevLastModified != lastModified:
+        print('Getting new data...')
+        with open(dataDir + "Last-Modified.txt", "w") as file:
+            file.write(lastModified)
 
-    today = dt.today()
-    yesterday = today - timedelta(days=1)
+        nations = ["Scotland", "England", "Northern Ireland", "Wales"]
+        testingURL = """https://api.coronavirus.data.gov.uk/v1/data?filters=areaType=nation;areaName={nation}&structure=%7B"date":"date","newPillarOneTestsByPublishDate":"newPillarOneTestsByPublishDate","newPillarTwoTestsByPublishDate":"newPillarTwoTestsByPublishDate","newPillarFourTestsByPublishDate":"newPillarFourTestsByPublishDate"%7D&format=csv"""
 
-    for i, url in enumerate(dataURLs):
-        for nation in nations:
-            r = requests.get(url.format(nation=nation))
+        casesURL = """https://api.coronavirus.data.gov.uk/v1/data?filters=areaType=nation;areaName={nation}&structure=%7B"date":"date","newCasesBySpecimenDate":"newCasesBySpecimenDate"%7D&format=csv"""
+
+        reportedURL = """https://api.coronavirus.data.gov.uk/v1/data?filters=areaType=nation;areaName={nation}&structure=%7B"date":"date","newCasesByPublishDate":"newCasesByPublishDate"%7D&format=csv"""
+
+        dataURLs = [testingURL, casesURL, reportedURL]
+        names = ["testing", "cases", "cases.reported"]
+
+        for i, url in enumerate(dataURLs):
+            for nation in nations:
+                r = requests.get(url.format(nation=nation))
+                text = r.text
+                fileName = dataDir + nation + "." + names[i] + ".csv"
+
+                with open(fileName, "w") as file:
+                    file.writelines(text)
+
+        ukTestingURL = """https://api.coronavirus.data.gov.uk/v1/data?filters=areaType=overview&structure=%7B"date":"date","newPillarOneTestsByPublishDate":"newPillarOneTestsByPublishDate","newPillarTwoTestsByPublishDate":"newPillarTwoTestsByPublishDate","newPillarFourTestsByPublishDate":"newPillarFourTestsByPublishDate"%7D&format=csv"""
+        ukCasesURL = """https://api.coronavirus.data.gov.uk/v1/data?filters=areaType=overview&structure=%7B"date":"date","newCasesBySpecimenDate":"newCasesBySpecimenDate"%7D&format=csv"""
+
+        ukReportedURL = """https://api.coronavirus.data.gov.uk/v1/data?filters=areaName=United%2520Kingdom;areaType=overview&structure=%7B"date":"date","newCasesByPublishDate":"newCasesByPublishDate"%7D&format=csv"""
+
+        URLs = [ukTestingURL, ukCasesURL, ukReportedURL]
+
+        for j, url in enumerate(URLs):
+            r = requests.get(url)
             text = r.text
-            filePrefix = dataDir + nation + "." + names[i] + "."
+            fileName = dataDir + "UK." + names[j] + ".csv"
 
-            yesterdaysFileName = filePrefix + yesterday.strftime("%Y-%m-%d") + ".csv"
-            if os.path.exists(yesterdaysFileName):
-                os.remove(yesterdaysFileName)
-
-            fileName = filePrefix + today.strftime("%Y-%m-%d") + ".csv"
             with open(fileName, "w") as file:
                 file.writelines(text)
-
-    ukTestingURL = """https://api.coronavirus.data.gov.uk/v1/data?filters=areaType=overview&structure=%7B"date":"date","newPillarOneTestsByPublishDate":"newPillarOneTestsByPublishDate","newPillarTwoTestsByPublishDate":"newPillarTwoTestsByPublishDate","newPillarFourTestsByPublishDate":"newPillarFourTestsByPublishDate"%7D&format=csv"""
-    ukCasesURL = """https://api.coronavirus.data.gov.uk/v1/data?filters=areaType=overview&structure=%7B"date":"date","newCasesBySpecimenDate":"newCasesBySpecimenDate"%7D&format=csv"""
-
-    ukReportedURL = """https://api.coronavirus.data.gov.uk/v1/data?filters=areaName=United%2520Kingdom;areaType=overview&structure=%7B"date":"date","newCasesByPublishDate":"newCasesByPublishDate"%7D&format=csv"""
-
-    URLs = [ukTestingURL, ukCasesURL, ukReportedURL]
-
-    for j, url in enumerate(URLs):
-        r = requests.get(url)
-        text = r.text
-        filePrefix = dataDir + "UK." + names[j] + "."
-
-        yesterdaysFileName = filePrefix + yesterday.strftime("%Y-%m-%d") + ".csv"
-        if os.path.exists(yesterdaysFileName):
-            os.remove(yesterdaysFileName)
-
-        fileName = filePrefix + today.strftime("%Y-%m-%d") + ".csv"
-        with open(fileName, "w") as file:
-            file.writelines(text)
+        
+        print('Done!')
 
 
 def ukPlot(dataDir="data/", plotsDir="plots/", avg=True):
@@ -765,7 +769,8 @@ if __name__ == "__main__":
     if not os.path.exists(plotsDir):
         os.mkdir(plotsDir)
 
-    # getData(dataDir)
+
+    getData(dataDir)
 
     # ukPlot(dataDir, plotsDir, avg=False)
     # ukPlot(dataDir, plotsDir)
@@ -773,8 +778,8 @@ if __name__ == "__main__":
     # nationPlot(dataDir, plotsDir, avg=False)
     # nationPlot(dataDir, plotsDir)
 
-    nationReportedPlot(dataDir, plotsDir)
-    nationReportedPlot(dataDir, plotsDir, avg=False)
+    # nationReportedPlot(dataDir, plotsDir)
+    # nationReportedPlot(dataDir, plotsDir, avg=False)
 
     # heatMapPlot(dataDir, plotsDir)
     # nationHeatMapPlot(dataDir, plotsDir)
