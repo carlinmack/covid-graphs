@@ -14,17 +14,29 @@
 
 ![image](DoubleBarChart-Nation-Avg.png)
 
-![image](Stacked-Nation.png)
+![image](Nation-Reported-Cases.png)
 
-![image](Stacked-Nation-Avg.png)
+![image](Nation-Reported-Cases-Avg.png)
 
-![image](Stacked-Nation-Per-Capita.png)
+![image](Nation-Reported-Cases-Per-Capita.png)
 
-![image](Stacked-Nation-Per-Capita-Avg.png)
+![image](Nation-Reported-Cases-Per-Capita-Avg.png)
 
-![image](Stacked-Nation-Cumulative.png)
+![image](Nation-Reported-Cases-Cumulative.png)
 
-![image](Stacked-Nation-Cumulative-Per-Capita.png)
+![image](Nation-Reported-Cases-Cumulative-Per-Capita.png)
+
+![image](Nation-Reported-Deaths.png)
+
+![image](Nation-Reported-Deaths-Avg.png)
+
+![image](Nation-Reported-Deaths-Per-Capita.png)
+
+![image](Nation-Reported-Deaths-Per-Capita-Avg.png)
+
+![image](Nation-Reported-Deaths-Cumulative.png)
+
+![image](Nation-Reported-Deaths-Cumulative-Per-Capita.png)
 
 ![image](testsCasesHeatMap.png)
 
