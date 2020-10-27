@@ -123,7 +123,7 @@ def ukPlot(dataDir="data/", plotsDir="plots/", avg=True):
     testDates = testDates[skip:]
 
     plt.figure()
-    _, ax = plt.subplots()
+    fig, ax = plt.subplots()
 
     figname = plotsDir + "PercentPositive"
     if avg:
@@ -172,14 +172,14 @@ def ukPlot(dataDir="data/", plotsDir="plots/", avg=True):
     ax.spines["top"].set_visible(False)
     ax2.spines["top"].set_visible(False)
 
-    savePlot(figname)
+    savePlot(figname, fig)
 
     # Double bar chart
     figname = plotsDir + "DoubleBarChart"
     if avg:
         figname += "-Avg"
     plt.figure()
-    _, ax = plt.subplots()
+    fig, ax = plt.subplots()
 
     ax.set_title("Number of tests vs positive tests")
 
@@ -209,7 +209,7 @@ def ukPlot(dataDir="data/", plotsDir="plots/", avg=True):
 
     ax.legend()
 
-    savePlot(figname)
+    savePlot(figname, fig)
 
 
 def nationPlot(dataDir="data/", plotsDir="plots/", avg=True):
@@ -272,7 +272,7 @@ def nationPlot(dataDir="data/", plotsDir="plots/", avg=True):
         nationTestDates.append(testDates[skip:])
 
     plt.figure()
-    _, ax = plt.subplots()
+    fig, ax = plt.subplots()
 
     figname = plotsDir + "PercentPositive-Nation"
     if avg:
@@ -316,7 +316,7 @@ def nationPlot(dataDir="data/", plotsDir="plots/", avg=True):
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
 
-    savePlot(figname)
+    savePlot(figname, fig)
 
     # Double bar chart
     figname = plotsDir + "DoubleBarChart-Nation"
@@ -366,7 +366,7 @@ def nationPlot(dataDir="data/", plotsDir="plots/", avg=True):
 
     plt.gcf().set_size_inches(15, 9)
 
-    savePlot(figname)
+    savePlot(figname, fig)
 
 
 def nationReportedPlot(dataDir="data/", plotsDir="plots/", avg=True):
@@ -411,7 +411,7 @@ def nationReportedPlot(dataDir="data/", plotsDir="plots/", avg=True):
             if avg:
                 figname += "-Avg"
             plt.figure()
-            _, ax = plt.subplots()
+            fig, ax = plt.subplots()
             ax.set_title(titleTypesUpper[type] + " by date reported" + titleSuffix[i])
             
             if avg:
@@ -478,7 +478,7 @@ def nationReportedPlot(dataDir="data/", plotsDir="plots/", avg=True):
 
             plt.gcf().set_size_inches(15, 9)
 
-            savePlot(figname)
+            savePlot(figname, fig)
 
         # Cumulative
         yLabels = ["UK population", "nation"]
@@ -489,7 +489,7 @@ def nationReportedPlot(dataDir="data/", plotsDir="plots/", avg=True):
                     plotsDir + fignameTypes[type] + "-Cumulative" + fignameSuffix[i]
                 )
                 plt.figure()
-                _, ax = plt.subplots()
+                fig, ax = plt.subplots()
                 ax.set_title(
                     "Cumulative %s by date reported%s"
                     % (titleTypesLower[type], titleSuffix[i])
@@ -544,7 +544,7 @@ def nationReportedPlot(dataDir="data/", plotsDir="plots/", avg=True):
 
                 plt.gcf().set_size_inches(15, 9)
 
-                savePlot(figname)
+                savePlot(figname, fig)
 
 
 def heatMapPlot(dataDir="data/", plotsDir="plots/"):
@@ -618,7 +618,7 @@ def heatMapPlot(dataDir="data/", plotsDir="plots/"):
     fig.suptitle("Heatmap of number of tests/cases per day")
     plt.gcf().set_size_inches(10, 5)
 
-    savePlot(figname)
+    savePlot(figname, fig)
 
 
 def nationHeatMapPlot(dataDir="data/", plotsDir="plots/"):
@@ -715,16 +715,15 @@ def nationHeatMapPlot(dataDir="data/", plotsDir="plots/"):
             removeSpines(ax, all=True)
             fig.add_subplot(ax)
 
-    savePlot(figname)
+    savePlot(figname, fig)
 
 
 # Helpers ------------------------------------------------------------------------------
 
 
-def savePlot(figname):
+def savePlot(figname, fig):
     plt.savefig(figname, bbox_inches="tight", pad_inches=0.25, dpi=200)
-    plt.cla()
-    plt.close()
+    plt.close(fig)
 
 
 def threeFigureFormatter(x, pos):
