@@ -14,20 +14,18 @@ import matplotlib.gridspec as gridspec
 import json
 
 
-def getData(dataDir):
+def getData(dataDir, force=False):
     # check for if there is new data
     with open(dataDir + "Last-Modified.txt") as file:
         prevLastModified = file.read()
 
-    url = "https://api.coronavirus.data.gov.uk/v1/data?filters=areaType=nation;areaName=england&structure=%7B%22name%22:%22areaName%22%7D"
+    url = """https://api.coronavirus.data.gov.uk/v1/data?filters=areaType=nation;areaName=england&structure=%7B"name":"areaName"%7D"""
 
     r = requests.get(url)
     lastModified = r.headers["Last-Modified"]
 
-    if prevLastModified != lastModified:
+    if prevLastModified != lastModified or force:
         print("Getting new data...")
-        with open(dataDir + "Last-Modified.txt", "w") as file:
-            file.write(lastModified)
 
         nations = ["Scotland", "England", "Northern Ireland", "Wales"]
         testingURL = """https://api.coronavirus.data.gov.uk/v1/data?filters=areaType=nation;areaName={nation}&structure=%7B"date":"date","newPillarOneTestsByPublishDate":"newPillarOneTestsByPublishDate","newPillarTwoTestsByPublishDate":"newPillarTwoTestsByPublishDate","newPillarFourTestsByPublishDate":"newPillarFourTestsByPublishDate"%7D&format=csv"""
@@ -36,8 +34,12 @@ def getData(dataDir):
 
         reportedURL = """https://api.coronavirus.data.gov.uk/v1/data?filters=areaType=nation;areaName={nation}&structure=%7B"date":"date","newCasesByPublishDate":"newCasesByPublishDate"%7D&format=csv"""
 
-        dataURLs = [testingURL, casesURL, reportedURL]
-        names = ["testing", "cases", "cases.reported"]
+        deathsURL = """https://api.coronavirus.data.gov.uk/v1/data?filters=areaType=nation;areaName={nation}&structure=%7B"date":"date","newDeaths28DaysByDeathDate":"newDeaths28DaysByDeathDate"%7D&format=csv"""
+
+        deathsReportedURL = """https://api.coronavirus.data.gov.uk/v1/data?filters=areaType=nation;areaName={nation}&structure=%7B"date":"date","newDeaths28DaysByPublishDate":"newDeaths28DaysByPublishDate"%7D&format=csv"""
+
+        dataURLs = [testingURL, casesURL, reportedURL, deathsURL, deathsReportedURL]
+        names = ["testing", "cases", "cases.reported", "deaths", "deaths.reported"]
 
         for i, url in enumerate(dataURLs):
             for nation in nations:
@@ -63,6 +65,9 @@ def getData(dataDir):
             with open(fileName, "w") as file:
                 file.writelines(text)
 
+        with open(dataDir + "Last-Modified.txt", "w") as file:
+            file.write(lastModified)
+        
         print("Done!")
 
 
@@ -370,127 +375,55 @@ def nationReportedPlot(dataDir="data/", plotsDir="plots/", avg=True):
     populations = [56286961, 1893667, 5463300, 3152879]
     totalPopulation = sum(populations)
 
-    nationsReported = []
-    nationDates = []
-
-    days = [
-        "Monday",
-        "Tuesday",
-        "Wednesday",
-        "Thursday",
-        "Friday",
-        "Saturday",
-        "Sunday",
-    ]
-
     today = dt.today()
 
-    for nation in nations:
-        reportedFileName = dataDir + nation + ".cases.reported.csv"
+    fileNameTypes = [".cases.reported", ".deaths.reported"]
+    fignameTypes = ["Nation-Reported-Cases", "Nation-Reported-Deaths"]
+    titleTypesUpper = ["Cases", "Deaths"]
+    titleTypesLower = ["cases", "deaths"]
+    yLabelTypes = ["tested positive", "who have died within 28 days of a positive test"]
+    
+    for type in range(2):
+        nationsReported = []
+        nationDates = []
 
-        with open(reportedFileName, "r") as file:
-            next(file)
-            reader = csv.reader(file, delimiter=",")
-            reportedData = [[line[0], int(line[1])] for line in reader]
+        for nation in nations:
+            reportedFileName = dataDir + nation + fileNameTypes[type] + ".csv"
+            with open(reportedFileName, "r") as file:
+                next(file)
+                reader = csv.reader(file, delimiter=",")
+                reportedData = [[line[0], int(line[1])] for line in reader]
 
-        reportedData = np.array(reportedData)
-        testDates = reportedData[:, 0]
-        testDates = [dt.strptime(x, "%Y-%m-%d") for x in testDates]
-        reportedData = reportedData[:, 1].astype(np.float)
+            reportedData = np.array(reportedData)
+            testDates = reportedData[:, 0]
+            testDates = [dt.strptime(x, "%Y-%m-%d") for x in testDates]
+            reportedData = reportedData[:, 1].astype(np.float)
 
-        nationsReported.append(reportedData)
-        nationDates.append(testDates)
+            nationsReported.append(reportedData)
+            nationDates.append(testDates)
 
-    fignameSuffix = ["", "-Per-Capita"]
-    titleSuffix = ["", ", per capita"]
-    perCapita = [0, 1]
+        fignameSuffix = ["", "-Per-Capita"]
+        titleSuffix = ["", ", per capita"]
+        perCapita = [0, 1]
 
-    for i in range(2):
-        figname = plotsDir + "Stacked-Nation" + fignameSuffix[i]
-        if avg:
-            figname += "-Avg"
-        plt.figure()
-        _, ax = plt.subplots()
-        ax.set_title("Cases by date reported" + titleSuffix[i])
-
-        bottom = [0] * len(nationsReported[0])
-
-        for j, nation in enumerate(nations):
-            reportedData = nationsReported[j]
-
-            if avg:
-                reportedData = n_day_avg(reportedData, 7)
-
-            if perCapita[i]:
-                reportedData = [x / populations[j] * 100 for x in reportedData]
-
-            if perCapita[i]:
-                ax.plot(
-                    nationDates[j],
-                    reportedData,
-                    color=colors[j],
-                    label=nation,
-                    linewidth=2,
-                )
-            else:
-                ax.bar(
-                    nationDates[j],
-                    reportedData,
-                    color=colors[j],
-                    label=nation,
-                    bottom=bottom,
-                )
-
-            bottom = list(map(add, reportedData, bottom))
-
-        ax.xaxis_date()
-        ax.set_xlim(
-            left=dt.strptime("2020-03-01", "%Y-%m-%d"), right=today,
-        )
-        handles, labels = ax.get_legend_handles_labels()
-        ax.legend(reversed(handles), reversed(labels))
-
-        if perCapita[i]:
-            yLabel = "Percent of nation tested positive"
-        else:
-            yLabel = "Reported cases"
-
-        if avg:
-            yLabel += " (seven day average)"
-        ax.set_ylabel(yLabel)
-        ax.set_ylim(bottom=0)
-
-        if perCapita[i]:
-            ax.yaxis.set_major_formatter(tkr.PercentFormatter(decimals=2))
-        else:
-            ax.yaxis.set_major_formatter(tkr.FuncFormatter(threeFigureFormatter))
-
-        removeSpines(ax)
-
-        plt.gcf().set_size_inches(15, 9)
-
-        savePlot(figname)
-
-    # Cumulative
-    yLabels = ["UK population", "nation"]
-
-    if not avg:
         for i in range(2):
-            figname = plotsDir + "Stacked-Nation-Cumulative" + fignameSuffix[i]
+            figname = plotsDir + fignameTypes[type] + fignameSuffix[i]
+            if avg:
+                figname += "-Avg"
             plt.figure()
             _, ax = plt.subplots()
-            ax.set_title("Cumulative cases by date reported" + titleSuffix[i])
+            ax.set_title(titleTypesUpper[type] + " by date reported" + titleSuffix[i])
 
             bottom = [0] * len(nationsReported[0])
 
             for j, nation in enumerate(nations):
                 reportedData = nationsReported[j]
+
+                if avg:
+                    reportedData = n_day_avg(reportedData, 7)
+
                 if perCapita[i]:
                     reportedData = [x / populations[j] * 100 for x in reportedData]
-                else:
-                    reportedData = [x / totalPopulation * 100 for x in reportedData]
-                # reversed cumulative sum
-                reportedData = np.cumsum(reportedData[::-1])[::-1]
 
                 if perCapita[i]:
                     ax.plot(
@@ -518,19 +451,87 @@ def nationReportedPlot(dataDir="data/", plotsDir="plots/", avg=True):
             handles, labels = ax.get_legend_handles_labels()
             ax.legend(reversed(handles), reversed(labels))
 
-            ax.yaxis.set_major_formatter(tkr.PercentFormatter(decimals=2))
-            yLabel = "Percent of " + yLabels[i] + " tested positive"
+            if perCapita[i]:
+                yLabel = "Percent of nation " + yLabelTypes[type]
+            else:
+                yLabel = "Reported " + titleTypesLower[type]
+
             if avg:
                 yLabel += " (seven day average)"
             ax.set_ylabel(yLabel)
             ax.set_ylim(bottom=0)
 
+            if perCapita[i]:
+                ax.yaxis.set_major_formatter(tkr.PercentFormatter(decimals=2))
+            else:
+                ax.yaxis.set_major_formatter(tkr.FuncFormatter(threeFigureFormatter))
+
             removeSpines(ax)
-            showGrid(ax, "y")
 
             plt.gcf().set_size_inches(15, 9)
 
             savePlot(figname)
+
+        # Cumulative
+        yLabels = ["UK population", "nation"]
+
+        if not avg:
+            for i in range(2):
+                figname = plotsDir + fignameTypes[type] + "-Cumulative" + fignameSuffix[i]
+                plt.figure()
+                _, ax = plt.subplots()
+                ax.set_title("Cumulative %s by date reported%s" % (titleTypesLower[type], titleSuffix[i]))
+
+                bottom = [0] * len(nationsReported[0])
+
+                for j, nation in enumerate(nations):
+                    reportedData = nationsReported[j]
+                    if perCapita[i]:
+                        reportedData = [x / populations[j] * 100 for x in reportedData]
+                    else:
+                        reportedData = [x / totalPopulation * 100 for x in reportedData]
+                    # reversed cumulative sum
+                    reportedData = np.cumsum(reportedData[::-1])[::-1]
+
+                    if perCapita[i]:
+                        ax.plot(
+                            nationDates[j],
+                            reportedData,
+                            color=colors[j],
+                            label=nation,
+                            linewidth=2,
+                        )
+                    else:
+                        ax.bar(
+                            nationDates[j],
+                            reportedData,
+                            color=colors[j],
+                            label=nation,
+                            bottom=bottom,
+                        )
+
+                    bottom = list(map(add, reportedData, bottom))
+
+                ax.xaxis_date()
+                ax.set_xlim(
+                    left=dt.strptime("2020-03-01", "%Y-%m-%d"), right=today,
+                )
+                handles, labels = ax.get_legend_handles_labels()
+                ax.legend(reversed(handles), reversed(labels))
+
+                ax.yaxis.set_major_formatter(tkr.PercentFormatter(decimals=2))
+                yLabel = "Percent of " + yLabels[i] + " " + yLabelTypes[type]
+                if avg:
+                    yLabel += " (seven day average)"
+                ax.set_ylabel(yLabel)
+                ax.set_ylim(bottom=0)
+
+                removeSpines(ax)
+                showGrid(ax, "y")
+
+                plt.gcf().set_size_inches(15, 9)
+
+                savePlot(figname)
 
 
 def heatMapPlot(dataDir="data/", plotsDir="plots/"):
