@@ -67,7 +67,7 @@ def getData(dataDir, force=False):
 
         with open(dataDir + "Last-Modified.txt", "w") as file:
             file.write(lastModified)
-        
+
         print("Done!")
 
 
@@ -382,7 +382,7 @@ def nationReportedPlot(dataDir="data/", plotsDir="plots/", avg=True):
     titleTypesUpper = ["Cases", "Deaths"]
     titleTypesLower = ["cases", "deaths"]
     yLabelTypes = ["tested positive", "who have died within 28 days of a positive test"]
-    
+
     for type in range(2):
         nationsReported = []
         nationDates = []
@@ -413,21 +413,29 @@ def nationReportedPlot(dataDir="data/", plotsDir="plots/", avg=True):
             plt.figure()
             _, ax = plt.subplots()
             ax.set_title(titleTypesUpper[type] + " by date reported" + titleSuffix[i])
-
-            bottom = [0] * len(nationsReported[0])
+            
+            if avg:
+                bottom = [0] * len(nationsReported[0][3:])
+            else: 
+                bottom = [0] * len(nationsReported[0])
 
             for j, nation in enumerate(nations):
                 reportedData = nationsReported[j]
-
+                dates = nationDates[j]
+                
                 if avg:
                     reportedData = n_day_avg(reportedData, 7)
+                    # remove the most recent 3 days as they won't be accurate yet
+                    reportedData = reportedData[3:]
+                    dates = dates[3:]
 
                 if perCapita[i]:
                     reportedData = [x / populations[j] * 100 for x in reportedData]
-
+                
+                
                 if perCapita[i]:
                     ax.plot(
-                        nationDates[j],
+                        dates,
                         reportedData,
                         color=colors[j],
                         label=nation,
@@ -435,7 +443,7 @@ def nationReportedPlot(dataDir="data/", plotsDir="plots/", avg=True):
                     )
                 else:
                     ax.bar(
-                        nationDates[j],
+                        dates,
                         reportedData,
                         color=colors[j],
                         label=nation,
@@ -477,10 +485,15 @@ def nationReportedPlot(dataDir="data/", plotsDir="plots/", avg=True):
 
         if not avg:
             for i in range(2):
-                figname = plotsDir + fignameTypes[type] + "-Cumulative" + fignameSuffix[i]
+                figname = (
+                    plotsDir + fignameTypes[type] + "-Cumulative" + fignameSuffix[i]
+                )
                 plt.figure()
                 _, ax = plt.subplots()
-                ax.set_title("Cumulative %s by date reported%s" % (titleTypesLower[type], titleSuffix[i]))
+                ax.set_title(
+                    "Cumulative %s by date reported%s"
+                    % (titleTypesLower[type], titleSuffix[i])
+                )
 
                 bottom = [0] * len(nationsReported[0])
 
