@@ -11,20 +11,21 @@ import numpy as np
 import pandas as pd
 import matplotlib.gridspec as gridspec
 
-import json 
+import json
+
 
 def getData(dataDir):
     # check for if there is new data
     with open(dataDir + "Last-Modified.txt") as file:
         prevLastModified = file.read()
 
-    url = 'https://api.coronavirus.data.gov.uk/v1/data?filters=areaType=nation;areaName=england&structure=%7B%22name%22:%22areaName%22%7D'
+    url = "https://api.coronavirus.data.gov.uk/v1/data?filters=areaType=nation;areaName=england&structure=%7B%22name%22:%22areaName%22%7D"
 
     r = requests.get(url)
     lastModified = r.headers["Last-Modified"]
 
     if prevLastModified != lastModified:
-        print('Getting new data...')
+        print("Getting new data...")
         with open(dataDir + "Last-Modified.txt", "w") as file:
             file.write(lastModified)
 
@@ -61,17 +62,16 @@ def getData(dataDir):
 
             with open(fileName, "w") as file:
                 file.writelines(text)
-        
-        print('Done!')
+
+        print("Done!")
 
 
 def ukPlot(dataDir="data/", plotsDir="plots/", avg=True):
     """avg indicates seven day average of new cases should be used"""
     today = dt.today()
 
-    filePrefix = dataDir + "UK"
-    casesFileName = filePrefix + ".cases." + today.strftime("%Y-%m-%d") + ".csv"
-    testsFileName = filePrefix + ".testing." + today.strftime("%Y-%m-%d") + ".csv"
+    casesFileName = dataDir + "UK.cases.csv"
+    testsFileName = dataDir + "UK.testing.csv"
 
     with open(casesFileName, "r") as file:
         next(file)
@@ -221,9 +221,8 @@ def nationPlot(dataDir="data/", plotsDir="plots/", avg=True):
     today = dt.today()
 
     for nation in nations:
-        filePrefix = dataDir + nation
-        testsFileName = filePrefix + ".testing." + today.strftime("%Y-%m-%d") + ".csv"
-        casesFileName = filePrefix + ".cases." + today.strftime("%Y-%m-%d") + ".csv"
+        testsFileName = dataDir + nation + ".testing.csv"
+        casesFileName = dataDir + nation + ".cases.csv"
 
         with open(casesFileName, "r") as file:
             next(file)  # skip first line
@@ -387,10 +386,7 @@ def nationReportedPlot(dataDir="data/", plotsDir="plots/", avg=True):
     today = dt.today()
 
     for nation in nations:
-        filePrefix = dataDir + nation
-        reportedFileName = (
-            filePrefix + ".cases.reported." + today.strftime("%Y-%m-%d") + ".csv"
-        )
+        reportedFileName = dataDir + nation + ".cases.reported.csv"
 
         with open(reportedFileName, "r") as file:
             next(file)
@@ -540,12 +536,9 @@ def nationReportedPlot(dataDir="data/", plotsDir="plots/", avg=True):
 def heatMapPlot(dataDir="data/", plotsDir="plots/"):
     today = dt.today()
 
-    filePrefix = dataDir + "UK"
-    casesFileName = filePrefix + ".cases." + today.strftime("%Y-%m-%d") + ".csv"
-    reportedFileName = (
-        filePrefix + ".cases.reported." + today.strftime("%Y-%m-%d") + ".csv"
-    )
-    testsFileName = filePrefix + ".testing." + today.strftime("%Y-%m-%d") + ".csv"
+    casesFileName = dataDir + "UK.cases.csv"
+    reportedFileName = dataDir + "UK.cases.reported.csv"
+    testsFileName = dataDir + "UK.testing.csv"
 
     with open(casesFileName, "r") as file:
         next(file)
@@ -633,12 +626,9 @@ def nationHeatMapPlot(dataDir="data/", plotsDir="plots/"):
     today = dt.today()
 
     for nation in nations:
-        filePrefix = dataDir + nation
-        casesFileName = filePrefix + ".cases." + today.strftime("%Y-%m-%d") + ".csv"
-        reportedFileName = (
-            filePrefix + ".cases.reported." + today.strftime("%Y-%m-%d") + ".csv"
-        )
-        testsFileName = filePrefix + ".testing." + today.strftime("%Y-%m-%d") + ".csv"
+        casesFileName = dataDir + nation + ".cases.csv"
+        reportedFileName = dataDir + nation + ".cases.reported.csv"
+        testsFileName = dataDir + nation + ".testing.csv"
 
         with open(casesFileName, "r") as file:
             next(file)
@@ -769,18 +759,17 @@ if __name__ == "__main__":
     if not os.path.exists(plotsDir):
         os.mkdir(plotsDir)
 
-
     getData(dataDir)
 
-    # ukPlot(dataDir, plotsDir, avg=False)
-    # ukPlot(dataDir, plotsDir)
+    ukPlot(dataDir, plotsDir, avg=False)
+    ukPlot(dataDir, plotsDir)
 
-    # nationPlot(dataDir, plotsDir, avg=False)
-    # nationPlot(dataDir, plotsDir)
+    nationPlot(dataDir, plotsDir, avg=False)
+    nationPlot(dataDir, plotsDir)
 
-    # nationReportedPlot(dataDir, plotsDir)
-    # nationReportedPlot(dataDir, plotsDir, avg=False)
+    nationReportedPlot(dataDir, plotsDir)
+    nationReportedPlot(dataDir, plotsDir, avg=False)
 
-    # heatMapPlot(dataDir, plotsDir)
-    # nationHeatMapPlot(dataDir, plotsDir)
+    heatMapPlot(dataDir, plotsDir)
+    nationHeatMapPlot(dataDir, plotsDir)
 
