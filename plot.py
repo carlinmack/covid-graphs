@@ -413,16 +413,16 @@ def nationReportedPlot(dataDir="data/", plotsDir="plots/", avg=True):
             plt.figure()
             fig, ax = plt.subplots()
             ax.set_title(titleTypesUpper[type] + " by date reported" + titleSuffix[i])
-            
+
             if avg:
                 bottom = [0] * len(nationsReported[0][3:])
-            else: 
+            else:
                 bottom = [0] * len(nationsReported[0])
 
             for j, nation in enumerate(nations):
                 reportedData = nationsReported[j]
                 dates = nationDates[j]
-                
+
                 if avg:
                     reportedData = n_day_avg(reportedData, 7)
                     # remove the most recent 3 days as they won't be accurate yet
@@ -431,15 +431,10 @@ def nationReportedPlot(dataDir="data/", plotsDir="plots/", avg=True):
 
                 if perCapita[i]:
                     reportedData = [x / populations[j] * 100 for x in reportedData]
-                
-                
+
                 if perCapita[i]:
                     ax.plot(
-                        dates,
-                        reportedData,
-                        color=colors[j],
-                        label=nation,
-                        linewidth=2,
+                        dates, reportedData, color=colors[j], label=nation, linewidth=2,
                     )
                 else:
                     ax.bar(
@@ -548,37 +543,29 @@ def nationReportedPlot(dataDir="data/", plotsDir="plots/", avg=True):
 
 
 def heatMapPlot(dataDir="data/", plotsDir="plots/"):
-    today = dt.today()
+    fileNames = [
+        dataDir + "UK.testing.csv",
+        dataDir + "UK.cases.reported.csv",
+        dataDir + "UK.cases.csv",
+    ]
+    names = ["Tests", "Cases (reported date)", "Cases (specimen date)"]
+    
+    data = []
+    dataFrames = []
 
-    casesFileName = dataDir + "UK.cases.csv"
-    reportedFileName = dataDir + "UK.cases.reported.csv"
-    testsFileName = dataDir + "UK.testing.csv"
+    for i, fileName in enumerate(fileNames):
+        with open(fileName, "r") as file:
+            next(file)
+            reader = csv.reader(file, delimiter=",")
+            if i == 0:
+                fileData = [
+                    (line[0], parseInt(line[1]) + parseInt(line[2]) + parseInt(line[3]))
+                    for line in reader
+                ]
+            else:
+                fileData = [[line[0], int(line[1])] for line in reader]
 
-    with open(casesFileName, "r") as file:
-        next(file)
-        reader = csv.reader(file, delimiter=",")
-        casesData = [[line[0], int(line[1])] for line in reader]
-
-    with open(reportedFileName, "r") as file:
-        next(file)
-        reader = csv.reader(file, delimiter=",")
-        reportedData = [[line[0], int(line[1])] for line in reader]
-
-    with open(testsFileName, "r") as file:
-        next(file)
-        reader = csv.reader(file, delimiter=",")
-        testsData = [
-            (line[0], parseInt(line[1]) + parseInt(line[2]) + parseInt(line[3]))
-            for line in reader
-        ]
-
-    casesDf = pd.DataFrame(casesData, columns=["Date", "Cases"])
-    reportedDf = pd.DataFrame(reportedData, columns=["Date", "Cases"])
-    testsDf = pd.DataFrame(testsData, columns=["Date", "Tests"])
-
-    casesDf["Date"] = pd.to_datetime(casesDf["Date"])
-    reportedDf["Date"] = pd.to_datetime(reportedDf["Date"])
-    testsDf["Date"] = pd.to_datetime(testsDf["Date"])
+        data.append(fileData)
 
     days = [
         "Monday",
@@ -590,14 +577,13 @@ def heatMapPlot(dataDir="data/", plotsDir="plots/"):
         "Sunday",
     ]
 
-    casesWeekDf = casesDf.groupby(casesDf["Date"].dt.day_name()).mean().reindex(days)
-    reportedWeekDf = (
-        reportedDf.groupby(reportedDf["Date"].dt.day_name()).mean().reindex(days)
-    )
-    testsWeekDf = testsDf.groupby(testsDf["Date"].dt.day_name()).mean().reindex(days)
-
-    dataFrames = [testsWeekDf, reportedWeekDf, casesWeekDf]
-    names = ["Tests", "Cases (reported date)", "Cases (specimen date)"]
+    for dataSet in data:
+        dataFrame = pd.DataFrame(dataSet, columns=["Date", "Number"])
+        dataFrame["Date"] = pd.to_datetime(dataFrame["Date"])
+        dataFrame = (
+            dataFrame.groupby(dataFrame["Date"].dt.day_name()).mean().reindex(days)
+        )
+        dataFrames.append(dataFrame)
 
     figname = plotsDir + "testsCasesHeatMap"
     plt.figure()
@@ -640,47 +626,38 @@ def nationHeatMapPlot(dataDir="data/", plotsDir="plots/"):
     today = dt.today()
 
     for nation in nations:
-        casesFileName = dataDir + nation + ".cases.csv"
-        reportedFileName = dataDir + nation + ".cases.reported.csv"
-        testsFileName = dataDir + nation + ".testing.csv"
+        fileNames = [
+            dataDir + nation + ".testing.csv",
+            dataDir + nation + ".cases.reported.csv",
+            dataDir + nation + ".cases.csv",
+        ]
+        
+        data = []
+        dataFrames = []
 
-        with open(casesFileName, "r") as file:
-            next(file)
-            reader = csv.reader(file, delimiter=",")
-            casesData = [[line[0], int(line[1])] for line in reader]
+        for i, fileName in enumerate(fileNames):
+            with open(fileName, "r") as file:
+                next(file)
+                reader = csv.reader(file, delimiter=",")
+                if i == 0:
+                    fileData = [
+                        (line[0], parseInt(line[1]) + parseInt(line[2]) + parseInt(line[3]))
+                        for line in reader
+                    ]
+                else:
+                    fileData = [[line[0], int(line[1])] for line in reader]
 
-        with open(reportedFileName, "r") as file:
-            next(file)
-            reader = csv.reader(file, delimiter=",")
-            reportedData = [[line[0], int(line[1])] for line in reader]
+            data.append(fileData)
 
-        with open(testsFileName, "r") as file:
-            next(file)
-            reader = csv.reader(file, delimiter=",")
-            testsData = [
-                (line[0], parseInt(line[1]) + parseInt(line[2]) + parseInt(line[3]))
-                for line in reader
-            ]
+        for dataSet in data:
+            dataFrame = pd.DataFrame(dataSet, columns=["Date", "Number"])
+            dataFrame["Date"] = pd.to_datetime(dataFrame["Date"])
+            dataFrame = (
+                dataFrame.groupby(dataFrame["Date"].dt.day_name()).mean().reindex(days)
+            )
+            dataFrames.append(dataFrame)
 
-        casesDf = pd.DataFrame(casesData, columns=["Date", "Cases"])
-        reportedDf = pd.DataFrame(reportedData, columns=["Date", "Cases"])
-        testsDf = pd.DataFrame(testsData, columns=["Date", "Tests"])
-
-        casesDf["Date"] = pd.to_datetime(casesDf["Date"])
-        reportedDf["Date"] = pd.to_datetime(reportedDf["Date"])
-        testsDf["Date"] = pd.to_datetime(testsDf["Date"])
-
-        casesWeekDf = (
-            casesDf.groupby(casesDf["Date"].dt.day_name()).mean().reindex(days)
-        )
-        reportedWeekDf = (
-            reportedDf.groupby(reportedDf["Date"].dt.day_name()).mean().reindex(days)
-        )
-        testsWeekDf = (
-            testsDf.groupby(testsDf["Date"].dt.day_name()).mean().reindex(days)
-        )
-
-        nationsDf.append([testsWeekDf, reportedWeekDf, casesWeekDf])
+        nationsDf.append(dataFrames)
 
     figname = plotsDir + "testsCasesHeatMap-Nation"
 
