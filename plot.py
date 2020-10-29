@@ -1,17 +1,17 @@
 import csv
+import json
 import os
-import requests
 from datetime import datetime as dt
 from datetime import timedelta
 from operator import add
 
+import matplotlib.gridspec as gridspec
 import matplotlib.pyplot as plt
 import matplotlib.ticker as tkr
 import numpy as np
 import pandas as pd
-import matplotlib.gridspec as gridspec
-
-import json
+import requests
+from tqdm import tqdm
 
 
 def getData(dataDir, force=False):
@@ -717,13 +717,25 @@ if __name__ == "__main__":
 
     getData(dataDir)
 
+    t = tqdm(total=4, bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} {elapsed_s:.0f}s')
+
+    t.set_description("UK Plots")
     ukPlot(dataDir, plotsDir, avg=False)
     ukPlot(dataDir, plotsDir)
+    t.update()
 
+    t.set_description("Nation Plots")
     nationPlot(dataDir, plotsDir, avg=False)
     nationPlot(dataDir, plotsDir)
+    t.update()
 
+    t.set_description("Nation Reported Cases and Reported Deaths Plots")
     nationReportedPlot(dataDir, plotsDir)
     nationReportedPlot(dataDir, plotsDir, avg=False)
+    t.update()
 
+    t.set_description("Heat Map Plots")
     heatMapPlot(dataDir, plotsDir)
+    t.update()
+
+    t.close()
