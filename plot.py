@@ -16,11 +16,22 @@ from tqdm import tqdm
 
 
 def getData(dataDir, force=False):
-    # check for if there is new data
-    with open(dataDir + "Last-Modified.txt") as file:
-        prevLastModified = file.read()
+    def getCSV(url, name):
+        r = requests.get(url)
+        text = r.text
+        fileName = dataDir + name + ".csv"
 
-    url = """https://api.coronavirus.data.gov.uk/v1/data?filters=areaType=nation;areaName=england&structure=%7B"name":"areaName"%7D"""
+        with open(fileName, "w") as file:
+            file.writelines(text)
+
+    # check for if there is new data
+    if os.path.isfile(dataDir + "Last-Modified.txt"):
+        with open(dataDir + "Last-Modified.txt") as file:
+            prevLastModified = file.read()
+    else:
+        prevLastModified = ""
+
+    url = "https://api.coronavirus.data.gov.uk/v1/data?filters=areaType=overview&structure=%7B%7D"
 
     r = requests.get(url)
     lastModified = r.headers["Last-Modified"]
@@ -28,53 +39,29 @@ def getData(dataDir, force=False):
     if prevLastModified != lastModified or force:
         print("Getting new data...")
 
-        nations = ["Scotland", "England", "Northern Ireland", "Wales"]
-        testingURL = """https://api.coronavirus.data.gov.uk/v1/data?filters=areaType=nation;areaName={nation}&structure=%7B"date":"date","newPillarOneTestsByPublishDate":"newPillarOneTestsByPublishDate","newPillarTwoTestsByPublishDate":"newPillarTwoTestsByPublishDate","newPillarFourTestsByPublishDate":"newPillarFourTestsByPublishDate"%7D&format=csv"""
-
-        casesURL = """https://api.coronavirus.data.gov.uk/v1/data?filters=areaType=nation;areaName={nation}&structure=%7B"date":"date","newCasesBySpecimenDate":"newCasesBySpecimenDate"%7D&format=csv"""
-
-        reportedURL = """https://api.coronavirus.data.gov.uk/v1/data?filters=areaType=nation;areaName={nation}&structure=%7B"date":"date","newCasesByPublishDate":"newCasesByPublishDate"%7D&format=csv"""
-
-        deathsURL = """https://api.coronavirus.data.gov.uk/v1/data?filters=areaType=nation;areaName={nation}&structure=%7B"date":"date","newDeaths28DaysByDeathDate":"newDeaths28DaysByDeathDate"%7D&format=csv"""
-
-        deathsReportedURL = """https://api.coronavirus.data.gov.uk/v1/data?filters=areaType=nation;areaName={nation}&structure=%7B"date":"date","newDeaths28DaysByPublishDate":"newDeaths28DaysByPublishDate"%7D&format=csv"""
-
-        dataURLs = [testingURL, casesURL, reportedURL, deathsURL, deathsReportedURL]
+        urlPrefix = 'https://api.coronavirus.data.gov.uk/v1/data?filters=areaType={}&structure=%7B"date":"date",'
+        urls = [
+            '"newPillarOneTestsByPublishDate":"newPillarOneTestsByPublishDate","newPillarTwoTestsByPublishDate":"newPillarTwoTestsByPublishDate","newPillarFourTestsByPublishDate":"newPillarFourTestsByPublishDate"',
+            '"newCasesBySpecimenDate":"newCasesBySpecimenDate"',
+            '"newCasesByPublishDate":"newCasesByPublishDate"',
+            '"newDeaths28DaysByDeathDate":"newDeaths28DaysByDeathDate"',
+            '"newDeaths28DaysByPublishDate":"newDeaths28DaysByPublishDate"',
+        ]
+        urlSuffix = "%7D&format=csv"
         names = ["testing", "cases", "cases.reported", "deaths", "deaths.reported"]
 
-        for i, url in enumerate(dataURLs):
+        nations = ["Scotland", "England", "Northern Ireland", "Wales"]
+
+        for i, name in enumerate(names):
             for nation in nations:
-                r = requests.get(url.format(nation=nation))
-                text = r.text
-                fileName = dataDir + nation + "." + names[i] + ".csv"
+                prefix = urlPrefix.format("nation;areaName={}").format(nation)
+                url = prefix + urls[i] + urlSuffix
 
-                with open(fileName, "w") as file:
-                    file.writelines(text)
+                getCSV(url, nation + "." + name)
 
-        ukTestingURL = """https://api.coronavirus.data.gov.uk/v1/data?filters=areaType=overview&structure=%7B"date":"date","newPillarOneTestsByPublishDate":"newPillarOneTestsByPublishDate","newPillarTwoTestsByPublishDate":"newPillarTwoTestsByPublishDate","newPillarFourTestsByPublishDate":"newPillarFourTestsByPublishDate"%7D&format=csv"""
-        ukCasesURL = """https://api.coronavirus.data.gov.uk/v1/data?filters=areaType=overview&structure=%7B"date":"date","newCasesBySpecimenDate":"newCasesBySpecimenDate"%7D&format=csv"""
-
-        ukReportedURL = """https://api.coronavirus.data.gov.uk/v1/data?filters=areaType=overview&structure=%7B"date":"date","newCasesByPublishDate":"newCasesByPublishDate"%7D&format=csv"""
-
-        ukDeathsURL = """https://api.coronavirus.data.gov.uk/v1/data?filters=areaType=overview&structure=%7B"date":"date","newDeaths28DaysByDeathDate":"newDeaths28DaysByDeathDate"%7D&format=csv"""
-
-        ukDeathsReportedURL = """https://api.coronavirus.data.gov.uk/v1/data?filters=areaType=overview&structure=&structure=%7B"date":"date","newDeaths28DaysByPublishDate":"newDeaths28DaysByPublishDate"%7D&format=csv"""
-
-        URLs = [
-            ukTestingURL,
-            ukCasesURL,
-            ukReportedURL,
-            ukDeathsURL,
-            ukDeathsReportedURL,
-        ]
-
-        for j, url in enumerate(URLs):
-            r = requests.get(url)
-            text = r.text
-            fileName = dataDir + "UK." + names[j] + ".csv"
-
-            with open(fileName, "w") as file:
-                file.writelines(text)
+            prefix = urlPrefix.format("overview")
+            url = prefix + urls[i] + urlSuffix
+            getCSV(url, "UK." + name)
 
         with open(dataDir + "Last-Modified.txt", "w") as file:
             file.write(lastModified)
@@ -723,17 +710,11 @@ def defineArgParser():
     )
 
     parser.add_argument(
-        "-d",
-        "--dryrun",
-        help="Don't get new data",
-        action="store_true",
+        "-d", "--dryrun", help="Don't get new data", action="store_true",
     )
 
     parser.add_argument(
-        "-f",
-        "--force",
-        help="Get data even if it is not new",
-        action="store_true",
+        "-f", "--force", help="Get data even if it is not new", action="store_true",
     )
 
     parser.add_argument(
@@ -756,7 +737,6 @@ def defineArgParser():
 
 
 if __name__ == "__main__":
-
     argParser = defineArgParser()
     clArgs = argParser.parse_args()
 
@@ -772,7 +752,7 @@ if __name__ == "__main__":
     if not clArgs.dryrun:
         getData(dataDir, clArgs.force)
 
-    t = tqdm(total=4, bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} {elapsed_s:.0f}s')
+    t = tqdm(total=4, bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} {elapsed_s:.0f}s")
 
     t.set_description("UK Plots")
     ukPlot(dataDir, plotsDir, avg=False)
