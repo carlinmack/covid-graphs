@@ -605,8 +605,9 @@ def heatMapPlot(dataDir="data/", plotsDir="plots/"):
             [dataFrames], cmap="plasma", interpolation="none", aspect="auto"
         )
         plt.colorbar(hm, ax=ax, format=threeFigureFormatter, aspect=10)
+        # ax.bar(range(7), dataFrames["Number"])
 
-        removeSpines(ax, all=True)
+        removeSpines(ax)
 
     casesBoolean = [1, 0]
     fignames = ["testsCases", "deaths"]
