@@ -212,20 +212,12 @@ def ukPlot(dataDir="data/", plotsDir="plots/", avg=True):
 
 def nationPlot(dataDir="data/", plotsDir="plots/", avg=True):
     """avg indicates seven day average of new cases should be used"""
-    nationsCases = []
-    nationCasesDates = []
-    testsData = []
-    testTotalData = []
-    nationTestDates = []
 
-    nations = ["Scotland", "England", "Northern Ireland", "Wales"]
-    colors = ["#003078", "#5694CA", "#FFDD00", "#D4351C"]
-
-    today = dt.today()
-
-    for nation in nations:
-        testsFileName = dataDir + nation + ".testing.csv"
+    def getData(name):
         casesFileName = dataDir + nation + ".cases.csv"
+        testsFileName = dataDir + nation + ".testing.csv"
+
+        nationData = {}
 
         with open(casesFileName, "r") as file:
             next(file)  # skip first line
@@ -253,7 +245,7 @@ def nationPlot(dataDir="data/", plotsDir="plots/", avg=True):
             testDates = [dt.strptime(x, "%Y-%m-%d") for x in testRawDates]
             tests = nationTestData[:, 1].astype(np.float)
 
-        testTotal = np.copy(tests)
+        testsOriginal = np.copy(tests)
         for j, date in enumerate(testRawDates):
             if date in casesDict:
                 tests[j] = min(casesDict[date] / tests[j] * 100, 100)
@@ -262,12 +254,22 @@ def nationPlot(dataDir="data/", plotsDir="plots/", avg=True):
 
         # remove the most recent two dates as they won't be accurate yet
         skip = 3
-        nationsCases.append(cases[skip:])
-        nationCasesDates.append(casesDates[skip:])
+        nationData['cases'] = cases[skip:]
+        nationData['casesDates'] = casesDates[skip:]
+        nationData['tests'] = tests[skip:]
+        nationData['testDates'] = testDates[skip:]
+        nationData['testsOriginal'] = testsOriginal[skip:]
 
-        testsData.append(tests[skip:])
-        testTotalData.append(testTotal[skip:])
-        nationTestDates.append(testDates[skip:])
+        return nationData
+
+    nations = ["Scotland", "England", "Northern Ireland", "Wales"]
+    colors = ["#003078", "#5694CA", "#FFDD00", "#D4351C"]
+
+    today = dt.today()
+    data = {}
+    
+    for nation in nations:
+        data[nation] = getData(nation)
 
     plt.figure()
     fig, ax = plt.subplots()
@@ -278,11 +280,12 @@ def nationPlot(dataDir="data/", plotsDir="plots/", avg=True):
 
     ax.set_title("UK COVID-19 cases compared to percentage of positive tests")
 
-    for i, nation in enumerate(testsData):
+    for i, nation in enumerate(data):
+        nationTests = data[nation]["tests"]
         if avg:
-            nation = n_day_avg(nation, 7)
+            nationTests = n_day_avg(nationTests, 7)
         ax.plot_date(
-            nationTestDates[i], nation, colors[i], linewidth=2, label=nations[i]
+            data[nation]['testDates'], nationTests, colors[i], linewidth=2, label=nations[i]
         )
 
     yLabel = plotsDir + "Percent positive tests per day"
@@ -306,13 +309,10 @@ def nationPlot(dataDir="data/", plotsDir="plots/", avg=True):
         label="WHO 5% reopening threshold",
     )
 
-    # ax.vlines(x=dt.strptime("2020-04-21", "%Y-%m-%d"), ymin=0, ymax=3000)
-
     plt.legend()
 
     plt.gcf().set_size_inches(12, 7.5)
-    ax.spines["top"].set_visible(False)
-    ax.spines["right"].set_visible(False)
+    removeSpines(ax)
 
     savePlot(figname, fig)
 
@@ -325,24 +325,25 @@ def nationPlot(dataDir="data/", plotsDir="plots/", avg=True):
     axs = axs.flatten()
     fig.suptitle("Number of tests vs positive tests")
 
-    for j, ax in enumerate(axs):
-        testTotal = testTotalData[j]
+    for j, nation in enumerate(data):
+        ax = axs[j]
+        tests =  data[nation]['testsOriginal']
 
         if avg:
-            testTotal = n_day_avg(testTotal, 7)
+            tests = n_day_avg(tests, 7)
 
-        fivePercent = [x * 0.05 for x in testTotal]
+        fivePercent = [x * 0.05 for x in tests]
 
-        ax.bar(nationTestDates[j], testTotal, color="C0", label="Total tests")
+        ax.bar(data[nation]['testDates'], tests, color="C0", label="Total tests")
         ax.bar(
-            nationTestDates[j],
+            data[nation]['testDates'],
             fivePercent,
             color="black",
             label="WHO 5% reopening threshold",
         )
         ax.bar(
-            nationCasesDates[j],
-            nationsCases[j],
+            data[nation]['casesDates'],
+            data[nation]['cases'],
             color="orangered",
             label="Positive tests",
         )
@@ -359,8 +360,7 @@ def nationPlot(dataDir="data/", plotsDir="plots/", avg=True):
         ax.set_title(nations[j])
         ax.yaxis.set_major_formatter(tkr.FuncFormatter(threeFigureFormatter))
 
-        ax.spines["top"].set_visible(False)
-        ax.spines["right"].set_visible(False)
+        removeSpines(ax)
 
     plt.gcf().set_size_inches(15, 9)
 
