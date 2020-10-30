@@ -254,11 +254,11 @@ def nationPlot(dataDir="data/", plotsDir="plots/", avg=True):
 
         # remove the most recent two dates as they won't be accurate yet
         skip = 3
-        nationData['cases'] = cases[skip:]
-        nationData['casesDates'] = casesDates[skip:]
-        nationData['tests'] = tests[skip:]
-        nationData['testDates'] = testDates[skip:]
-        nationData['testsOriginal'] = testsOriginal[skip:]
+        nationData["cases"] = cases[skip:]
+        nationData["casesDates"] = casesDates[skip:]
+        nationData["tests"] = tests[skip:]
+        nationData["testDates"] = testDates[skip:]
+        nationData["testsOriginal"] = testsOriginal[skip:]
 
         return nationData
 
@@ -267,7 +267,7 @@ def nationPlot(dataDir="data/", plotsDir="plots/", avg=True):
 
     today = dt.today()
     data = {}
-    
+
     for nation in nations:
         data[nation] = getData(nation)
 
@@ -285,10 +285,14 @@ def nationPlot(dataDir="data/", plotsDir="plots/", avg=True):
         if avg:
             nationTests = n_day_avg(nationTests, 7)
         ax.plot_date(
-            data[nation]['testDates'], nationTests, colors[i], linewidth=2, label=nations[i]
+            data[nation]["testDates"],
+            nationTests,
+            colors[i],
+            linewidth=2,
+            label=nations[i],
         )
 
-    yLabel = plotsDir + "Percent positive tests per day"
+    yLabel = "Percent positive tests per day"
     if avg:
         yLabel += " (seven day average)"
 
@@ -327,23 +331,23 @@ def nationPlot(dataDir="data/", plotsDir="plots/", avg=True):
 
     for j, nation in enumerate(data):
         ax = axs[j]
-        tests =  data[nation]['testsOriginal']
+        tests = data[nation]["testsOriginal"]
 
         if avg:
             tests = n_day_avg(tests, 7)
 
         fivePercent = [x * 0.05 for x in tests]
 
-        ax.bar(data[nation]['testDates'], tests, color="C0", label="Total tests")
+        ax.bar(data[nation]["testDates"], tests, color="C0", label="Total tests")
         ax.bar(
-            data[nation]['testDates'],
+            data[nation]["testDates"],
             fivePercent,
             color="black",
             label="WHO 5% reopening threshold",
         )
         ax.bar(
-            data[nation]['casesDates'],
-            data[nation]['cases'],
+            data[nation]["casesDates"],
+            data[nation]["cases"],
             color="orangered",
             label="Positive tests",
         )
@@ -550,14 +554,19 @@ def heatMapPlot(dataDir="data/", plotsDir="plots/"):
         "Saturday",
         "Sunday",
     ]
-    names = ["Tests", "Cases (reported date)", "Cases (specimen date)"]
 
-    def getDataframes(name):
-        fileNames = [
-            dataDir + name + ".testing.csv",
-            dataDir + name + ".cases.reported.csv",
-            dataDir + name + ".cases.csv",
-        ]
+    def getDataframes(name, cases):
+        if cases:
+            fileNames = [
+                dataDir + name + ".testing.csv",
+                dataDir + name + ".cases.reported.csv",
+                dataDir + name + ".cases.csv",
+            ]
+        else:
+            fileNames = [
+                dataDir + name + ".deaths.csv",
+                dataDir + name + ".deaths.reported.csv",
+            ]
 
         data = []
         dataFrames = []
@@ -566,7 +575,7 @@ def heatMapPlot(dataDir="data/", plotsDir="plots/"):
             with open(fileName, "r") as file:
                 next(file)
                 reader = csv.reader(file, delimiter=",")
-                if i == 0:
+                if i == 0 and cases:
                     fileData = [
                         (
                             line[0],
@@ -589,74 +598,74 @@ def heatMapPlot(dataDir="data/", plotsDir="plots/"):
 
         return dataFrames
 
-    # UK
-
-    dataFrames = getDataframes("UK")
-
-    figname = plotsDir + "testsCasesHeatMap"
-    plt.figure()
-    fig, axs = plt.subplots(3, 1, sharex=True)
-
-    for j, ax in enumerate(axs):
-        ax.set_ylabel(names[j], rotation=0, ha="right", va="center")
+    def plotHeatmap(ax, name, dataFrames):
+        ax.set_ylabel(name, rotation=0, ha="right", va="center")
         ax.tick_params(axis="y", which="both", left=False, labelleft=False)
-        plt.xticks(ticks=list(range(7)), labels=days)
-
         hm = ax.imshow(
-            [dataFrames[j]], cmap="plasma", interpolation="none", aspect="auto"
+            [dataFrames], cmap="plasma", interpolation="none", aspect="auto"
         )
         plt.colorbar(hm, ax=ax, format=threeFigureFormatter, aspect=10)
 
         removeSpines(ax, all=True)
 
-    fig.suptitle("Heatmap of number of tests/cases per day")
-    plt.gcf().set_size_inches(10, 5)
+    casesBoolean = [1, 0]
+    fignames = ["testsCases", "deaths"]
+    titles = ["tests/cases", "deaths"]
+    
+    names = [["Tests", "Cases (reported date)", "Cases (specimen date)"], ["Deaths", "Reported Deaths"]]
 
-    savePlot(figname, fig)
+    for i in range(2):
+        # UK
+        dataFrames = getDataframes("UK", casesBoolean[i])
 
-    # Nations
+        figname = plotsDir + fignames[i] + "HeatMap"
+        plt.figure()
+        fig, axs = plt.subplots(len(dataFrames), 1, sharex=True)
 
-    nations = ["Scotland", "England", "Northern Ireland", "Wales"]
-    colors = ["#003078", "#5694CA", "#FFDD00", "#D4351C"]
-    nationsDf = []
+        for j, ax in enumerate(axs):
+            plt.xticks(ticks=list(range(7)), labels=days)
 
-    for nation in nations:
-        nationDataFrame = getDataframes(nation)
+            plotHeatmap(ax, names[i][j], dataFrames[j])
 
-        nationsDf.append(nationDataFrame)
+        fig.suptitle("Heatmap of number of %s per day" % titles[i])
+        plt.gcf().set_size_inches(10, 5)
 
-    figname = plotsDir + "testsCasesHeatMap-Nation"
+        savePlot(figname, fig)
 
-    fig = plt.figure(figsize=(20, 10))
-    outerAxs = gridspec.GridSpec(2, 2, hspace=0.3)
+        # Nations
+        nations = ["Scotland", "England", "Northern Ireland", "Wales"]
+        colors = ["#003078", "#5694CA", "#FFDD00", "#D4351C"]
+        nationsDf = []
 
-    fig.suptitle("Heatmap of number of tests/cases per day")
+        for nation in nations:
+            nationDataFrame = getDataframes(nation, casesBoolean[i])
 
-    for i in range(4):
-        inner = outerAxs[i].subgridspec(3, 1, hspace=0.3)
+            nationsDf.append(nationDataFrame)
 
-        for j in range(3):
-            ax = fig.add_subplot(inner[j])
-            if j == 0:
-                ax.set_title(nations[i])
-                ax.tick_params(axis="x", which="both", bottom=False, labelbottom=False)
-            elif j == 1:
-                ax.tick_params(axis="x", which="both", bottom=False, labelbottom=False)
-            elif j == 2:
-                plt.xticks(ticks=list(range(7)), labels=days)
+        figname = plotsDir + fignames[i] + "HeatMap-Nation"
 
-            ax.set_ylabel(names[j], rotation=0, ha="right", va="center")
-            ax.tick_params(axis="y", which="both", left=False, labelleft=False)
+        fig = plt.figure(figsize=(20, 10))
+        outerAxs = gridspec.GridSpec(2, 2, hspace=0.3)
 
-            hm = ax.imshow(
-                [nationsDf[i][j]], cmap="plasma", interpolation="none", aspect="auto"
-            )
-            plt.colorbar(hm, ax=ax, format=threeFigureFormatter, aspect=10)
+        fig.suptitle("Heatmap of number of %s per day" % titles[i])
 
-            removeSpines(ax, all=True)
-            fig.add_subplot(ax)
+        for k in range(4):
+            inner = outerAxs[k].subgridspec(len(nationsDf[0]), 1, hspace=0.3)
 
-    savePlot(figname, fig)
+            for j in range(len(nationsDf[0])):
+                ax = fig.add_subplot(inner[j])
+                if j == 0:
+                    ax.set_title(nations[k])
+                    ax.tick_params(axis="x", which="both", bottom=False, labelbottom=False)
+                elif j == 1:
+                    ax.tick_params(axis="x", which="both", bottom=False, labelbottom=False)
+                elif j == 2:
+                    plt.xticks(ticks=list(range(7)), labels=days)
+
+                plotHeatmap(ax, names[i][j], nationsDf[k][j])
+                fig.add_subplot(ax)
+
+        savePlot(figname, fig)
 
 
 # Helpers ------------------------------------------------------------------------------
