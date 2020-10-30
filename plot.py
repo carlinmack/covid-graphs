@@ -1,3 +1,4 @@
+import argparse
 import csv
 import json
 import os
@@ -53,9 +54,19 @@ def getData(dataDir, force=False):
         ukTestingURL = """https://api.coronavirus.data.gov.uk/v1/data?filters=areaType=overview&structure=%7B"date":"date","newPillarOneTestsByPublishDate":"newPillarOneTestsByPublishDate","newPillarTwoTestsByPublishDate":"newPillarTwoTestsByPublishDate","newPillarFourTestsByPublishDate":"newPillarFourTestsByPublishDate"%7D&format=csv"""
         ukCasesURL = """https://api.coronavirus.data.gov.uk/v1/data?filters=areaType=overview&structure=%7B"date":"date","newCasesBySpecimenDate":"newCasesBySpecimenDate"%7D&format=csv"""
 
-        ukReportedURL = """https://api.coronavirus.data.gov.uk/v1/data?filters=areaName=United%2520Kingdom;areaType=overview&structure=%7B"date":"date","newCasesByPublishDate":"newCasesByPublishDate"%7D&format=csv"""
+        ukReportedURL = """https://api.coronavirus.data.gov.uk/v1/data?filters=areaType=overview&structure=%7B"date":"date","newCasesByPublishDate":"newCasesByPublishDate"%7D&format=csv"""
 
-        URLs = [ukTestingURL, ukCasesURL, ukReportedURL]
+        ukDeathsURL = """https://api.coronavirus.data.gov.uk/v1/data?filters=areaType=overview&structure=%7B"date":"date","newDeaths28DaysByDeathDate":"newDeaths28DaysByDeathDate"%7D&format=csv"""
+
+        ukDeathsReportedURL = """https://api.coronavirus.data.gov.uk/v1/data?filters=areaType=overview&structure=&structure=%7B"date":"date","newDeaths28DaysByPublishDate":"newDeaths28DaysByPublishDate"%7D&format=csv"""
+
+        URLs = [
+            ukTestingURL,
+            ukCasesURL,
+            ukReportedURL,
+            ukDeathsURL,
+            ukDeathsReportedURL,
+        ]
 
         for j, url in enumerate(URLs):
             r = requests.get(url)
@@ -705,9 +716,52 @@ def parseInt(str):
     return int(str) if str else 0
 
 
+def defineArgParser():
+    """Creates parser for command line arguments"""
+    parser = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+
+    parser.add_argument(
+        "-d",
+        "--dryrun",
+        help="Don't get new data",
+        action="store_true",
+    )
+
+    parser.add_argument(
+        "-f",
+        "--force",
+        help="Get data even if it is not new",
+        action="store_true",
+    )
+
+    parser.add_argument(
+        "-D",
+        "--dataDir",
+        help="Directory where the dumps, partitions etc will be stored [default: data/]",
+        default="data/",
+        type=str,
+    )
+
+    parser.add_argument(
+        "-P",
+        "--plotsDir",
+        help="Directory where the plots should be output to [default: plots/]",
+        default="plots/",
+        type=str,
+    )
+
+    return parser
+
+
 if __name__ == "__main__":
-    dataDir = "data/"
-    plotsDir = "plots/"
+
+    argParser = defineArgParser()
+    clArgs = argParser.parse_args()
+
+    dataDir = clArgs.dataDir
+    plotsDir = clArgs.plotsDir
 
     if not os.path.exists(dataDir):
         os.mkdir(dataDir)
@@ -715,7 +769,8 @@ if __name__ == "__main__":
     if not os.path.exists(plotsDir):
         os.mkdir(plotsDir)
 
-    getData(dataDir)
+    if not clArgs.dryrun:
+        getData(dataDir, clArgs.force)
 
     t = tqdm(total=4, bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} {elapsed_s:.0f}s')
 
