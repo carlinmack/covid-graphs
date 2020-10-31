@@ -12,6 +12,7 @@ import matplotlib.ticker as tkr
 import numpy as np
 import pandas as pd
 import requests
+from matplotlib.dates import DateFormatter as df
 from tqdm import tqdm
 
 
@@ -164,7 +165,7 @@ def ukPlot(dataDir="data/", plotsDir="plots/", avg=True):
 
     ax2.set_ylim(bottom=0)
 
-    ax.xaxis_date()
+    dateAxis(ax)
     ax.set_xlim(left=dt.strptime("2020-03-01", "%Y-%m-%d"), right=today)
     ax.yaxis.set_major_formatter(tkr.FuncFormatter(threeFigureFormatter))
 
@@ -204,7 +205,7 @@ def ukPlot(dataDir="data/", plotsDir="plots/", avg=True):
     ax.bar(testDates, fivePercent, color="black", label="WHO 5% reopening threshold")
     ax.bar(casesDates, cases, color="orangered", label="Positive tests")
 
-    ax.xaxis_date()
+    dateAxis(ax)
     ax.set_xlim(
         left=dt.strptime("2020-03-01", "%Y-%m-%d"), right=today,
     )
@@ -309,7 +310,7 @@ def nationPlot(dataDir="data/", plotsDir="plots/", avg=True):
 
     ax.set_ylim(bottom=0)
 
-    ax.xaxis_date()
+    dateAxis(ax)
     ax.set_xlim(left=dt.strptime("2020-03-01", "%Y-%m-%d"), right=today)
 
     ax.yaxis.set_major_formatter(tkr.PercentFormatter(decimals=0))
@@ -361,7 +362,7 @@ def nationPlot(dataDir="data/", plotsDir="plots/", avg=True):
             label="Positive tests",
         )
 
-        ax.xaxis_date()
+        dateAxis(ax)
         ax.set_xlim(
             left=dt.strptime("2020-03-01", "%Y-%m-%d"), right=today,
         )
@@ -457,7 +458,7 @@ def nationReportedPlot(dataDir="data/", plotsDir="plots/", avg=True):
 
                 bottom = list(map(add, reportedData, bottom))
 
-            ax.xaxis_date()
+            dateAxis(ax)
             ax.set_xlim(
                 left=dt.strptime("2020-03-01", "%Y-%m-%d"), right=today,
             )
@@ -530,7 +531,7 @@ def nationReportedPlot(dataDir="data/", plotsDir="plots/", avg=True):
 
                     bottom = list(map(add, reportedData, bottom))
 
-                ax.xaxis_date()
+                dateAxis(ax)
                 ax.set_xlim(
                     left=dt.strptime("2020-03-01", "%Y-%m-%d"), right=today,
                 )
@@ -707,6 +708,10 @@ def showGrid(ax, axis):
     ax.grid(color="#ccc", which="major", axis=axis, linestyle="solid")
     ax.set_axisbelow(True)
 
+
+def dateAxis(ax):
+    ax.xaxis_date()
+    ax.xaxis.set_major_formatter( df('%d %b') )
 
 def n_day_avg(xs, n=7):
     """compute n day average of time series, using maximum possible number of days at
