@@ -21,8 +21,27 @@ def getData(dataDir, force=False):
         text = r.text
         fileName = dataDir + name + ".csv"
 
+        titles, data = text.split("\n", 1)
+
+        data = data.split("\n")
+        data = data[:-1]  # remove last blank line
+        data = list(reversed(data))
+
+        titles = titles.split(",")
+        if "newPillarOneTestsByPublishDate" in titles:
+            newData = []
+            for line in data:
+                arr = line.split(",")
+                newData.append(
+                    "%s,%s"
+                    % (arr[0], parseInt(arr[1]) + parseInt(arr[2]) + parseInt(arr[3]))
+                )
+            data = newData
+
+        data = "\n".join(data)
+
         with open(fileName, "w") as file:
-            file.writelines(text)
+            file.writelines(data)
 
     # check for if there is new data
     if os.path.isfile(dataDir + "Last-Modified.txt"):
@@ -77,7 +96,6 @@ def ukPlot(dataDir="data/", plotsDir="plots/", avg=True):
     testsFileName = dataDir + "UK.testing.csv"
 
     with open(casesFileName, "r") as file:
-        next(file)
         reader = csv.reader(file, delimiter=",")
         casesData = [[line[0], int(line[1])] for line in reader]
         casesDict = dict(casesData)
@@ -91,12 +109,8 @@ def ukPlot(dataDir="data/", plotsDir="plots/", avg=True):
             cases = n_day_avg(cases, 7)
 
     with open(testsFileName, "r") as file:
-        next(file)
         reader = csv.reader(file, delimiter=",")
-        testsData = [
-            (line[0], parseInt(line[1]) + parseInt(line[2]) + parseInt(line[3]))
-            for line in reader
-        ]
+        testsData = [(line[0], int(line[1])) for line in reader]
         testsData = np.array(testsData)
         testRawDates = testsData[:, 0]
         testDates = [dt.strptime(x, "%Y-%m-%d") for x in testRawDates]
@@ -114,11 +128,11 @@ def ukPlot(dataDir="data/", plotsDir="plots/", avg=True):
 
     # remove the most recent two dates as they won't be accurate yet
     skip = 3
-    cases = cases[skip:]
-    casesDates = casesDates[skip:]
-    tests = tests[skip:]
-    testTotal = testTotal[skip:]
-    testDates = testDates[skip:]
+    cases = cases[:-skip]
+    casesDates = casesDates[:-skip]
+    tests = tests[:-skip]
+    testTotal = testTotal[:-skip]
+    testDates = testDates[:-skip]
 
     plt.figure()
     fig, ax = plt.subplots()
@@ -220,7 +234,6 @@ def nationPlot(dataDir="data/", plotsDir="plots/", avg=True):
         nationData = {}
 
         with open(casesFileName, "r") as file:
-            next(file)  # skip first line
             reader = csv.reader(file, delimiter=",")
             casesData = [[line[0], int(line[1])] for line in reader]
             casesDict = dict(casesData)
@@ -234,12 +247,8 @@ def nationPlot(dataDir="data/", plotsDir="plots/", avg=True):
                 cases = n_day_avg(cases, 7)
 
         with open(testsFileName, "r") as file:
-            next(file)  # skip first line
             reader = csv.reader(file, delimiter=",")
-            nationTestData = [
-                (line[0], parseInt(line[1]) + parseInt(line[2]) + parseInt(line[3]))
-                for line in reader
-            ]
+            nationTestData = [(line[0], int(line[1])) for line in reader]
             nationTestData = np.array(nationTestData)
             testRawDates = nationTestData[:, 0]
             testDates = [dt.strptime(x, "%Y-%m-%d") for x in testRawDates]
@@ -254,11 +263,11 @@ def nationPlot(dataDir="data/", plotsDir="plots/", avg=True):
 
         # remove the most recent two dates as they won't be accurate yet
         skip = 3
-        nationData["cases"] = cases[skip:]
-        nationData["casesDates"] = casesDates[skip:]
-        nationData["tests"] = tests[skip:]
-        nationData["testDates"] = testDates[skip:]
-        nationData["testsOriginal"] = testsOriginal[skip:]
+        nationData["cases"] = cases[:-skip]
+        nationData["casesDates"] = casesDates[:-skip]
+        nationData["tests"] = tests[:-skip]
+        nationData["testDates"] = testDates[:-skip]
+        nationData["testsOriginal"] = testsOriginal[:-skip]
 
         return nationData
 
@@ -392,7 +401,6 @@ def nationReportedPlot(dataDir="data/", plotsDir="plots/", avg=True):
         for nation in nations:
             reportedFileName = dataDir + nation + fileNameTypes[type] + ".csv"
             with open(reportedFileName, "r") as file:
-                next(file)
                 reader = csv.reader(file, delimiter=",")
                 reportedData = [[line[0], int(line[1])] for line in reader]
 
@@ -501,7 +509,7 @@ def nationReportedPlot(dataDir="data/", plotsDir="plots/", avg=True):
                     else:
                         reportedData = [x / totalPopulation * 100 for x in reportedData]
                     # reversed cumulative sum
-                    reportedData = np.cumsum(reportedData[::-1])[::-1]
+                    reportedData = np.cumsum(reportedData)
 
                     if perCapita[i]:
                         ax.plot(
@@ -573,16 +581,9 @@ def heatMapPlot(dataDir="data/", plotsDir="plots/"):
 
         for i, fileName in enumerate(fileNames):
             with open(fileName, "r") as file:
-                next(file)
                 reader = csv.reader(file, delimiter=",")
                 if i == 0 and cases:
-                    fileData = [
-                        (
-                            line[0],
-                            parseInt(line[1]) + parseInt(line[2]) + parseInt(line[3]),
-                        )
-                        for line in reader
-                    ]
+                    fileData = [(line[0], int(line[1]),) for line in reader]
                 else:
                     fileData = [[line[0], int(line[1])] for line in reader]
 
@@ -601,19 +602,20 @@ def heatMapPlot(dataDir="data/", plotsDir="plots/"):
     def plotHeatmap(ax, name, dataFrames):
         ax.set_ylabel(name, rotation=0, ha="right", va="center")
         ax.tick_params(axis="y", which="both", left=False, labelleft=False)
-        hm = ax.imshow(
-            [dataFrames], cmap="plasma", interpolation="none", aspect="auto"
-        )
+        hm = ax.imshow([dataFrames], cmap="plasma", interpolation="none", aspect="auto")
         plt.colorbar(hm, ax=ax, format=threeFigureFormatter, aspect=10)
         # ax.bar(range(7), dataFrames["Number"])
 
         removeSpines(ax)
 
     casesBoolean = [1, 0]
-    fignames = ["testsCases", "deaths"]
+    fignames = ["TestsCases", "Deaths"]
     titles = ["tests/cases", "deaths"]
-    
-    names = [["Tests", "Cases (reported date)", "Cases (specimen date)"], ["Deaths", "Reported Deaths"]]
+
+    names = [
+        ["Tests", "Cases (reported date)", "Cases (specimen date)"],
+        ["Deaths", "Reported Deaths"],
+    ]
 
     for i in range(2):
         # UK
@@ -657,9 +659,13 @@ def heatMapPlot(dataDir="data/", plotsDir="plots/"):
                 ax = fig.add_subplot(inner[j])
                 if j == 0:
                     ax.set_title(nations[k])
-                    ax.tick_params(axis="x", which="both", bottom=False, labelbottom=False)
+                    ax.tick_params(
+                        axis="x", which="both", bottom=False, labelbottom=False
+                    )
                 elif j == 1:
-                    ax.tick_params(axis="x", which="both", bottom=False, labelbottom=False)
+                    ax.tick_params(
+                        axis="x", which="both", bottom=False, labelbottom=False
+                    )
                 elif j == 2:
                     plt.xticks(ticks=list(range(7)), labels=days)
 
