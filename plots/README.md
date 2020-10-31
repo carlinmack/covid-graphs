@@ -38,6 +38,10 @@
 
 ![image](Nation-Reported-Deaths-Cumulative-Per-Capita.png)
 
-![image](testsCasesHeatMap.png)
+![image](TestsCasesHeatMap.png)
 
-![image](testsCasesHeatMap-Nation.png)
+![image](TestsCasesHeatMap-Nation.png)
+
+![image](DeathsHeatMap.png)
+
+![image](DeathsHeatMap-Nation.png)
