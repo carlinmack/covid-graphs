@@ -144,6 +144,15 @@ def mainPlot(dataDir="data/", plotsDir="plots/", avg=True):
 
     nationList = [["UK"], ["Scotland", "England", "Northern Ireland", "Wales"]]
     colorsList = [["C0"], ["#003078", "#5694CA", "#FFDD00", "#D4351C"]]
+    nation1kDates = [
+        [dt.strptime("2020-03-11", "%Y-%m-%d")],
+        [
+            dt.strptime("2020-03-25", "%Y-%m-%d"),
+            dt.strptime("2020-03-11", "%Y-%m-%d"),
+            dt.strptime("2020-04-03", "%Y-%m-%d"),
+            dt.strptime("2020-03-26", "%Y-%m-%d"),
+        ],
+    ]
     fignames = ["", "-Nation"]
 
     today = dt.today()
@@ -257,14 +266,24 @@ def mainPlot(dataDir="data/", plotsDir="plots/", avg=True):
 
             fivePercent = [x * 0.05 for x in data[nation]["testsOriginal"]]
 
-            ax.bar(data[nation]["testDates"], data[nation]["testsOriginal"], color="C0", label="Total tests")
+            ax.bar(
+                data[nation]["testDates"],
+                data[nation]["testsOriginal"],
+                color="C0",
+                label="Total tests",
+            )
             ax.bar(
                 data[nation]["testDates"],
                 fivePercent,
                 color="black",
                 label="WHO 5% reopening threshold",
             )
-            ax.bar(data[nation]["casesDates"], data[nation]["cases"], color="orangered", label="Positive tests")
+            ax.bar(
+                data[nation]["casesDates"],
+                data[nation]["cases"],
+                color="orangered",
+                label="Positive tests",
+            )
 
             dateAxis(ax)
             ax.set_xlim(
@@ -727,7 +746,7 @@ if __name__ == "__main__":
 
     if newData or clArgs.test or clArgs.dryrun:
         t = tqdm(
-            total=4, bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} {elapsed_s:.0f}s"
+            total=3, bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} {elapsed_s:.0f}s"
         )
 
         t.set_description("Main Plots")
