@@ -92,7 +92,7 @@ def getData(dataDir, force=False):
         return False
 
 
-def mainPlot(dataDir="data/", plotsDir="plots/", avg=True):
+def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
     """avg indicates seven day average of new cases should be used"""
 
     def getData(name):
@@ -168,6 +168,7 @@ def mainPlot(dataDir="data/", plotsDir="plots/", avg=True):
         figname = plotsDir + "PercentPositive" + fignames[outerI]
         if avg:
             figname += "-Avg"
+        updateProgressBar(figname, t)
 
         ax.set_title("UK COVID-19 cases compared to percentage of positive tests")
 
@@ -257,6 +258,8 @@ def mainPlot(dataDir="data/", plotsDir="plots/", avg=True):
         figname = plotsDir + "DoubleBarChart" + fignames[outerI]
         if avg:
             figname += "-Avg"
+
+        updateProgressBar(figname, t)
         plt.figure()
 
         if outerI == 0:
@@ -346,7 +349,7 @@ def mainPlot(dataDir="data/", plotsDir="plots/", avg=True):
         savePlot(figname, fig)
 
 
-def nationReportedPlot(dataDir="data/", plotsDir="plots/", avg=True):
+def nationReportedPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
     nations = ["England", "Northern Ireland", "Scotland", "Wales"]
     colors = ["#5694CA", "#FFDD00", "#003078", "#D4351C"]
     populations = [56286961, 1893667, 5463300, 3152879]
@@ -386,6 +389,7 @@ def nationReportedPlot(dataDir="data/", plotsDir="plots/", avg=True):
             figname = plotsDir + fignameTypes[type] + fignameSuffix[i]
             if avg:
                 figname += "-Avg"
+            updateProgressBar(figname, t)
             plt.figure()
             fig, ax = plt.subplots()
             ax.set_title(titleTypesUpper[type] + " by date reported" + titleSuffix[i])
@@ -459,6 +463,7 @@ def nationReportedPlot(dataDir="data/", plotsDir="plots/", avg=True):
                 figname = (
                     plotsDir + fignameTypes[type] + "-Cumulative" + fignameSuffix[i]
                 )
+                updateProgressBar(figname, t)
                 plt.figure()
                 fig, ax = plt.subplots()
                 ax.set_title(
@@ -518,7 +523,7 @@ def nationReportedPlot(dataDir="data/", plotsDir="plots/", avg=True):
                 savePlot(figname, fig)
 
 
-def heatMapPlot(dataDir="data/", plotsDir="plots/"):
+def heatMapPlot(t, dataDir="data/", plotsDir="plots/"):
     days = [
         "Monday",
         "Tuesday",
@@ -588,6 +593,7 @@ def heatMapPlot(dataDir="data/", plotsDir="plots/"):
         dataFrames = getDataframes("UK", casesBoolean[i])
 
         figname = plotsDir + fignames[i] + "HeatMap"
+        updateProgressBar(figname, t)
         plt.figure()
         fig, axs = plt.subplots(len(dataFrames), 1, sharex=True)
 
@@ -612,6 +618,7 @@ def heatMapPlot(dataDir="data/", plotsDir="plots/"):
             nationsDf.append(nationDataFrame)
 
         figname = plotsDir + fignames[i] + "HeatMap-Nation"
+        updateProgressBar(figname, t)
 
         fig = plt.figure(figsize=(20, 10))
         outerAxs = gridspec.GridSpec(2, 2, hspace=0.3)
@@ -642,6 +649,11 @@ def heatMapPlot(dataDir="data/", plotsDir="plots/"):
 
 
 # Helpers ------------------------------------------------------------------------------
+
+
+def updateProgressBar(figname, t):
+    t.update()
+    t.set_description(figname)
 
 
 def savePlot(figname, fig):
@@ -746,21 +758,15 @@ if __name__ == "__main__":
 
     if newData or clArgs.test or clArgs.dryrun:
         t = tqdm(
-            total=3, bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} {elapsed_s:.0f}s"
+            total=28, bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} {elapsed_s:.0f}s"
         )
 
-        t.set_description("Main Plots")
-        mainPlot(dataDir, plotsDir, avg=False)
-        mainPlot(dataDir, plotsDir)
-        t.update()
+        mainPlot(t, dataDir, plotsDir, avg=False)
+        mainPlot(t, dataDir, plotsDir)
 
-        t.set_description("Nation Reported Cases and Reported Deaths Plots")
-        nationReportedPlot(dataDir, plotsDir)
-        nationReportedPlot(dataDir, plotsDir, avg=False)
-        t.update()
+        nationReportedPlot(t, dataDir, plotsDir)
+        nationReportedPlot(t, dataDir, plotsDir, avg=False)
 
-        t.set_description("Heat Map Plots")
-        heatMapPlot(dataDir, plotsDir)
-        t.update()
+        heatMapPlot(t, dataDir, plotsDir)
 
         t.close()
