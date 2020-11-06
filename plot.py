@@ -548,10 +548,7 @@ def heatMapPlot(t, dataDir="data/", plotsDir="plots/"):
         for i, fileName in enumerate(fileNames):
             with open(fileName, "r") as file:
                 reader = csv.reader(file, delimiter=",")
-                if i == 0 and cases:
-                    fileData = [(line[0], int(line[1]),) for line in reader]
-                else:
-                    fileData = [[line[0], int(line[1])] for line in reader]
+                fileData = [[line[0], int(line[1])] for line in reader]
 
             data.append(fileData)
 
