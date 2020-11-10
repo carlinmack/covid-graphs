@@ -146,7 +146,7 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
         mortality = [0] * len(deaths)
         for j, date in enumerate(deathDates):
             casesDate = date.strftime("%Y-%m-%d")
-            
+
             if deaths[j] and casesDate in mortCasesDict:
                 mortality[j] = min(deaths[j] / mortCasesDict[casesDate] * 100, 100)
             else:
@@ -240,7 +240,7 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
             yLabel = "Daily COVID-19 Cases in the UK"
             if avg:
                 yLabel += " (seven day average)"
-                
+
             ax.set_ylabel(yLabel, color="C0")
 
             ax2 = ax.twinx()
@@ -285,16 +285,16 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
                     x=date,
                     ymin=ymin,
                     ymax=ymax,
-                    color='#FF41367F',
-                    label='Start of lockdown',
+                    color="#FF41367F",
+                    label="Start of lockdown",
                 )
 
             ax2.vlines(
                 x=nationLockdownEasing[outerI],
                 ymin=ymin,
                 ymax=ymax,
-                color='#3D99707F',
-                label='End of lockdown',
+                color="#3D99707F",
+                label="End of lockdown",
             )
         elif outerI == 1:
             for i, nation in enumerate(data):
@@ -425,7 +425,7 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
 
         # Mortality plot ---------------------------------------------------------------
         figname = plotsDir + "Mortality" + fignames[outerI]
-        title = "Mortality of COVID-19"
+        title = "Mortality of COVID-19 in the UK"
         if avg:
             figname += "-Avg"
             title += " (averaged)"
@@ -440,13 +440,16 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
             yLabel = "Daily COVID-19 Cases in the UK"
             if avg:
                 yLabel += " (seven day average)"
-                
+
             ax.set_ylabel(yLabel, color="C0")
 
             ax2 = ax.twinx()
 
             ax2.plot_date(
-                data[nation]["deathDates"], data[nation]["mortality"], "white", linewidth=3
+                data[nation]["deathDates"],
+                data[nation]["mortality"],
+                "white",
+                linewidth=3,
             )
             ax2.plot_date(
                 data[nation]["deathDates"],
@@ -467,8 +470,8 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
 
             ax.spines["top"].set_visible(False)
             ax2.spines["top"].set_visible(False)
-            ax.yaxis.set_major_formatter(tkr.FuncFormatter(threeFigureFormatter))
 
+            ax.yaxis.set_major_formatter(tkr.FuncFormatter(threeFigureFormatter))
             ax2.yaxis.set_major_formatter(tkr.PercentFormatter(decimals=2))
         elif outerI == 1:
             for i, nation in enumerate(data):
@@ -490,6 +493,11 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
             plt.legend()
 
         ax.set_ylim(bottom=0)
+        ax.set_xlabel(
+            """
+        Note: Mortality is calculated as deaths per day divided by the sum of cases in the prior 28 days""",
+            color="#666",
+        )
 
         dateAxis(ax)
         ax.set_xlim(left=leftLim, right=rightLim)
@@ -497,6 +505,7 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
         removeSpines(ax)
 
         savePlot(figname, fig)
+
 
 def nationReportedPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
     nations = ["England", "Northern Ireland", "Scotland", "Wales"]
@@ -913,7 +922,7 @@ if __name__ == "__main__":
 
     if newData or clArgs.test or clArgs.dryrun:
         t = tqdm(
-            total=24, bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} {elapsed_s:.0f}s"
+            total=28, bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} {elapsed_s:.0f}s"
         )
 
         mainPlot(t, dataDir, plotsDir, avg=False)
