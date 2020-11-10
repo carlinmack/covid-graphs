@@ -98,6 +98,7 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
     def getData(name):
         casesFileName = dataDir + name + ".cases.csv"
         testsFileName = dataDir + name + ".testing.csv"
+        deathsFileName = dataDir + name + ".deaths.csv"
 
         nationData = {}
 
@@ -110,10 +111,12 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
         casesDates = [dt.strptime(x, "%Y-%m-%d") for x in casesRawDates]
         cases = casesData[:, 1].astype(np.float)
         # compute seven day average of cases if enabled
+        mortCases = n_day_sum(cases, 28)
         if avg:
             cases = n_day_avg(cases, 7)
 
         casesDict = dict(zip(casesRawDates, cases))
+        mortCasesDict = dict(zip(casesRawDates, mortCases))
 
         with open(testsFileName, "r") as file:
             reader = csv.reader(file, delimiter=",")
@@ -132,13 +135,31 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
             else:
                 tests[j] = 0
 
-        # remove the most recent two dates as they won't be accurate yet
+        with open(deathsFileName, "r") as file:
+            reader = csv.reader(file, delimiter=",")
+            nationDeathData = [(line[0], int(line[1])) for line in reader]
+        nationDeathData = np.array(nationDeathData)
+        deathDates = [dt.strptime(x, "%Y-%m-%d") for x in nationDeathData[:, 0]]
+        deaths = nationDeathData[:, 1].astype(np.float)
+        if avg:
+            deaths = n_day_avg(deaths, 7)
+        mortality = [0] * len(deaths)
+        for j, date in enumerate(deathDates):
+            casesDate = date.strftime("%Y-%m-%d")
+            
+            if deaths[j] and casesDate in mortCasesDict:
+                mortality[j] = min(deaths[j] / mortCasesDict[casesDate] * 100, 100)
+            else:
+                mortality[j] = 0
+        # remove the most recent three dates as they won't be accurate yet
         skip = 3
         nationData["cases"] = cases[:-skip]
         nationData["casesDates"] = casesDates[:-skip]
         nationData["tests"] = tests[:-skip]
         nationData["testDates"] = testDates[:-skip]
         nationData["testsOriginal"] = testsOriginal[:-skip]
+        nationData["mortality"] = mortality[:-skip]
+        nationData["deathDates"] = deathDates[:-skip]
 
         return nationData
 
@@ -151,6 +172,41 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
             dt.strptime("2020-03-11", "%Y-%m-%d"),
             dt.strptime("2020-04-03", "%Y-%m-%d"),
             dt.strptime("2020-03-26", "%Y-%m-%d"),
+        ],
+    ]
+    nationLockdownDates = [
+        [
+            [
+                dt.strptime("2020-03-23", "%Y-%m-%d"),
+                dt.strptime("2020-11-05", "%Y-%m-%d"),
+            ]
+        ],
+        [
+            [
+                dt.strptime("2020-03-23", "%Y-%m-%d"),
+                dt.strptime("2020-10-07", "%Y-%m-%d"),
+            ],
+            [
+                dt.strptime("2020-03-23", "%Y-%m-%d"),
+                dt.strptime("2020-10-23", "%Y-%m-%d"),
+            ],
+            [
+                dt.strptime("2020-03-23", "%Y-%m-%d"),
+                dt.strptime("2020-11-05", "%Y-%m-%d"),
+            ],
+            [
+                dt.strptime("2020-03-23", "%Y-%m-%d"),
+                dt.strptime("2020-10-16", "%Y-%m-%d"),
+            ],
+        ],
+    ]
+    nationLockdownEasing = [
+        [dt.strptime("2020-07-04", "%Y-%m-%d")],
+        [
+            dt.strptime("2020-07-15", "%Y-%m-%d"),
+            dt.strptime("2020-08-03", "%Y-%m-%d"),
+            dt.strptime("2020-07-04", "%Y-%m-%d"),
+            dt.strptime("2020-09-23", "%Y-%m-%d"),
         ],
     ]
     fignames = ["", "-Nation"]
@@ -181,12 +237,11 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
 
         if outerI == 0:
             ax.bar(data[nation]["casesDates"], data[nation]["cases"])
+            yLabel = "Daily COVID-19 Cases in the UK"
             if avg:
-                ax.set_ylabel(
-                    "Daily COVID-19 Cases in the UK (seven day average)", color="C0"
-                )
-            else:
-                ax.set_ylabel("Daily COVID-19 Cases in the UK", color="C0")
+                yLabel += " (seven day average)"
+                
+            ax.set_ylabel(yLabel, color="C0")
 
             ax2 = ax.twinx()
 
@@ -222,6 +277,24 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
                 linestyles="dotted",
                 color="black",
                 label="WHO 5% reopening threshold",
+            )
+
+            ymin, ymax = ax.get_ylim()
+            for date in nationLockdownDates[outerI]:
+                ax2.vlines(
+                    x=date,
+                    ymin=ymin,
+                    ymax=ymax,
+                    color='#FF41367F',
+                    label='Start of lockdown',
+                )
+
+            ax2.vlines(
+                x=nationLockdownEasing[outerI],
+                ymin=ymin,
+                ymax=ymax,
+                color='#3D99707F',
+                label='End of lockdown',
             )
         elif outerI == 1:
             for i, nation in enumerate(data):
@@ -260,7 +333,7 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
 
         savePlot(figname, fig)
 
-        # Double bar chart
+        # Double bar chart -------------------------------------------------------------
         figname = plotsDir + "DoubleBarChart" + fignames[outerI]
         title = "Number of tests vs positive tests"
         if avg:
@@ -350,6 +423,80 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
 
         savePlot(figname, fig)
 
+        # Mortality plot ---------------------------------------------------------------
+        figname = plotsDir + "Mortality" + fignames[outerI]
+        title = "Mortality of COVID-19"
+        if avg:
+            figname += "-Avg"
+            title += " (averaged)"
+        updateProgressBar(figname, t)
+        plt.figure()
+        fig, ax = plt.subplots()
+
+        ax.set_title(title, fontweight="bold")
+
+        if outerI == 0:
+            ax.bar(data[nation]["casesDates"], data[nation]["cases"])
+            yLabel = "Daily COVID-19 Cases in the UK"
+            if avg:
+                yLabel += " (seven day average)"
+                
+            ax.set_ylabel(yLabel, color="C0")
+
+            ax2 = ax.twinx()
+
+            ax2.plot_date(
+                data[nation]["deathDates"], data[nation]["mortality"], "white", linewidth=3
+            )
+            ax2.plot_date(
+                data[nation]["deathDates"],
+                data[nation]["mortality"],
+                "orangered",
+                linewidth=2,
+            )
+
+            yLabel = "Percent mortality per day"
+            if avg:
+                yLabel += " (seven day average)"
+
+            ax2.set_ylabel(
+                yLabel, color="orangered", rotation=270, ha="center", va="bottom",
+            )
+
+            ax2.set_ylim(bottom=0)
+
+            ax.spines["top"].set_visible(False)
+            ax2.spines["top"].set_visible(False)
+            ax.yaxis.set_major_formatter(tkr.FuncFormatter(threeFigureFormatter))
+
+            ax2.yaxis.set_major_formatter(tkr.PercentFormatter(decimals=2))
+        elif outerI == 1:
+            for i, nation in enumerate(data):
+                nationDeaths = data[nation]["mortality"]
+                ax.plot_date(
+                    data[nation]["deathDates"],
+                    nationDeaths,
+                    colorsList[outerI][i],
+                    linewidth=2,
+                    label=nations[i],
+                )
+
+            yLabel = "Percent mortality per day"
+            if avg:
+                yLabel += " (seven day average)"
+
+            ax.set_ylabel(yLabel)
+            ax.yaxis.set_major_formatter(tkr.PercentFormatter(decimals=2))
+            plt.legend()
+
+        ax.set_ylim(bottom=0)
+
+        dateAxis(ax)
+        ax.set_xlim(left=leftLim, right=rightLim)
+
+        removeSpines(ax)
+
+        savePlot(figname, fig)
 
 def nationReportedPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
     nations = ["England", "Northern Ireland", "Scotland", "Wales"]
@@ -690,6 +837,12 @@ def n_day_avg(xs, n=7):
     """compute n day average of time series, using maximum possible number of days at
     start of series"""
     return [np.mean(xs[max(0, i + 1 - n) : i + 1]) for i in range(xs.shape[0])]
+
+
+def n_day_sum(xs, n=28):
+    """compute n day sum of time series, using maximum possible number of days at
+    start of series"""
+    return [np.sum(xs[max(0, i + 1 - n) : i + 1]) for i in range(xs.shape[0])]
 
 
 def parseInt(str):

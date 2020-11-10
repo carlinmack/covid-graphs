@@ -11,3 +11,7 @@
 ![image](plots/Nation-Reported-Deaths-Avg.png)
 
 ![image](plots/Nation-Reported-Deaths-Cumulative-Per-Capita.png)
+
+![image](plots/Mortality-Avg.png)
+
+![image](plots/Mortality-Nation-Avg.png)

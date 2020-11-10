@@ -14,6 +14,14 @@
 
 ![image](DoubleBarChart-Nation-Avg.png)
 
+![image](plots/Mortality.png)
+
+![image](plots/Mortality-Avg.png)
+
+![image](plots/Mortality-Nation.png)
+
+![image](plots/Mortality-Nation-Avg.png)
+
 ![image](Nation-Reported-Cases.png)
 
 ![image](Nation-Reported-Cases-Avg.png)
