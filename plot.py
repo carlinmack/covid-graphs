@@ -425,17 +425,15 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
 
         # Mortality plot ---------------------------------------------------------------
         figname = plotsDir + "Mortality" + fignames[outerI]
-        title = "Mortality of COVID-19 in the UK"
         if avg:
             figname += "-Avg"
-            title += " (averaged)"
         updateProgressBar(figname, t)
         plt.figure()
         fig, ax = plt.subplots()
 
-        ax.set_title(title, fontweight="bold")
-
         if outerI == 0:
+            title = "Mortality of COVID-19 in the UK"
+
             ax.bar(data[nation]["casesDates"], data[nation]["cases"])
             yLabel = "Daily COVID-19 Cases in the UK"
             if avg:
@@ -474,6 +472,8 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
             ax.yaxis.set_major_formatter(tkr.FuncFormatter(threeFigureFormatter))
             ax2.yaxis.set_major_formatter(tkr.PercentFormatter(decimals=2))
         elif outerI == 1:
+            title = "Mortality of COVID-19 in UK nations"
+
             for i, nation in enumerate(data):
                 nationDeaths = data[nation]["mortality"]
                 ax.plot_date(
@@ -491,6 +491,10 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
             ax.set_ylabel(yLabel)
             ax.yaxis.set_major_formatter(tkr.PercentFormatter(decimals=2))
             plt.legend()
+        
+        if avg:
+            title += " (averaged)"
+        ax.set_title(title, fontweight="bold")
 
         ax.set_ylim(bottom=0)
         ax.set_xlabel(
