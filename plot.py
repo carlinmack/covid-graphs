@@ -307,6 +307,15 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
                     label=nations[i],
                 )
 
+            ax.hlines(
+                y=5,
+                xmin=leftLim,
+                xmax=rightLim,
+                linestyles="dotted",
+                color="black",
+                label="WHO 5% reopening threshold",
+            )
+
             yLabel = "Percent positive tests per day"
             if avg:
                 yLabel += " (seven day average)"
@@ -316,17 +325,15 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
 
         ax.set_ylim(bottom=0)
 
+        ax.set_xlabel(
+            """
+        Note: Positive rates should be at or below 5 percent for at least 14 days before
+        a country can safely reopen, according to the World Health Organization.""",
+            color="#666",
+        )
+
         dateAxis(ax)
         ax.set_xlim(left=leftLim, right=rightLim)
-
-        ax.hlines(
-            y=5,
-            xmin=leftLim,
-            xmax=rightLim,
-            linestyles="dotted",
-            color="black",
-            label="WHO 5% reopening threshold",
-        )
 
         plt.legend()
         removeSpines(ax)
@@ -370,6 +377,13 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
 
             dateAxis(ax)
             ax.set_xlim(left=leftLim, right=rightLim)
+
+            ax.set_xlabel(
+                """
+                Note: Positive rates should be at or below 5 percent for at least 14 days before
+                a country can safely reopen, according to the World Health Organization.""",
+                color="#666",
+            )
 
             yLabel = "Number of tests per day"
             if avg:
@@ -491,7 +505,7 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
             ax.set_ylabel(yLabel)
             ax.yaxis.set_major_formatter(tkr.PercentFormatter(decimals=2))
             plt.legend()
-        
+
         if avg:
             title += " (averaged)"
         ax.set_title(title, fontweight="bold")
