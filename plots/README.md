@@ -14,21 +14,29 @@
 
 ![image](DoubleBarChart-Nation-Avg.png)
 
-![image](plots/Hospitalisation.png)
+![image](Testing.png)
 
-![image](plots/Hospitalisation-Avg.png)
+![image](Testing-Avg.png)
 
-![image](plots/Hospitalisation-Nation.png)
+![image](Testing-Nation.png)
 
-![image](plots/Hospitalisation-Nation-Avg.png)
+![image](Testing-Nation-Avg.png)
 
-![image](plots/Mortality.png)
+![image](Hospitalisation.png)
 
-![image](plots/Mortality-Avg.png)
+![image](Hospitalisation-Avg.png)
 
-![image](plots/Mortality-Nation.png)
+![image](Hospitalisation-Nation.png)
 
-![image](plots/Mortality-Nation-Avg.png)
+![image](Hospitalisation-Nation-Avg.png)
+
+![image](Mortality.png)
+
+![image](Mortality-Avg.png)
+
+![image](Mortality-Nation.png)
+
+![image](Mortality-Nation-Avg.png)
 
 ![image](Nation-Reported-Cases.png)
 

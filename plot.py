@@ -186,15 +186,6 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
 
     nationList = [["UK"], ["Scotland", "England", "Northern Ireland", "Wales"]]
     colorsList = [["C0"], ["#003078", "#5694CA", "#FFDD00", "#D4351C"]]
-    nation1kDates = [
-        [dt.strptime("2020-03-11", "%Y-%m-%d")],
-        [
-            dt.strptime("2020-03-25", "%Y-%m-%d"),
-            dt.strptime("2020-03-11", "%Y-%m-%d"),
-            dt.strptime("2020-04-03", "%Y-%m-%d"),
-            dt.strptime("2020-03-26", "%Y-%m-%d"),
-        ],
-    ]
     nationLockdownDates = [
         [
             [
@@ -202,33 +193,9 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
                 dt.strptime("2020-11-05", "%Y-%m-%d"),
             ]
         ],
-        [
-            [
-                dt.strptime("2020-03-23", "%Y-%m-%d"),
-                dt.strptime("2020-10-07", "%Y-%m-%d"),
-            ],
-            [
-                dt.strptime("2020-03-23", "%Y-%m-%d"),
-                dt.strptime("2020-10-23", "%Y-%m-%d"),
-            ],
-            [
-                dt.strptime("2020-03-23", "%Y-%m-%d"),
-                dt.strptime("2020-11-05", "%Y-%m-%d"),
-            ],
-            [
-                dt.strptime("2020-03-23", "%Y-%m-%d"),
-                dt.strptime("2020-10-16", "%Y-%m-%d"),
-            ],
-        ],
     ]
     nationLockdownEasing = [
         [dt.strptime("2020-07-04", "%Y-%m-%d")],
-        [
-            dt.strptime("2020-07-15", "%Y-%m-%d"),
-            dt.strptime("2020-08-03", "%Y-%m-%d"),
-            dt.strptime("2020-07-04", "%Y-%m-%d"),
-            dt.strptime("2020-09-23", "%Y-%m-%d"),
-        ],
     ]
     fignames = ["", "-Nation"]
     titles = ["", " nation"]
@@ -442,6 +409,79 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
                     color="orangered",
                     label="Positive tests",
                 )
+
+                dateAxis(ax)
+                ax.set_xlim(left=leftLim, right=rightLim)
+
+                yLabel = "Number of tests per day"
+                if avg:
+                    yLabel += " (seven day average)"
+                ax.set_ylabel(yLabel)
+                ax.set_title(nations[j])
+                ax.yaxis.set_major_formatter(tkr.FuncFormatter(threeFigureFormatter))
+
+                removeSpines(ax)
+                showGrid(ax, "y")
+
+        savePlot(figname, fig)
+
+        # Testing ----------------------------------------------------------------------
+        figname = plotsDir + "Testing" + fignames[outerI]
+        title = "Rate of testing compared to target"
+        if avg:
+            figname += "-Avg"
+            title += " (averaged)"
+        updateProgressBar(figname, t)
+        plt.figure()
+
+        if outerI == 0:
+            fig, ax = plt.subplots()
+
+            ax.set_title(title, fontweight="bold")
+
+            tests = [x / 0.05 for x in data[nation]["tests"]]
+
+            ax.plot(data[nation]["testDates"], tests, color="#333")
+
+            ymin, ymax = ax.get_ylim()
+            maxArray = [x >= 100 for x in tests]
+            minArray = [x <= 100 for x in tests]
+            ax.fill_between(data[nation]["testDates"], 100, tests, where=maxArray, facecolor='#FF41367F', interpolate=True)
+            ax.fill_between(data[nation]["testDates"], 100, tests, where=minArray, facecolor='#3D99707F', interpolate=True)
+
+            dateAxis(ax)
+            ax.set_xlim(left=leftLim, right=rightLim)
+
+            ax.set_xlabel(
+                """
+                Note: Target positive testing rate is 5% according to the World Health Organization.""",
+                color="#666",
+            )
+
+            yLabel = "Percent of target"
+            if avg:
+                yLabel += " (seven day average)"
+            ax.set_ylabel(yLabel)
+            ax.yaxis.set_major_formatter(tkr.PercentFormatter(decimals=0))
+
+            removeSpines(ax)
+            showGrid(ax, "y")
+        else:
+            fig, axs = plt.subplots(2, 2, sharex=True)
+            axs = axs.flatten()
+            fig.suptitle(title, fontweight="bold")
+
+            for j, nation in enumerate(data):
+                ax = axs[j]
+                tests = [x / 0.05 for x in data[nation]["tests"]]
+
+                ax.plot(data[nation]["testDates"], tests, color="#333")
+
+                ymin, ymax = ax.get_ylim()
+                maxArray = [x >= 100 for x in tests]
+                minArray = [x <= 100 for x in tests]
+                ax.fill_between(data[nation]["testDates"], 100, tests, where=maxArray, facecolor='#FF41367F', interpolate=True)
+                ax.fill_between(data[nation]["testDates"], 100, tests, where=minArray, facecolor='#3D99707F', interpolate=True)
 
                 dateAxis(ax)
                 ax.set_xlim(left=leftLim, right=rightLim)
