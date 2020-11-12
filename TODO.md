@@ -1,5 +1,6 @@
 - [ ] Refactor into different files
 - [ ] Refactor functions into smaller self contained pieces
+- [ ] Refactor graphs that take the longest to draw
 - [ ] Create excess mortality + covid deaths graphs
     - http://old.reddit.com/r/dataisbeautiful/comments/jn8ufq/doing_things_properly_70000_5000_excess_deaths/
     - https://www.ons.gov.uk/peoplepopulationandcommunity/birthsdeathsandmarriages/deaths/datasets/weeklyprovisionalfiguresondeathsregisteredinenglandandwales
