@@ -68,9 +68,17 @@ def getData(dataDir, force=False):
             '"newCasesByPublishDate":"newCasesByPublishDate"',
             '"newDeaths28DaysByDeathDate":"newDeaths28DaysByDeathDate"',
             '"newDeaths28DaysByPublishDate":"newDeaths28DaysByPublishDate"',
+            '"newAdmissions":"newAdmissions"',
         ]
         urlSuffix = "%7D&format=csv"
-        names = ["testing", "cases", "cases.reported", "deaths", "deaths.reported"]
+        names = [
+            "testing",
+            "cases",
+            "cases.reported",
+            "deaths",
+            "deaths.reported",
+            "hospitalisations",
+        ]
 
         nations = ["Scotland", "England", "Northern Ireland", "Wales"]
 
@@ -95,54 +103,31 @@ def getData(dataDir, force=False):
 def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
     """avg indicates seven day average of new cases should be used"""
 
-    def getData(name):
-        casesFileName = dataDir + name + ".cases.csv"
-        testsFileName = dataDir + name + ".testing.csv"
-        deathsFileName = dataDir + name + ".deaths.csv"
-
-        nationData = {}
-
-        with open(casesFileName, "r") as file:
+    def readFile(name, dictionary=False, raw=False):
+        with open(name, "r") as file:
             reader = csv.reader(file, delimiter=",")
-            casesData = [[line[0], int(line[1])] for line in reader]
+            data = [[line[0], int(line[1])] for line in reader]
         # convert to np array and separate dates from case counts
-        casesData = np.array(casesData)
+        casesData = np.array(data)
         casesRawDates = casesData[:, 0]
         casesDates = [dt.strptime(x, "%Y-%m-%d") for x in casesRawDates]
         cases = casesData[:, 1].astype(np.float)
-        # compute seven day average of cases if enabled
         mortCases = n_day_sum(cases, 28)
+        # compute seven day average of cases if enabled
         if avg:
             cases = n_day_avg(cases, 7)
 
-        casesDict = dict(zip(casesRawDates, cases))
-        mortCasesDict = dict(zip(casesRawDates, mortCases))
+        if dictionary:
+            casesDict = dict(zip(casesRawDates, cases))
+            mortCasesDict = dict(zip(casesRawDates, mortCases))
+            return cases, casesDates, casesDict, mortCasesDict
 
-        with open(testsFileName, "r") as file:
-            reader = csv.reader(file, delimiter=",")
-            nationTestData = [(line[0], int(line[1])) for line in reader]
-        nationTestData = np.array(nationTestData)
-        testRawDates = nationTestData[:, 0]
-        testDates = [dt.strptime(x, "%Y-%m-%d") for x in testRawDates]
-        tests = nationTestData[:, 1].astype(np.float)
-        if avg:
-            tests = n_day_avg(tests, 7)
+        if raw:
+            return cases, casesDates, casesRawDates
 
-        testsOriginal = np.copy(tests)
-        for j, date in enumerate(testRawDates):
-            if date in casesDict:
-                tests[j] = min(casesDict[date] / tests[j] * 100, 100)
-            else:
-                tests[j] = 0
+        return cases, casesDates
 
-        with open(deathsFileName, "r") as file:
-            reader = csv.reader(file, delimiter=",")
-            nationDeathData = [(line[0], int(line[1])) for line in reader]
-        nationDeathData = np.array(nationDeathData)
-        deathDates = [dt.strptime(x, "%Y-%m-%d") for x in nationDeathData[:, 0]]
-        deaths = nationDeathData[:, 1].astype(np.float)
-        if avg:
-            deaths = n_day_avg(deaths, 7)
+    def percentOf28daysCases(deaths, deathDates, mortCasesDict):
         mortality = [0] * len(deaths)
         for j, date in enumerate(deathDates):
             casesDate = date.strftime("%Y-%m-%d")
@@ -151,6 +136,40 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
                 mortality[j] = min(deaths[j] / mortCasesDict[casesDate] * 100, 100)
             else:
                 mortality[j] = 0
+        return mortality
+
+    def getData(name):
+        casesFileName = dataDir + name + ".cases.csv"
+        testsFileName = dataDir + name + ".testing.csv"
+        deathsFileName = dataDir + name + ".deaths.csv"
+        hospitalisationsFileName = dataDir + name + ".hospitalisations.csv"
+
+        nationData = {}
+
+        cases, casesDates, casesDict, mortCasesDict = readFile(
+            casesFileName, dictionary=True
+        )
+
+        testsOriginal, testDates, testRawDates = readFile(testsFileName, raw=True)
+
+        tests = np.copy(testsOriginal)
+
+        for j, date in enumerate(testRawDates):
+            if date in casesDict:
+                tests[j] = min(casesDict[date] / tests[j] * 100, 100)
+            else:
+                tests[j] = 0
+
+        deaths, deathDates = readFile(deathsFileName)
+
+        mortality = percentOf28daysCases(deaths, deathDates, mortCasesDict)
+
+        hospitalisations, hospitalisationDates = readFile(hospitalisationsFileName)
+
+        hospitalisations = percentOf28daysCases(
+            hospitalisations, hospitalisationDates, mortCasesDict
+        )
+
         # remove the most recent three dates as they won't be accurate yet
         skip = 3
         nationData["cases"] = cases[:-skip]
@@ -160,6 +179,8 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
         nationData["testsOriginal"] = testsOriginal[:-skip]
         nationData["mortality"] = mortality[:-skip]
         nationData["deathDates"] = deathDates[:-skip]
+        nationData["hospitalisations"] = hospitalisations[:-skip]
+        nationData["hospitalisationDates"] = hospitalisationDates[:-skip]
 
         return nationData
 
@@ -437,92 +458,104 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
 
         savePlot(figname, fig)
 
-        # Mortality plot ---------------------------------------------------------------
-        figname = plotsDir + "Mortality" + fignames[outerI]
-        if avg:
-            figname += "-Avg"
-        updateProgressBar(figname, t)
-        plt.figure()
-        fig, ax = plt.subplots()
+        # Mortality/Hospitalisation plot -----------------------------------------------
+        innerFignames = ["Mortality", "Hospitalisation"]
+        innerTitles = ["Mortality", "Hospitalisation rate"]
+        innerYs = ["deathDates", "hospitalisationDates"]
+        innerXs = ["mortality", "hospitalisations"]
+        innerYlables = innerXs
+        innerNotes = [
+            "Mortality is calculated as deaths",
+            "Hospitalisation rate is caluated as hospitalisations",
+        ]
 
-        if outerI == 0:
-            title = "Mortality of COVID-19 in the UK"
-
-            ax.bar(data[nation]["casesDates"], data[nation]["cases"])
-            yLabel = "Daily COVID-19 Cases in the UK"
+        for innerI in range(len(innerFignames)):
+            figname = plotsDir + innerFignames[innerI] + fignames[outerI]
             if avg:
-                yLabel += " (seven day average)"
+                figname += "-Avg"
+            updateProgressBar(figname, t)
+            plt.figure()
+            fig, ax = plt.subplots()
 
-            ax.set_ylabel(yLabel, color="C0")
+            if outerI == 0:
+                title = "%s of COVID-19 in the UK" % innerTitles[innerI]
 
-            ax2 = ax.twinx()
+                ax.bar(data[nation]["casesDates"], data[nation]["cases"])
+                yLabel = "Daily COVID-19 Cases in the UK"
+                if avg:
+                    yLabel += " (seven day average)"
 
-            ax2.plot_date(
-                data[nation]["deathDates"],
-                data[nation]["mortality"],
-                "white",
-                linewidth=3,
-            )
-            ax2.plot_date(
-                data[nation]["deathDates"],
-                data[nation]["mortality"],
-                "orangered",
-                linewidth=2,
-            )
+                ax.set_ylabel(yLabel, color="C0")
 
-            yLabel = "Percent mortality per day"
-            if avg:
-                yLabel += " (seven day average)"
+                ax2 = ax.twinx()
 
-            ax2.set_ylabel(
-                yLabel, color="orangered", rotation=270, ha="center", va="bottom",
-            )
-
-            ax2.set_ylim(bottom=0)
-
-            ax.spines["top"].set_visible(False)
-            ax2.spines["top"].set_visible(False)
-
-            ax.yaxis.set_major_formatter(tkr.FuncFormatter(threeFigureFormatter))
-            ax2.yaxis.set_major_formatter(tkr.PercentFormatter(decimals=2))
-        elif outerI == 1:
-            title = "Mortality of COVID-19 in UK nations"
-
-            for i, nation in enumerate(data):
-                nationDeaths = data[nation]["mortality"]
-                ax.plot_date(
-                    data[nation]["deathDates"],
-                    nationDeaths,
-                    colorsList[outerI][i],
+                ax2.plot_date(
+                    data[nation][innerYs[innerI]],
+                    data[nation][innerXs[innerI]],
+                    "white",
+                    linewidth=3,
+                )
+                ax2.plot_date(
+                    data[nation][innerYs[innerI]],
+                    data[nation][innerXs[innerI]],
+                    "orangered",
                     linewidth=2,
-                    label=nations[i],
                 )
 
-            yLabel = "Percent mortality per day"
+                yLabel = "Percent %s per day" % innerYlables[innerI]
+                if avg:
+                    yLabel += " (seven day average)"
+
+                ax2.set_ylabel(
+                    yLabel, color="orangered", rotation=270, ha="center", va="bottom",
+                )
+
+                ax2.set_ylim(bottom=0)
+
+                ax.spines["top"].set_visible(False)
+                ax2.spines["top"].set_visible(False)
+
+                ax.yaxis.set_major_formatter(tkr.FuncFormatter(threeFigureFormatter))
+                ax2.yaxis.set_major_formatter(tkr.PercentFormatter(decimals=2))
+            elif outerI == 1:
+                title = "%s of COVID-19 in UK nations" % innerTitles[innerI]
+
+                for i, nation in enumerate(data):
+                    nationDeaths = data[nation][innerXs[innerI]]
+                    ax.plot_date(
+                        data[nation][innerYs[innerI]],
+                        nationDeaths,
+                        colorsList[outerI][i],
+                        linewidth=2,
+                        label=nations[i],
+                    )
+
+                yLabel = "Percent %s per day" % innerYlables[innerI]
+                if avg:
+                    yLabel += " (seven day average)"
+
+                ax.set_ylabel(yLabel)
+                ax.yaxis.set_major_formatter(tkr.PercentFormatter(decimals=2))
+                plt.legend()
+
             if avg:
-                yLabel += " (seven day average)"
+                title += " (averaged)"
+            ax.set_title(title, fontweight="bold")
 
-            ax.set_ylabel(yLabel)
-            ax.yaxis.set_major_formatter(tkr.PercentFormatter(decimals=2))
-            plt.legend()
+            ax.set_ylim(bottom=0)
+            ax.set_xlabel(
+                """
+            Note: %s per day divided by the sum of cases in the prior 28 days"""
+                % innerNotes[innerI],
+                color="#666",
+            )
 
-        if avg:
-            title += " (averaged)"
-        ax.set_title(title, fontweight="bold")
+            dateAxis(ax)
+            ax.set_xlim(left=leftLim, right=rightLim)
 
-        ax.set_ylim(bottom=0)
-        ax.set_xlabel(
-            """
-        Note: Mortality is calculated as deaths per day divided by the sum of cases in the prior 28 days""",
-            color="#666",
-        )
+            removeSpines(ax)
 
-        dateAxis(ax)
-        ax.set_xlim(left=leftLim, right=rightLim)
-
-        removeSpines(ax)
-
-        savePlot(figname, fig)
+            savePlot(figname, fig)
 
 
 def nationReportedPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
@@ -672,7 +705,7 @@ def nationReportedPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
                             bottom=bottom,
                         )
 
-                    bottom = list(map(add, reportedData, bottom))
+                        bottom = list(map(add, reportedData, bottom))
 
                 dateAxis(ax)
                 ax.set_xlim(left=leftLim, right=rightLim)
@@ -940,7 +973,7 @@ if __name__ == "__main__":
 
     if newData or clArgs.test or clArgs.dryrun:
         t = tqdm(
-            total=28, bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} {elapsed_s:.0f}s"
+            total=30, bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} {elapsed_s:.0f}s"
         )
 
         mainPlot(t, dataDir, plotsDir, avg=False)

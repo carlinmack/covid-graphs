@@ -14,6 +14,14 @@
 
 ![image](DoubleBarChart-Nation-Avg.png)
 
+![image](plots/Hospitalisation.png)
+
+![image](plots/Hospitalisation-Avg.png)
+
+![image](plots/Hospitalisation-Nation.png)
+
+![image](plots/Hospitalisation-Nation-Avg.png)
+
 ![image](plots/Mortality.png)
 
 ![image](plots/Mortality-Avg.png)
