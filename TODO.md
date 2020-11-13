@@ -11,6 +11,8 @@
     - https://www.nytimes.com/interactive/2020/us/coronavirus-testing.html
 - [ ] Heatmap by age group
     - https://russss.github.io/covidtracker/
+- [ ] Fix matplotlib too many plots warning
+    - https://stackoverflow.com/questions/21884271/warning-about-too-many-open-figures
 
 - [ ] Compare UK to other countries
     - https://github.com/CSSEGISandData/COVID-19

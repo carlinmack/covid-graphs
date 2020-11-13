@@ -1,9 +1,8 @@
 import argparse
 import csv
-import json
+import math
 import os
 from datetime import datetime as dt
-from datetime import timedelta
 from operator import add
 
 import matplotlib
@@ -132,7 +131,11 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
         for j, date in enumerate(deathDates):
             casesDate = date.strftime("%Y-%m-%d")
 
-            if deaths[j] and casesDate in mortCasesDict:
+            if (
+                deaths[j]
+                and casesDate in mortCasesDict
+                and mortCasesDict[casesDate] > 0
+            ):
                 mortality[j] = min(deaths[j] / mortCasesDict[casesDate] * 100, 100)
             else:
                 mortality[j] = 0
@@ -251,13 +254,11 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
                 yLabel, color="orangered", rotation=270, ha="center", va="bottom",
             )
 
-            ax2.set_ylim(bottom=0)
-
             ax.spines["top"].set_visible(False)
             ax2.spines["top"].set_visible(False)
             ax.yaxis.set_major_formatter(tkr.FuncFormatter(threeFigureFormatter))
 
-            ax2.yaxis.set_major_formatter(tkr.PercentFormatter(decimals=0))
+            percentAxis(ax2)
             ax2.hlines(
                 y=5,
                 xmin=leftLim,
@@ -309,9 +310,7 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
                 yLabel += " (seven day average)"
 
             ax.set_ylabel(yLabel)
-            ax.yaxis.set_major_formatter(tkr.PercentFormatter(decimals=0))
-
-        ax.set_ylim(bottom=0)
+            percentAxis(ax)
 
         ax.set_xlabel(
             """
@@ -480,7 +479,7 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
             if avg:
                 yLabel += " (seven day average)"
             ax.set_ylabel(yLabel)
-            ax.yaxis.set_major_formatter(tkr.PercentFormatter(decimals=0))
+            percentAxis(ax)
 
             removeSpines(ax)
             showGrid(ax, "y")
@@ -527,6 +526,7 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
                 ax.yaxis.set_major_formatter(tkr.FuncFormatter(threeFigureFormatter))
 
                 removeSpines(ax)
+                ax.set_ylim(bottom=0)
                 showGrid(ax, "y")
 
         savePlot(figname, fig)
@@ -585,13 +585,11 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
                     yLabel, color="orangered", rotation=270, ha="center", va="bottom",
                 )
 
-                ax2.set_ylim(bottom=0)
-
                 ax.spines["top"].set_visible(False)
                 ax2.spines["top"].set_visible(False)
 
                 ax.yaxis.set_major_formatter(tkr.FuncFormatter(threeFigureFormatter))
-                ax2.yaxis.set_major_formatter(tkr.PercentFormatter(decimals=2))
+                percentAxis(ax2)
             elif outerI == 1:
                 title = "%s of COVID-19 in UK nations" % innerTitles[innerI]
 
@@ -610,14 +608,14 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
                     yLabel += " (seven day average)"
 
                 ax.set_ylabel(yLabel)
-                ax.yaxis.set_major_formatter(tkr.PercentFormatter(decimals=2))
+                percentAxis(ax)
+
                 plt.legend()
 
             if avg:
                 title += " (averaged)"
             ax.set_title(title, fontweight="bold")
 
-            ax.set_ylim(bottom=0)
             ax.set_xlabel(
                 """
             Note: %s per day divided by the sum of cases in the prior 28 days"""
@@ -720,13 +718,9 @@ def nationReportedPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
             if avg:
                 yLabel += " (seven day average)"
             ax.set_ylabel(yLabel)
-            ax.set_ylim(bottom=0)
 
             if perCapita[i]:
-                if type:
-                    ax.yaxis.set_major_formatter(tkr.PercentFormatter(decimals=4))
-                else:
-                    ax.yaxis.set_major_formatter(tkr.PercentFormatter(decimals=2))
+                percentAxis(ax)
             else:
                 ax.yaxis.set_major_formatter(tkr.FuncFormatter(threeFigureFormatter))
 
@@ -760,7 +754,6 @@ def nationReportedPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
                         reportedData = [x / populations[j] * 100 for x in reportedData]
                     else:
                         reportedData = [x / totalPopulation * 100 for x in reportedData]
-                    # reversed cumulative sum
                     reportedData = np.cumsum(reportedData)
 
                     if perCapita[i]:
@@ -787,12 +780,11 @@ def nationReportedPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
                 handles, labels = ax.get_legend_handles_labels()
                 ax.legend(reversed(handles), reversed(labels))
 
-                ax.yaxis.set_major_formatter(tkr.PercentFormatter(decimals=2))
+                percentAxis(ax)
                 yLabel = "Percent of " + yLabels[i] + " " + yLabelTypes[type]
                 if avg:
                     yLabel += " (seven day average)"
                 ax.set_ylabel(yLabel)
-                ax.set_ylim(bottom=0)
 
                 removeSpines(ax)
                 showGrid(ax, "y")
@@ -968,6 +960,15 @@ def dateAxis(ax):
     ax.xaxis.set_major_formatter(df("%d %b"))
 
 
+def percentAxis(ax):
+    ax.set_ylim(bottom=0)
+    ticks = ax.get_yticks()
+    dataRange = max(ticks) - min(ticks)
+    roundingDecimals = math.ceil(2.0 - math.log10(2.0 * dataRange))
+    decimals = max(map(lambda x: decimalPlaces(x, roundingDecimals), ticks))
+    ax.yaxis.set_major_formatter(tkr.PercentFormatter(decimals=decimals))
+
+
 def reduceXlabels(ax, every_nth=2):
     for n, label in enumerate(ax.xaxis.get_ticklabels()):
         if n % every_nth != 0:
@@ -989,6 +990,15 @@ def n_day_sum(xs, n=28):
 def parseInt(str):
     str = str.strip()
     return int(str) if str else 0
+
+
+def decimalPlaces(number, digits):
+    s = str(round(number, digits))
+    s = s.strip("0")
+
+    if not "." in s:
+        return 0
+    return len(s) - s.index(".") - 1
 
 
 def defineArgParser():
