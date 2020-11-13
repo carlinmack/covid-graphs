@@ -395,7 +395,10 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
                 fivePercent = [x * 0.05 for x in tests]
 
                 ax.bar(
-                    data[nation]["testDates"], tests, color="#2271d3", label="Total tests"
+                    data[nation]["testDates"],
+                    tests,
+                    color="#2271d3",
+                    label="Total tests",
                 )
                 ax.bar(
                     data[nation]["testDates"],
@@ -439,7 +442,7 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
             fig, ax = plt.subplots()
 
             ax.set_title(title, fontweight="bold")
-            
+
             tests = data[nation]["tests"]
 
             ax.plot(data[nation]["testDates"], tests, color="#333")
@@ -447,8 +450,22 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
             ymin, ymax = ax.get_ylim()
             maxArray = [x >= 5 for x in tests]
             minArray = [x <= 5 for x in tests]
-            ax.fill_between(data[nation]["testDates"], 5, tests, where=maxArray, facecolor='#FF41367F', interpolate=True)
-            ax.fill_between(data[nation]["testDates"], 5, tests, where=minArray, facecolor='#3D99707F', interpolate=True)
+            ax.fill_between(
+                data[nation]["testDates"],
+                5,
+                tests,
+                where=maxArray,
+                facecolor="#FF41367F",
+                interpolate=True,
+            )
+            ax.fill_between(
+                data[nation]["testDates"],
+                5,
+                tests,
+                where=minArray,
+                facecolor="#3D99707F",
+                interpolate=True,
+            )
 
             dateAxis(ax)
             ax.set_xlim(left=leftLim, right=rightLim)
@@ -481,14 +498,28 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
                 ymin, ymax = ax.get_ylim()
                 maxArray = [x >= 5 for x in tests]
                 minArray = [x <= 5 for x in tests]
-                ax.fill_between(data[nation]["testDates"], 5, tests, where=maxArray, facecolor='#FF41367F', interpolate=True)
-                ax.fill_between(data[nation]["testDates"], 5, tests, where=minArray, facecolor='#3D99707F', interpolate=True)
+                ax.fill_between(
+                    data[nation]["testDates"],
+                    5,
+                    tests,
+                    where=maxArray,
+                    facecolor="#FF41367F",
+                    interpolate=True,
+                )
+                ax.fill_between(
+                    data[nation]["testDates"],
+                    5,
+                    tests,
+                    where=minArray,
+                    facecolor="#3D99707F",
+                    interpolate=True,
+                )
 
                 dateAxis(ax)
                 reduceXlabels(ax)
                 ax.set_xlim(left=leftLim, right=rightLim)
 
-                yLabel = "Number of tests per day"
+                yLabel = "% positive tests per day"
                 if avg:
                     yLabel += " (seven day average)"
                 ax.set_ylabel(yLabel)
@@ -522,7 +553,9 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
             if outerI == 0:
                 title = "%s of COVID-19 in the UK" % innerTitles[innerI]
 
-                ax.bar(data[nation]["casesDates"], data[nation]["cases"])
+                ax.bar(
+                    data[nation]["casesDates"], data[nation]["cases"], color="#2271d3"
+                )
                 yLabel = "Daily COVID-19 Cases in the UK"
                 if avg:
                     yLabel += " (seven day average)"
@@ -934,10 +967,12 @@ def dateAxis(ax):
     ax.xaxis_date()
     ax.xaxis.set_major_formatter(df("%d %b"))
 
+
 def reduceXlabels(ax, every_nth=2):
     for n, label in enumerate(ax.xaxis.get_ticklabels()):
         if n % every_nth != 0:
             label.set_visible(False)
+
 
 def n_day_avg(xs, n=7):
     """compute n day average of time series, using maximum possible number of days at
