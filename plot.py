@@ -185,7 +185,7 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
         return nationData
 
     nationList = [["UK"], ["Scotland", "England", "Northern Ireland", "Wales"]]
-    colorsList = [["C0"], ["#003078", "#5694CA", "#FFDD00", "#D4351C"]]
+    colorsList = [["#2271d3"], ["#003078", "#5694CA", "#FFDD00", "#D4351C"]]
     nationLockdownDates = [
         [
             [
@@ -224,12 +224,12 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
         ax.set_title(title, fontweight="bold")
 
         if outerI == 0:
-            ax.bar(data[nation]["casesDates"], data[nation]["cases"])
+            ax.bar(data[nation]["casesDates"], data[nation]["cases"], color="#2271d3")
             yLabel = "Daily COVID-19 Cases in the UK"
             if avg:
                 yLabel += " (seven day average)"
 
-            ax.set_ylabel(yLabel, color="C0")
+            ax.set_ylabel(yLabel, color="#2271d3")
 
             ax2 = ax.twinx()
 
@@ -347,7 +347,7 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
             ax.bar(
                 data[nation]["testDates"],
                 data[nation]["testsOriginal"],
-                color="C0",
+                color="#2271d3",
                 label="Total tests",
             )
             ax.bar(
@@ -395,7 +395,7 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
                 fivePercent = [x * 0.05 for x in tests]
 
                 ax.bar(
-                    data[nation]["testDates"], tests, color="C0", label="Total tests"
+                    data[nation]["testDates"], tests, color="#2271d3", label="Total tests"
                 )
                 ax.bar(
                     data[nation]["testDates"],
@@ -411,6 +411,7 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
                 )
 
                 dateAxis(ax)
+                reduceXlabels(ax)
                 ax.set_xlim(left=leftLim, right=rightLim)
 
                 yLabel = "Number of tests per day"
@@ -427,10 +428,10 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
 
         # Testing ----------------------------------------------------------------------
         figname = plotsDir + "Testing" + fignames[outerI]
-        title = "Rate of testing compared to target"
+        title = "Positive test rate of COVID-19 in the UK"
         if avg:
             figname += "-Avg"
-            title += " (averaged)"
+            title = "Average positive test rate of COVID-19 in the UK"
         updateProgressBar(figname, t)
         plt.figure()
 
@@ -438,16 +439,16 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
             fig, ax = plt.subplots()
 
             ax.set_title(title, fontweight="bold")
-
-            tests = [x / 0.05 for x in data[nation]["tests"]]
+            
+            tests = data[nation]["tests"]
 
             ax.plot(data[nation]["testDates"], tests, color="#333")
 
             ymin, ymax = ax.get_ylim()
-            maxArray = [x >= 100 for x in tests]
-            minArray = [x <= 100 for x in tests]
-            ax.fill_between(data[nation]["testDates"], 100, tests, where=maxArray, facecolor='#FF41367F', interpolate=True)
-            ax.fill_between(data[nation]["testDates"], 100, tests, where=minArray, facecolor='#3D99707F', interpolate=True)
+            maxArray = [x >= 5 for x in tests]
+            minArray = [x <= 5 for x in tests]
+            ax.fill_between(data[nation]["testDates"], 5, tests, where=maxArray, facecolor='#FF41367F', interpolate=True)
+            ax.fill_between(data[nation]["testDates"], 5, tests, where=minArray, facecolor='#3D99707F', interpolate=True)
 
             dateAxis(ax)
             ax.set_xlim(left=leftLim, right=rightLim)
@@ -458,7 +459,7 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
                 color="#666",
             )
 
-            yLabel = "Percent of target"
+            yLabel = "Percent positive tests per day"
             if avg:
                 yLabel += " (seven day average)"
             ax.set_ylabel(yLabel)
@@ -473,17 +474,18 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
 
             for j, nation in enumerate(data):
                 ax = axs[j]
-                tests = [x / 0.05 for x in data[nation]["tests"]]
+                tests = data[nation]["tests"]
 
                 ax.plot(data[nation]["testDates"], tests, color="#333")
 
                 ymin, ymax = ax.get_ylim()
-                maxArray = [x >= 100 for x in tests]
-                minArray = [x <= 100 for x in tests]
-                ax.fill_between(data[nation]["testDates"], 100, tests, where=maxArray, facecolor='#FF41367F', interpolate=True)
-                ax.fill_between(data[nation]["testDates"], 100, tests, where=minArray, facecolor='#3D99707F', interpolate=True)
+                maxArray = [x >= 5 for x in tests]
+                minArray = [x <= 5 for x in tests]
+                ax.fill_between(data[nation]["testDates"], 5, tests, where=maxArray, facecolor='#FF41367F', interpolate=True)
+                ax.fill_between(data[nation]["testDates"], 5, tests, where=minArray, facecolor='#3D99707F', interpolate=True)
 
                 dateAxis(ax)
+                reduceXlabels(ax)
                 ax.set_xlim(left=leftLim, right=rightLim)
 
                 yLabel = "Number of tests per day"
@@ -525,7 +527,7 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
                 if avg:
                     yLabel += " (seven day average)"
 
-                ax.set_ylabel(yLabel, color="C0")
+                ax.set_ylabel(yLabel, color="#2271d3")
 
                 ax2 = ax.twinx()
 
@@ -932,6 +934,10 @@ def dateAxis(ax):
     ax.xaxis_date()
     ax.xaxis.set_major_formatter(df("%d %b"))
 
+def reduceXlabels(ax, every_nth=2):
+    for n, label in enumerate(ax.xaxis.get_ticklabels()):
+        if n % every_nth != 0:
+            label.set_visible(False)
 
 def n_day_avg(xs, n=7):
     """compute n day average of time series, using maximum possible number of days at
@@ -1013,7 +1019,7 @@ if __name__ == "__main__":
 
     if newData or clArgs.test or clArgs.dryrun:
         t = tqdm(
-            total=30, bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} {elapsed_s:.0f}s"
+            total=36, bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} {elapsed_s:.0f}s"
         )
 
         mainPlot(t, dataDir, plotsDir, avg=False)

@@ -1,3 +1,11 @@
+![image](Testing.png)
+
+![image](Testing-Avg.png)
+
+![image](Testing-Nation.png)
+
+![image](Testing-Nation-Avg.png)
+
 ![image](PercentPositive.png)
 
 ![image](PercentPositive-Avg.png)
@@ -13,14 +21,6 @@
 ![image](DoubleBarChart-Nation.png)
 
 ![image](DoubleBarChart-Nation-Avg.png)
-
-![image](Testing.png)
-
-![image](Testing-Avg.png)
-
-![image](Testing-Nation.png)
-
-![image](Testing-Nation-Avg.png)
 
 ![image](Hospitalisation.png)
 
