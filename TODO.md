@@ -1,4 +1,8 @@
 - [ ] Refactor into different files
+    - data loading/saving
+    - plotting
+    - data processing
+    - main
 - [ ] Refactor functions into smaller self contained pieces
 - [ ] Refactor graphs that take the longest to draw
 - [x] Create hospitalisation graphs
@@ -13,6 +17,8 @@
     - https://russss.github.io/covidtracker/
 - [ ] Fix matplotlib too many plots warning
     - https://stackoverflow.com/questions/21884271/warning-about-too-many-open-figures
+- [ ] Set up a github action to update the plots every day
+- [ ] Add average toggle to plots
 
 - [ ] Compare UK to other countries
     - https://github.com/CSSEGISandData/COVID-19

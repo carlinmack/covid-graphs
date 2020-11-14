@@ -187,19 +187,39 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
 
         return nationData
 
+    def lockdownVlines(ax, outerI):
+        nationLockdownDates = [
+            [
+                [
+                    dt.strptime("2020-03-23", "%Y-%m-%d"),
+                    dt.strptime("2020-11-05", "%Y-%m-%d"),
+                ]
+            ],
+        ]
+        nationLockdownEasing = [
+            [dt.strptime("2020-07-04", "%Y-%m-%d")],
+        ]
+
+        ymin, ymax = ax.get_ylim()
+        for date in nationLockdownDates[outerI]:
+            ax.vlines(
+                x=date,
+                ymin=ymin,
+                ymax=ymax,
+                color="#FF41367F",
+                label="Start of lockdown",
+            )
+
+        ax.vlines(
+            x=nationLockdownEasing[outerI],
+            ymin=ymin,
+            ymax=ymax,
+            color="#3D99707F",
+            label="End of lockdown",
+        )
+
     nationList = [["UK"], ["Scotland", "England", "Northern Ireland", "Wales"]]
     colorsList = [["#2271d3"], ["#003078", "#5694CA", "#FFDD00", "#D4351C"]]
-    nationLockdownDates = [
-        [
-            [
-                dt.strptime("2020-03-23", "%Y-%m-%d"),
-                dt.strptime("2020-11-05", "%Y-%m-%d"),
-            ]
-        ],
-    ]
-    nationLockdownEasing = [
-        [dt.strptime("2020-07-04", "%Y-%m-%d")],
-    ]
     fignames = ["", "-Nation"]
     titles = ["", " nation"]
 
@@ -227,23 +247,20 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
         ax.set_title(title, fontweight="bold")
 
         if outerI == 0:
-            ax.bar(data[nation]["casesDates"], data[nation]["cases"], color="#2271d3")
+            ax.bar(data["UK"]["casesDates"], data["UK"]["cases"], color="#2271d3")
+            
             yLabel = "Daily COVID-19 Cases in the UK"
             if avg:
                 yLabel += " (seven day average)"
-
             ax.set_ylabel(yLabel, color="#2271d3")
 
             ax2 = ax.twinx()
 
             ax2.plot_date(
-                data[nation]["testDates"], data[nation]["tests"], "white", linewidth=3
+                data["UK"]["testDates"], data["UK"]["tests"], "white", linewidth=3
             )
             ax2.plot_date(
-                data[nation]["testDates"],
-                data[nation]["tests"],
-                "orangered",
-                linewidth=2,
+                data["UK"]["testDates"], data["UK"]["tests"], "orangered", linewidth=2
             )
 
             yLabel = "Percent positive tests per day"
@@ -251,7 +268,7 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
                 yLabel += " (seven day average)"
 
             ax2.set_ylabel(
-                yLabel, color="orangered", rotation=270, ha="center", va="bottom",
+                yLabel, color="orangered", rotation=270, ha="center", va="bottom"
             )
 
             ax.spines["top"].set_visible(False)
@@ -268,23 +285,7 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
                 label="WHO 5% reopening threshold",
             )
 
-            ymin, ymax = ax.get_ylim()
-            for date in nationLockdownDates[outerI]:
-                ax2.vlines(
-                    x=date,
-                    ymin=ymin,
-                    ymax=ymax,
-                    color="#FF41367F",
-                    label="Start of lockdown",
-                )
-
-            ax2.vlines(
-                x=nationLockdownEasing[outerI],
-                ymin=ymin,
-                ymax=ymax,
-                color="#3D99707F",
-                label="End of lockdown",
-            )
+            lockdownVlines(ax2, outerI)
         elif outerI == 1:
             for i, nation in enumerate(data):
                 nationTests = data[nation]["tests"]
@@ -320,7 +321,6 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
         )
 
         dateAxis(ax)
-        ax.set_xlim(left=leftLim, right=rightLim)
 
         plt.legend()
         removeSpines(ax)
@@ -341,29 +341,30 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
 
             ax.set_title(title, fontweight="bold")
 
-            fivePercent = [x * 0.05 for x in data[nation]["testsOriginal"]]
+            fivePercent = [x * 0.05 for x in data["UK"]["testsOriginal"]]
 
             ax.bar(
-                data[nation]["testDates"],
-                data[nation]["testsOriginal"],
+                data["UK"]["testDates"],
+                data["UK"]["testsOriginal"],
                 color="#2271d3",
                 label="Total tests",
             )
             ax.bar(
-                data[nation]["testDates"],
+                data["UK"]["testDates"],
                 fivePercent,
                 color="black",
                 label="WHO 5% reopening threshold",
             )
             ax.bar(
-                data[nation]["casesDates"],
-                data[nation]["cases"],
+                data["UK"]["casesDates"],
+                data["UK"]["cases"],
                 color="orangered",
                 label="Positive tests",
             )
 
+            lockdownVlines(ax, outerI)
+
             dateAxis(ax)
-            ax.set_xlim(left=leftLim, right=rightLim)
 
             ax.set_xlabel(
                 """
@@ -414,7 +415,6 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
 
                 dateAxis(ax)
                 reduceXlabels(ax)
-                ax.set_xlim(left=leftLim, right=rightLim)
 
                 yLabel = "Number of tests per day"
                 if avg:
@@ -442,15 +442,15 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
 
             ax.set_title(title, fontweight="bold")
 
-            tests = data[nation]["tests"]
+            tests = data["UK"]["tests"]
 
-            ax.plot(data[nation]["testDates"], tests, color="#333")
+            ax.plot(data["UK"]["testDates"], tests, color="#333")
 
             ymin, ymax = ax.get_ylim()
             maxArray = [x >= 5 for x in tests]
             minArray = [x <= 5 for x in tests]
             ax.fill_between(
-                data[nation]["testDates"],
+                data["UK"]["testDates"],
                 5,
                 tests,
                 where=maxArray,
@@ -458,7 +458,7 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
                 interpolate=True,
             )
             ax.fill_between(
-                data[nation]["testDates"],
+                data["UK"]["testDates"],
                 5,
                 tests,
                 where=minArray,
@@ -467,7 +467,6 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
             )
 
             dateAxis(ax)
-            ax.set_xlim(left=leftLim, right=rightLim)
 
             ax.set_xlabel(
                 """
@@ -516,18 +515,17 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
 
                 dateAxis(ax)
                 reduceXlabels(ax)
-                ax.set_xlim(left=leftLim, right=rightLim)
 
                 yLabel = "% positive tests per day"
                 if avg:
                     yLabel += " (seven day average)"
                 ax.set_ylabel(yLabel)
-                ax.set_title(nations[j])
                 ax.yaxis.set_major_formatter(tkr.FuncFormatter(threeFigureFormatter))
-
-                removeSpines(ax)
-                ax.set_ylim(bottom=0)
                 showGrid(ax, "y")
+                percentAxis(ax)
+
+                ax.set_title(nations[j])
+                removeSpines(ax)
 
         savePlot(figname, fig)
 
@@ -553,9 +551,7 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
             if outerI == 0:
                 title = "%s of COVID-19 in the UK" % innerTitles[innerI]
 
-                ax.bar(
-                    data[nation]["casesDates"], data[nation]["cases"], color="#2271d3"
-                )
+                ax.bar(data["UK"]["casesDates"], data["UK"]["cases"], color="#2271d3")
                 yLabel = "Daily COVID-19 Cases in the UK"
                 if avg:
                     yLabel += " (seven day average)"
@@ -565,14 +561,14 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
                 ax2 = ax.twinx()
 
                 ax2.plot_date(
-                    data[nation][innerYs[innerI]],
-                    data[nation][innerXs[innerI]],
+                    data["UK"][innerYs[innerI]],
+                    data["UK"][innerXs[innerI]],
                     "white",
                     linewidth=3,
                 )
                 ax2.plot_date(
-                    data[nation][innerYs[innerI]],
-                    data[nation][innerXs[innerI]],
+                    data["UK"][innerYs[innerI]],
+                    data["UK"][innerXs[innerI]],
                     "orangered",
                     linewidth=2,
                 )
@@ -582,7 +578,7 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
                     yLabel += " (seven day average)"
 
                 ax2.set_ylabel(
-                    yLabel, color="orangered", rotation=270, ha="center", va="bottom",
+                    yLabel, color="orangered", rotation=270, ha="center", va="bottom"
                 )
 
                 ax.spines["top"].set_visible(False)
@@ -624,7 +620,6 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
             )
 
             dateAxis(ax)
-            ax.set_xlim(left=leftLim, right=rightLim)
 
             removeSpines(ax)
 
@@ -692,7 +687,7 @@ def nationReportedPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
                 if perCapita[i]:
                     reportedData = [x / populations[j] * 100 for x in reportedData]
                     ax.plot(
-                        dates, reportedData, color=colors[j], label=nation, linewidth=2,
+                        dates, reportedData, color=colors[j], label=nation, linewidth=2
                     )
                 else:
                     ax.bar(
@@ -706,7 +701,6 @@ def nationReportedPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
                 bottom = list(map(add, reportedData, bottom))
 
             dateAxis(ax)
-            ax.set_xlim(left=leftLim, right=rightLim)
             handles, labels = ax.get_legend_handles_labels()
             ax.legend(reversed(handles), reversed(labels))
 
@@ -776,7 +770,6 @@ def nationReportedPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
                         bottom = list(map(add, reportedData, bottom))
 
                 dateAxis(ax)
-                ax.set_xlim(left=leftLim, right=rightLim)
                 handles, labels = ax.get_legend_handles_labels()
                 ax.legend(reversed(handles), reversed(labels))
 
@@ -956,6 +949,7 @@ def showGrid(ax, axis):
 
 
 def dateAxis(ax):
+    ax.set_xlim(left=dt.strptime("2020-03-01", "%Y-%m-%d"), right=dt.today())
     ax.xaxis_date()
     ax.xaxis.set_major_formatter(df("%d %b"))
 
@@ -1008,15 +1002,15 @@ def defineArgParser():
     )
 
     parser.add_argument(
-        "-d", "--dryrun", help="Don't get new data", action="store_true",
+        "-d", "--dryrun", help="Don't get new data", action="store_true"
     )
 
     parser.add_argument(
-        "-f", "--force", help="Get data even if it is not new", action="store_true",
+        "-f", "--force", help="Get data even if it is not new", action="store_true"
     )
 
     parser.add_argument(
-        "-t", "--test", help="Plot even if there is no new data", action="store_true",
+        "-t", "--test", help="Plot even if there is no new data", action="store_true"
     )
 
     parser.add_argument(
