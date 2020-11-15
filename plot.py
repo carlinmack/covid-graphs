@@ -632,9 +632,6 @@ def nationReportedPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
     populations = [56286961, 1893667, 5463300, 3152879]
     totalPopulation = sum(populations)
 
-    leftLim = dt.strptime("2020-03-01", "%Y-%m-%d")
-    rightLim = dt.today()
-
     fileNameTypes = [".cases.reported", ".deaths.reported"]
     fignameTypes = ["Nation-Reported-Cases", "Nation-Reported-Deaths"]
     titleTypesUpper = ["Cases", "Deaths"]
