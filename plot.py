@@ -622,21 +622,21 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
             # Second, show the right spine.
             ax3.spines["right"].set_visible(True)
 
-            p1 = ax.plot(
+            (p1,) = ax.plot(
                 data["UK"]["casesDates"],
                 data["UK"]["cases"],
                 "orangered",
                 ls="-",
                 label="Cases",
             )
-            p2 = ax2.plot(
+            (p2,) = ax2.plot(
                 data["UK"]["hospitalisationDates"],
                 data["UK"]["hospitalisations"],
                 "#851bc2",
                 ls="-",
                 label="Hospitalisations",
             )
-            p3 = ax3.plot(
+            (p3,) = ax3.plot(
                 data["UK"]["deathDates"],
                 data["UK"]["deaths"],
                 "#333",
@@ -650,8 +650,9 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
 
             ax.yaxis.label.set_color(p1.get_color())
             ax2.yaxis.label.set_color(p2.get_color())
-            ax3.yaxis.label.set_color(p3.get_color())
 
+            if avg:
+                title += " (averaged)"
             ax.set_title(title, fontweight="bold")
 
             dateAxis(ax)
@@ -675,6 +676,8 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
             fig, axs = plt.subplots(2, 2, sharex=True)
             fig.subplots_adjust(right=0.75, wspace=0.4)
             title += " nations"
+            if avg:
+                title += " (averaged)"
             fig.suptitle(title, fontweight="bold")
 
             axs = axs.flatten()
@@ -690,21 +693,21 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
                 # Second, show the right spine.
                 ax3.spines["right"].set_visible(True)
 
-                p1 = ax.plot(
+                (p1,) = ax.plot(
                     data[nation]["casesDates"],
                     data[nation]["cases"],
                     "orangered",
                     ls="-",
                     label="Cases",
                 )
-                p2 = ax2.plot(
+                (p2,) = ax2.plot(
                     data[nation]["hospitalisationDates"],
                     data[nation]["hospitalisations"],
                     "#851bc2",
                     ls="-",
                     label="Hospitalisations",
                 )
-                p3 = ax3.plot(
+                (p3,) = ax3.plot(
                     data[nation]["deathDates"],
                     data[nation]["deaths"],
                     "#333",
@@ -718,7 +721,6 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
 
                 ax.yaxis.label.set_color(p1.get_color())
                 ax2.yaxis.label.set_color(p2.get_color())
-                ax3.yaxis.label.set_color(p3.get_color())
 
                 ax.set_title(title, fontweight="bold")
 
