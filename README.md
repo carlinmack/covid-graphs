@@ -2,9 +2,11 @@
 
 ![image](plots/Testing-Avg.png)
 
-![image](plots/PercentPositive-Avg.png)
+![image](plots/Comparison-Avg.png)
 
 ![image](plots/DoubleBarChart-Avg.png)
+
+![image](plots/PercentPositive-Avg.png)
 
 ![image](plots/Nation-Reported-Cases-Avg.png)
 
