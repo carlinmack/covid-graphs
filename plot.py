@@ -275,7 +275,7 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
 
             ax.spines["top"].set_visible(False)
             ax2.spines["top"].set_visible(False)
-            ax.yaxis.set_major_formatter(tkr.FuncFormatter(threeFigureFormatter))
+            threeFigureAxis(ax)
 
             percentAxis(ax2)
             ax2.hlines(
@@ -372,10 +372,10 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
             )
 
             setYLabel(ax, "Number of tests per day", avg)
-            ax.yaxis.set_major_formatter(tkr.FuncFormatter(threeFigureFormatter))
+            threeFigureAxis(ax)
 
             removeSpines(ax)
-            showGrid(ax, "y")
+            showGrid(ax)
 
             ax.legend()
         else:
@@ -414,10 +414,10 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
                 setYLabel(ax, "Number of tests per day", avg)
 
                 ax.set_title(nations[j])
-                ax.yaxis.set_major_formatter(tkr.FuncFormatter(threeFigureFormatter))
+                threeFigureAxis(ax)
 
                 removeSpines(ax)
-                showGrid(ax, "y")
+                showGrid(ax)
 
         savePlot(figname, fig)
 
@@ -468,7 +468,7 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
             percentAxis(ax)
 
             removeSpines(ax)
-            showGrid(ax, "y")
+            showGrid(ax)
         else:
             fig, axs = plt.subplots(2, 2, sharex=True)
             axs = axs.flatten()
@@ -504,7 +504,7 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
                 reduceXlabels(ax)
 
                 setYLabel(ax, "% positive tests per day", avg)
-                showGrid(ax, "y")
+                showGrid(ax)
                 percentAxis(ax)
 
                 ax.set_title(nations[j])
@@ -563,7 +563,7 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
                 ax.spines["top"].set_visible(False)
                 ax2.spines["top"].set_visible(False)
 
-                ax.yaxis.set_major_formatter(tkr.FuncFormatter(threeFigureFormatter))
+                threeFigureAxis(ax)
                 percentAxis(ax2)
             elif outerI == 1:
                 title = "%s of COVID-19 in UK nations" % innerTitles[innerI]
@@ -658,7 +658,7 @@ def ComparisonUK(plotsDir, avg, t, data, title):
 
     dateAxis(ax)
     for axis in axes:
-        axis.yaxis.set_major_formatter(tkr.FuncFormatter(threeFigureFormatter))
+        threeFigureAxis(axis)
 
     lines = [p1, p2, p3]
 
@@ -703,8 +703,8 @@ def ComparisonNation(plotsDir, avg, t, data, nations, j):
         primary_ax = []
         secondary_ax = []
         tertiary_ax = []
-        axMax = [0,0,0]
-        
+        axMax = [0, 0, 0]
+
         for j, nation in enumerate(data):
             ax = axs[j]
             ax2 = ax.twinx()
@@ -745,7 +745,10 @@ def ComparisonNation(plotsDir, avg, t, data, nations, j):
 
             dateAxis(ax)
             for axis in axes:
-                percentAxis(axis)
+                if perCapita[i]:
+                    percentAxis(axis)
+                else:
+                    threeFigureAxis(axis)
 
             ax.spines["top"].set_visible(False)
             ax2.spines["top"].set_visible(False)
@@ -758,9 +761,9 @@ def ComparisonNation(plotsDir, avg, t, data, nations, j):
                 tertiary_ax.append(ax3)
 
                 if j > 0:
-                    ax.tick_params(labelleft=False)  
-                    ax2.tick_params(labelright=False) 
-                    ax3.tick_params(labelright=False) 
+                    ax.tick_params(labelleft=False)
+                    ax2.tick_params(labelright=False)
+                    ax3.tick_params(labelright=False)
 
             for k, axis in enumerate(axes):
                 _, ymax = axis.get_ylim()
@@ -780,6 +783,13 @@ def ComparisonNation(plotsDir, avg, t, data, nations, j):
             for axis in tertiary_ax:
                 axis.set_ylim(bottom=0, top=axMax[2])
 
+        plt.annotate(
+            "Note: Wales includes suspected COVID-19 patients in hospitalisation figures while the other nations include only confirmed cases.",
+            xy=(0.25, 0.025),
+            xycoords="figure fraction",
+            color="#666",
+        )
+
         savePlot(figname, fig, size=(24, 12))
 
 
@@ -790,10 +800,7 @@ def nationReportedPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
         {"name": "Scotland", "color": "#003078", "population": 5463300},
         {"name": "Wales", "color": "#D4351C", "population": 3152879},
     ]
-    nations = ["England", "Northern Ireland", "Scotland", "Wales"]
-    colors = ["#5694CA", "#FFDD00", "#003078", "#D4351C"]
-    populations = [56286961, 1893667, 5463300, 3152879]
-    totalPopulation = sum(populations)
+    totalPopulation = sum([x["population"] for x in data])
 
     fileNameTypes = [".cases.reported", ".deaths.reported"]
     fignameTypes = ["Nation-Reported-Cases", "Nation-Reported-Deaths"]
@@ -802,11 +809,8 @@ def nationReportedPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
     yLabelTypes = ["tested positive", "who have died within 28 days of a positive test"]
 
     for type in range(2):
-        nationsReported = []
-        nationDates = []
-
-        for i, nation in enumerate(nations):
-            reportedFileName = dataDir + nation + fileNameTypes[type] + ".csv"
+        for i, nation in enumerate(data):
+            reportedFileName = dataDir + nation["name"] + fileNameTypes[type] + ".csv"
             with open(reportedFileName, "r") as file:
                 reader = csv.reader(file, delimiter=",")
                 reportedData = [[line[0], int(line[1])] for line in reader]
@@ -818,8 +822,6 @@ def nationReportedPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
             if avg:
                 reportedData = n_day_avg(reportedData, 7)
 
-            nationsReported.append(reportedData)
-            nationDates.append(testDates)
             data[i]["reported"] = reportedData
             data[i]["dates"] = testDates
 
@@ -840,7 +842,7 @@ def nationReportedPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
             fig, ax = plt.subplots()
             ax.set_title(title, fontweight="bold")
 
-            bottom = [0] * len(nationsReported[0])
+            bottom = [0] * len(data[0]["reported"])
 
             for j, nation in enumerate(data):
                 reportedData = data[j]["reported"]
@@ -881,10 +883,10 @@ def nationReportedPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
             if perCapita[i]:
                 percentAxis(ax)
             else:
-                ax.yaxis.set_major_formatter(tkr.FuncFormatter(threeFigureFormatter))
+                threeFigureAxis(ax)
 
             removeSpines(ax)
-            showGrid(ax, "y")
+            showGrid(ax)
 
             savePlot(figname, fig)
 
@@ -905,30 +907,32 @@ def nationReportedPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
                     fontweight="bold",
                 )
 
-                bottom = [0] * len(nationsReported[0])
+                bottom = [0] * len(data[0]["reported"])
 
-                for j, nation in enumerate(nations):
-                    reportedData = nationsReported[j]
+                for j, nation in enumerate(data):
+                    reportedData = data[j]["reported"]
                     if perCapita[i]:
-                        reportedData = [x / populations[j] * 100 for x in reportedData]
+                        reportedData = [
+                            x / nation["population"] * 100 for x in reportedData
+                        ]
                     else:
                         reportedData = [x / totalPopulation * 100 for x in reportedData]
                     reportedData = np.cumsum(reportedData)
 
                     if perCapita[i]:
                         ax.plot(
-                            nationDates[j],
+                            data[j]["dates"],
                             reportedData,
-                            color=colors[j],
-                            label=nation,
+                            color=nation["color"],
+                            label=nation["name"],
                             linewidth=2,
                         )
                     else:
                         ax.bar(
-                            nationDates[j],
+                            data[j]["dates"],
                             reportedData,
-                            color=colors[j],
-                            label=nation,
+                            color=nation["color"],
+                            label=nation["name"],
                             bottom=bottom,
                         )
 
@@ -942,7 +946,7 @@ def nationReportedPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
                 setYLabel(ax, "Percent of " + yLabels[i] + " " + yLabelTypes[type], avg)
 
                 removeSpines(ax)
-                showGrid(ax, "y")
+                showGrid(ax)
 
                 savePlot(figname, fig)
 
@@ -1069,8 +1073,6 @@ def heatMapPlot(t, dataDir="data/", plotsDir="plots/"):
 
 
 # Helpers ------------------------------------------------------------------------------
-
-
 def updateProgressBar(figname, t):
     t.update()
     t.set_description(figname)
@@ -1085,18 +1087,6 @@ def savePlot(figname, fig, size=()):
     plt.close(fig)
 
 
-def threeFigureFormatter(x, pos):
-    s = "%d" % x
-    if abs(x) >= 1:
-        groups = []
-        while s and s[-1].isdigit():
-            groups.append(s[-3:])
-            s = s[:-3]
-        return s + ",".join(reversed(groups))
-    else:
-        return s
-
-
 def removeSpines(ax, all=False):
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
@@ -1105,15 +1095,10 @@ def removeSpines(ax, all=False):
         ax.spines["left"].set_visible(False)
 
 
-def showGrid(ax, axis):
-    ax.grid(color="#e5e5e5", which="major", axis=axis, linestyle="solid")
+# Y axis
+def showGrid(ax):
+    ax.grid(color="#e5e5e5", which="major", axis="y", linestyle="solid")
     ax.set_axisbelow(True)
-
-
-def dateAxis(ax):
-    ax.set_xlim(left=dt.strptime("2020-03-01", "%Y-%m-%d"), right=dt.today())
-    ax.xaxis_date()
-    ax.xaxis.set_major_formatter(df("%d %b"))
 
 
 def percentAxis(ax):
@@ -1125,10 +1110,20 @@ def percentAxis(ax):
     ax.yaxis.set_major_formatter(tkr.PercentFormatter(decimals=decimals))
 
 
-def reduceXlabels(ax, every_nth=2):
-    for n, label in enumerate(ax.xaxis.get_ticklabels()):
-        if n % every_nth != 0:
-            label.set_visible(False)
+def threeFigureAxis(axis):
+    axis.yaxis.set_major_formatter(tkr.FuncFormatter(threeFigureFormatter))
+
+
+def threeFigureFormatter(x, pos):
+        s = "%d" % x
+        if abs(x) >= 1:
+            groups = []
+            while s and s[-1].isdigit():
+                groups.append(s[-3:])
+                s = s[:-3]
+            return s + ",".join(reversed(groups))
+        else:
+            return s
 
 
 def setYLabel(ax, label, avg, color="black"):
@@ -1138,6 +1133,20 @@ def setYLabel(ax, label, avg, color="black"):
         ax.set_ylabel(label, color=color)
 
 
+# X axis
+def dateAxis(ax):
+    ax.set_xlim(left=dt.strptime("2020-03-01", "%Y-%m-%d"), right=dt.today())
+    ax.xaxis_date()
+    ax.xaxis.set_major_formatter(df("%d %b"))
+
+
+def reduceXlabels(ax, every_nth=2):
+    for n, label in enumerate(ax.xaxis.get_ticklabels()):
+        if n % every_nth != 0:
+            label.set_visible(False)
+
+
+# Math
 def n_day_avg(xs, n=7):
     """compute n day average of time series, using maximum possible number of days at
     start of series"""
