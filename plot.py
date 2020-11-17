@@ -22,28 +22,35 @@ def getData(dataDir, force=False):
         r = requests.get(url)
         text = r.text
         fileName = dataDir + name + ".csv"
+        if r.status_code == 200:
+            titles, data = text.split("\n", 1)
 
-        titles, data = text.split("\n", 1)
+            data = data.split("\n")
+            data = data[:-1]  # remove last blank line
+            data = list(reversed(data))
 
-        data = data.split("\n")
-        data = data[:-1]  # remove last blank line
-        data = list(reversed(data))
+            titles = titles.split(",")
+            if "newPillarOneTestsByPublishDate" in titles:
+                newData = []
+                for line in data:
+                    arr = line.split(",")
+                    newData.append(
+                        "%s,%s"
+                        % (arr[0], parseInt(arr[1]) + parseInt(arr[2]) + parseInt(arr[3]))
+                    )
+                data = newData
 
-        titles = titles.split(",")
-        if "newPillarOneTestsByPublishDate" in titles:
-            newData = []
-            for line in data:
-                arr = line.split(",")
-                newData.append(
-                    "%s,%s"
-                    % (arr[0], parseInt(arr[1]) + parseInt(arr[2]) + parseInt(arr[3]))
-                )
-            data = newData
+            data = "\n".join(data)
 
-        data = "\n".join(data)
-
-        with open(fileName, "w") as file:
-            file.writelines(data)
+            with open(fileName, "w") as file:
+                file.writelines(data)
+        elif r.status_code == 204:
+            print("Error: No data returned")
+            exit()
+        else:
+            print("Error " + r.status_code)
+            print(r.headers)
+            exit()
 
     # check for if there is new data
     if os.path.isfile(dataDir + "Last-Modified.txt"):
@@ -600,16 +607,15 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
 
             savePlot(figname, fig)
 
-        # Comparison -------------------------------------------------------------------
         if outerI == 0:
-            ComparisonUK(plotsDir, avg, t, data, title)
+            ComparisonUK(plotsDir, avg, t, data)
         else:
-            ComparisonNation(plotsDir, avg, t, data, nations, j)
+            ComparisonNation(plotsDir, avg, t, data, nations)
 
 
-def ComparisonUK(plotsDir, avg, t, data, title):
+def ComparisonUK(plotsDir, avg, t, data):
     figname = plotsDir + "Comparison"
-    title = "Comparing COVID-19 cases, hospitalisation and deaths in the UK"
+    title = "Comparing daily COVID-19 cases, hospitalisation and deaths in the UK"
     if avg:
         figname += "-Avg"
     updateProgressBar(figname, t)
@@ -675,7 +681,7 @@ def ComparisonUK(plotsDir, avg, t, data, title):
     savePlot(figname, fig)
 
 
-def ComparisonNation(plotsDir, avg, t, data, nations, j):
+def ComparisonNation(plotsDir, avg, t, data, nations):
     populations = [5463300, 56286961, 1893667, 3152879]
 
     fignameSuffix = ["", "-Per-Capita"]
@@ -685,7 +691,7 @@ def ComparisonNation(plotsDir, avg, t, data, nations, j):
     for i in range(2):
         figname = plotsDir + "Comparison-Nation" + fignameSuffix[i]
         title = (
-            "Comparing COVID-19 cases, hospitalisation and deaths in the UK nations"
+            "Comparing daily COVID-19 cases, hospitalisation and deaths in the UK nations"
             + titleSuffix[i]
         )
         if avg:
