@@ -520,7 +520,7 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
         innerYlables = innerXs
         innerNotes = [
             "Mortality is calculated as deaths",
-            "Hospitalisation rate is caluated as hospitalisations",
+            "Hospitalisation rate is calculated as hospitalisations",
         ]
 
         for innerI in range(len(innerFignames)):
@@ -601,18 +601,112 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
             savePlot(figname, fig)
 
         # Comparison -------------------------------------------------------------------
-        figname = plotsDir + "Comparison" + fignames[outerI]
-        title = "Comparing COVID-19 cases, hospitalisation and deaths in the UK"
+        if outerI == 0:
+            ComparisonUK(plotsDir, avg, t, data, title)
+        else:
+            ComparisonNation(plotsDir, avg, t, data, nations, j)
+
+
+def ComparisonUK(plotsDir, avg, t, data, title):
+    figname = plotsDir + "Comparison"
+    title = "Comparing COVID-19 cases, hospitalisation and deaths in the UK"
+    if avg:
+        figname += "-Avg"
+    updateProgressBar(figname, t)
+    plt.figure()
+    fig, ax = plt.subplots()
+
+    fig.subplots_adjust(right=0.75)
+
+    ax2 = ax.twinx()
+    ax3 = ax.twinx()
+    axes = [ax, ax2, ax3]
+
+    # Offset the right spine of par2.
+    ax3.spines["right"].set_position(("axes", 1.15))
+    # Second, show the right spine.
+    ax3.spines["right"].set_visible(True)
+
+    (p1,) = ax.plot(
+        data["UK"]["casesDates"],
+        data["UK"]["cases"],
+        "orangered",
+        ls="-",
+        label="Cases",
+    )
+    (p2,) = ax2.plot(
+        data["UK"]["hospitalisationDates"],
+        data["UK"]["hospitalisations"],
+        "#851bc2",
+        ls="-",
+        label="Hospitalisations",
+    )
+    (p3,) = ax3.plot(
+        data["UK"]["deathDates"], data["UK"]["deaths"], "#333", ls="-", label="Deaths",
+    )
+
+    setYLabel(ax, "Cases", avg)
+    setYLabel(ax2, "Hospitalisations", avg)
+    setYLabel(ax3, "Deaths", avg)
+
+    ax.yaxis.label.set_color(p1.get_color())
+    ax2.yaxis.label.set_color(p2.get_color())
+
+    if avg:
+        title += " (averaged)"
+    ax.set_title(title, fontweight="bold")
+
+    dateAxis(ax)
+    for axis in axes:
+        axis.yaxis.set_major_formatter(tkr.FuncFormatter(threeFigureFormatter))
+
+    lines = [p1, p2, p3]
+
+    ax.legend(lines, [l.get_label() for l in lines], loc="upper center")
+
+    ax.spines["top"].set_visible(False)
+    ax2.spines["top"].set_visible(False)
+    removeSpines(ax3, all=True)
+    ax3.spines["right"].set_visible(True)
+
+    for axis in axes:
+        axis.set_ylim(bottom=0)
+
+    savePlot(figname, fig)
+
+
+def ComparisonNation(plotsDir, avg, t, data, nations, j):
+    populations = [5463300, 56286961, 1893667, 3152879]
+
+    fignameSuffix = ["", "-Per-Capita"]
+    titleSuffix = ["", ", per capita"]
+    perCapita = [0, 1]
+
+    for i in range(2):
+        figname = plotsDir + "Comparison-Nation" + fignameSuffix[i]
+        title = (
+            "Comparing COVID-19 cases, hospitalisation and deaths in the UK nations"
+            + titleSuffix[i]
+        )
         if avg:
             figname += "-Avg"
         updateProgressBar(figname, t)
-        plt.figure()
 
-        if outerI == 0:
-            fig, ax = plt.subplots()
+        fig, axs = plt.subplots(2, 2, sharex=True)
+        fig.subplots_adjust(right=0.75, wspace=0.4)
 
-            fig.subplots_adjust(right=0.75)
+        if avg:
+            title += " (averaged)"
+        fig.suptitle(title, fontweight="bold")
 
+        axs = axs.flatten()
+        primary_ax = []
+        secondary_ax = []
+        tertiary_ax = []
+        axMax = [0,0,0]
+        
+        for j, nation in enumerate(data):
+            ax = axs[j]
             ax2 = ax.twinx()
             ax3 = ax.twinx()
             axes = [ax, ax2, ax3]
@@ -622,27 +716,23 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
             # Second, show the right spine.
             ax3.spines["right"].set_visible(True)
 
-            (p1,) = ax.plot(
-                data["UK"]["casesDates"],
-                data["UK"]["cases"],
-                "orangered",
-                ls="-",
-                label="Cases",
-            )
+            cases = data[nation]["cases"]
+            hospitalisations = data[nation]["hospitalisations"]
+            deaths = data[nation]["deaths"]
+
+            if perCapita[i]:
+                cases = [x / populations[j] * 100 for x in cases]
+                hospitalisations = [x / populations[j] * 100 for x in hospitalisations]
+                deaths = [x / populations[j] * 100 for x in deaths]
+
+            (p1,) = ax.plot(data[nation]["casesDates"], cases, "orangered", ls="-")
             (p2,) = ax2.plot(
-                data["UK"]["hospitalisationDates"],
-                data["UK"]["hospitalisations"],
+                data[nation]["hospitalisationDates"],
+                hospitalisations,
                 "#851bc2",
                 ls="-",
-                label="Hospitalisations",
             )
-            (p3,) = ax3.plot(
-                data["UK"]["deathDates"],
-                data["UK"]["deaths"],
-                "#333",
-                ls="-",
-                label="Deaths",
-            )
+            ax3.plot(data[nation]["deathDates"], deaths, "#333", ls="-")
 
             setYLabel(ax, "Cases", avg)
             setYLabel(ax2, "Hospitalisations", avg)
@@ -651,100 +741,55 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
             ax.yaxis.label.set_color(p1.get_color())
             ax2.yaxis.label.set_color(p2.get_color())
 
-            if avg:
-                title += " (averaged)"
             ax.set_title(title, fontweight="bold")
 
             dateAxis(ax)
             for axis in axes:
-                axis.yaxis.set_major_formatter(tkr.FuncFormatter(threeFigureFormatter))
-
-            lines = [p1, p2, p3]
-
-            ax.legend(lines, [l.get_label() for l in lines], loc="upper center")
+                percentAxis(axis)
 
             ax.spines["top"].set_visible(False)
             ax2.spines["top"].set_visible(False)
             removeSpines(ax3, all=True)
             ax3.spines["right"].set_visible(True)
 
-            for axis in axes:
-                axis.set_ylim(bottom=0)
+            if perCapita[i]:
+                primary_ax.append(ax)
+                secondary_ax.append(ax2)
+                tertiary_ax.append(ax3)
 
-            savePlot(figname, fig)
-        else:
-            fig, axs = plt.subplots(2, 2, sharex=True)
-            fig.subplots_adjust(right=0.75, wspace=0.4)
-            title += " nations"
-            if avg:
-                title += " (averaged)"
-            fig.suptitle(title, fontweight="bold")
+                if j > 0:
+                    ax.tick_params(labelleft=False)  
+                    ax2.tick_params(labelright=False) 
+                    ax3.tick_params(labelright=False) 
 
-            axs = axs.flatten()
+            for k, axis in enumerate(axes):
+                _, ymax = axis.get_ylim()
+                if ymax > axMax[k]:
+                    axMax[k] = ymax
 
-            for j, nation in enumerate(data):
-                ax = axs[j]
-                ax2 = ax.twinx()
-                ax3 = ax.twinx()
-                axes = [ax, ax2, ax3]
+            ax.set_title(nations[j])
+            removeSpines(ax)
 
-                # Offset the right spine of par2.
-                ax3.spines["right"].set_position(("axes", 1.15))
-                # Second, show the right spine.
-                ax3.spines["right"].set_visible(True)
+        if perCapita[i]:
+            for axis in primary_ax:
+                axis.set_ylim(bottom=0, top=axMax[0])
 
-                (p1,) = ax.plot(
-                    data[nation]["casesDates"],
-                    data[nation]["cases"],
-                    "orangered",
-                    ls="-",
-                    label="Cases",
-                )
-                (p2,) = ax2.plot(
-                    data[nation]["hospitalisationDates"],
-                    data[nation]["hospitalisations"],
-                    "#851bc2",
-                    ls="-",
-                    label="Hospitalisations",
-                )
-                (p3,) = ax3.plot(
-                    data[nation]["deathDates"],
-                    data[nation]["deaths"],
-                    "#333",
-                    ls="-",
-                    label="Deaths",
-                )
+            for axis in secondary_ax:
+                axis.set_ylim(bottom=0, top=axMax[1])
 
-                setYLabel(ax, "Cases", avg)
-                setYLabel(ax2, "Hospitalisations", avg)
-                setYLabel(ax3, "Deaths", avg)
+            for axis in tertiary_ax:
+                axis.set_ylim(bottom=0, top=axMax[2])
 
-                ax.yaxis.label.set_color(p1.get_color())
-                ax2.yaxis.label.set_color(p2.get_color())
-
-                ax.set_title(title, fontweight="bold")
-
-                dateAxis(ax)
-                for axis in axes:
-                    axis.yaxis.set_major_formatter(
-                        tkr.FuncFormatter(threeFigureFormatter)
-                    )
-
-                ax.spines["top"].set_visible(False)
-                ax2.spines["top"].set_visible(False)
-                removeSpines(ax3, all=True)
-                ax3.spines["right"].set_visible(True)
-
-                for axis in axes:
-                    axis.set_ylim(bottom=0)
-
-                ax.set_title(nations[j])
-                removeSpines(ax)
-
-            savePlot(figname, fig, size=(24, 12))
+        savePlot(figname, fig, size=(24, 12))
 
 
 def nationReportedPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
+    data = [
+        {"name": "England", "color": "#5694CA", "population": 56286961},
+        {"name": "Northern Ireland", "color": "#FFDD00", "population": 1893667},
+        {"name": "Scotland", "color": "#003078", "population": 5463300},
+        {"name": "Wales", "color": "#D4351C", "population": 3152879},
+    ]
     nations = ["England", "Northern Ireland", "Scotland", "Wales"]
     colors = ["#5694CA", "#FFDD00", "#003078", "#D4351C"]
     populations = [56286961, 1893667, 5463300, 3152879]
@@ -760,7 +805,7 @@ def nationReportedPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
         nationsReported = []
         nationDates = []
 
-        for nation in nations:
+        for i, nation in enumerate(nations):
             reportedFileName = dataDir + nation + fileNameTypes[type] + ".csv"
             with open(reportedFileName, "r") as file:
                 reader = csv.reader(file, delimiter=",")
@@ -775,6 +820,8 @@ def nationReportedPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
 
             nationsReported.append(reportedData)
             nationDates.append(testDates)
+            data[i]["reported"] = reportedData
+            data[i]["dates"] = testDates
 
         fignameSuffix = ["", "-Per-Capita"]
         titleSuffix = ["", ", per capita"]
@@ -795,25 +842,30 @@ def nationReportedPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
 
             bottom = [0] * len(nationsReported[0])
 
-            for j, nation in enumerate(nations):
-                reportedData = nationsReported[j]
-                dates = nationDates[j]
+            for j, nation in enumerate(data):
+                reportedData = data[j]["reported"]
 
                 if perCapita[i]:
-                    reportedData = [x / populations[j] * 100 for x in reportedData]
+                    reportedData = [
+                        x / nation["population"] * 100 for x in reportedData
+                    ]
                     ax.plot(
-                        dates, reportedData, color=colors[j], label=nation, linewidth=2
+                        data[j]["dates"],
+                        reportedData,
+                        color=nation["color"],
+                        label=nation["name"],
+                        linewidth=2,
                     )
                 else:
                     ax.bar(
-                        dates,
+                        data[j]["dates"],
                         reportedData,
-                        color=colors[j],
-                        label=nation,
+                        color=nation["color"],
+                        label=nation["name"],
                         bottom=bottom,
                     )
 
-                bottom = list(map(add, reportedData, bottom))
+                    bottom = list(map(add, reportedData, bottom))
 
             dateAxis(ax)
             handles, labels = ax.get_legend_handles_labels()
@@ -1175,7 +1227,7 @@ if __name__ == "__main__":
 
     if newData or clArgs.test or clArgs.dryrun:
         t = tqdm(
-            total=40, bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} {elapsed_s:.0f}s"
+            total=42, bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} {elapsed_s:.0f}s"
         )
 
         mainPlot(t, dataDir, plotsDir, avg=False)

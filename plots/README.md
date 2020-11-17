@@ -30,6 +30,10 @@
 
 ![image](Comparison-Nation-Avg.png)
 
+![image](Comparison-Nation-Per-Capita.png)
+
+![image](Comparison-Nation-Per-Capita-Avg.png)
+
 ![image](Hospitalisation.png)
 
 ![image](Hospitalisation-Avg.png)
