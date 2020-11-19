@@ -1,0 +1,309 @@
+:root {
+    --hue: 36;
+    --sat: 9.8%;
+    --light: 90%;
+
+    --background-footer: hsl(var(--hue), var(--sat), 27%);
+
+    --color-body: black;
+    --color-title: #222;
+    --color-heading: #333;
+    --color-link: #222;
+    --color-link-hover: #888;
+    --color-blockquote: #555;
+    --color-nav: #666;
+    --color-nav-hover: #aaa;
+    --light-code: 85%;
+    --light-selection: 35.7%;
+    --light-toc-border: 61.6%;
+
+    --duration: 0.5s;
+    --timing: ease;
+
+    --body-font-family: "iA Writer Quattro S";
+    --heading-font-family: "iA Writer Quattro S";
+    --input-font-family: "iA Writer Quattro S";
+    --nav-link-font-family: "iA Writer Quattro S";
+
+    --link-font-family: "EB Garamond";
+    --title-font-family: "EB Garamond";
+
+    --font-size-title: 21px;
+    --font-size-description: 1rem;
+    --font-size-site-title: 4.375rem;
+    --font-size-body: 1.1em;
+    --font-size-post-title: 3.5rem;
+    --font-size-post-title-mobile: 2.75em;
+    --font-size-subtitle: 1.375em;
+}
+
+*::selection {
+    color: #eeeeee;
+    background-color: hsl(0, 0%, var(--light-selection));
+    transition: color var(--duration) var(--timing),
+        background-color var(--duration) var(--timing);
+}
+
+body {
+    background-color: hsl(var(--hue), var(--sat), var(--light));
+    color: var(--color-body);
+    font-family: var(--body-font-family), "iA Writer Quattro S", sans-serif;
+    font-weight: 400;
+    line-height: 1.6;
+    font-size: var(--font-size-body);
+    min-width: 350px;
+    min-height: 98vh;
+    display: grid;
+    grid-template-rows: minmax(200px, max-content) 100px;
+    grid-template-columns: 1fr;
+    grid-template-areas: "content""footer";
+    overflow-x: hidden;
+
+    transition: color var(--duration) var(--timing),
+        background-color var(--duration) var(--timing);
+}
+
+html {
+    color: #333;
+}
+
+.markdown img,
+.markdown svg {
+    margin: 10px auto 10px auto;
+    max-width: 100%;
+    display: block;
+    box-shadow: 0 0 8px 0 rgba(0, 0, 0, 0.2),
+        0 4px 10px 0 rgba(0, 0, 0, 0.1);
+    max-height: 70vh;
+    transition: transform 0.25s ease;
+}
+
+.markdown svg {
+    width: auto;
+    height: auto;
+    background-color: white;
+}
+
+.markdown img:active {
+    transform: scale(1.5);
+}
+
+a img {
+    border: none;
+}
+
+figure {
+    margin: 0;
+    text-align: center;
+}
+
+a {
+    display: inline-block;
+    text-decoration: none;
+    font-family: var(--link-font-family),
+        "EB Garamond",
+        serif;
+    font-weight: bold;
+    color: var(--color-link);
+    padding: 5px 0;
+
+    transition: color var(--duration) var(--timing);
+}
+
+a:hover,
+.markdown a:hover {
+    color: var(--color-link-hover);
+    transition: color 0.05s ease;
+}
+
+.markdown a {
+    font-family: var(--heading-font-family),
+        "iA Writer Quattro S";
+    color: var(--color-heading);
+
+    transition: color var(--duration) var(--timing);
+}
+
+.markdown p a {
+    padding: 0;
+}
+
+.title {
+    color: var(--color-title);
+    font-size: var(--font-size-title);
+}
+
+header {
+    grid-area: header;
+    align-self: end;
+}
+
+h1 {
+    font-size: 2.75rem;
+}
+
+.container {
+    max-width: 800px;
+    padding: 0;
+    grid-column: 1 / span 2;
+    grid-row: 2 / span 2;
+    margin-top: 20px;
+}
+
+/* if there's a table of contents don't use the area */
+
+.subtitle {
+    font-size: var(--font-size-subtitle);
+    font-variant: small-caps;
+    line-height: 1em;
+    margin: 0.5em 0 1em;
+}
+
+
+.post-header .title {
+    color: var(--color-title);
+    text-decoration: none !important;
+    font-family: var(--title-font-family),
+        "EB Garamond",
+        serif;
+    margin: 0;
+}
+
+.post-header .title {
+    font-size: var(--font-size-post-title);
+    line-height: 1.2em;
+    padding-top: 76px;
+}
+
+footer {
+    padding: 25px 0;
+    text-align: center;
+    font-family: Roboto Mono, monospace;
+    color: white;
+    font-size: 12px;
+    margin-top: 4em;
+
+    grid-area: footer;
+    display: grid;
+    grid-template: "font text nightmode"1fr / 1fr 4fr 1fr;
+    place-items: center;
+    text-align: center;
+    line-height: 1.2rem;
+    width: 100vw;
+    height: 80px;
+    background: var(--background-footer);
+    position: relative;
+
+    padding: 10px 0;
+}
+
+footer a {
+    color: #ccc;
+    font-family: Roboto Mono, monospace;
+}
+
+footer p {
+    margin: 0 auto;
+}
+
+#footerText {
+    grid-area: text;
+}
+
+#footerText p {
+    display: contents;
+    font-family: Roboto Mono, Consolas, monospace;
+    font-size: 12px;
+    margin: 0;
+    line-height: 1.2rem;
+}
+
+#footerText img {
+    margin-bottom: -3.5px;
+}
+
+#content {
+    max-width: 800px;
+    min-width: 350px;
+    margin: 0 auto 13px;
+    display: grid;
+    grid-template-columns: 4fr 1fr;
+    grid-template-rows: minmax(15vh, max-content) max-content minmax(85vh, max-content);
+    grid-template-areas: "header back""toc toc""main main";
+    grid-area: content;
+    width: 100%;
+}
+
+.header,
+.image,
+img {
+    max-height: 95vh;
+    max-width: 80vw;
+}
+
+.image {
+    padding: 2.5vh 0;
+}
+
+@media (max-width: 767px) {
+    body {
+        font-size: 1rem;
+    }
+
+    h1 {
+        font-size: 1.8rem;
+    }
+
+    header {
+        margin: 0 5%;
+    }
+
+    .container {
+        max-width: 90vw;
+    }
+
+    .image {
+        margin: 0 auto;
+    }
+
+    #content {
+        margin: 0 auto;
+        grid-template-rows: minmax(150px, max-content) maxcontent minmax(80vh,
+                max-content);
+        grid-template-columns: 1fr;
+        grid-template-areas: "header""toc""main";
+    }
+
+    header {
+        align-self: center;
+    }
+
+    .post-header .title {
+        font-size: var(--font-size-post-title-mobile);
+    }
+}
+
+@media print {
+    body {
+        background: none;
+        color: black;
+    }
+
+    .title,
+    a {
+        color: #222;
+    }
+
+
+    .markdown a {
+        color: #333;
+    }
+
+    @page {
+        margin: 50px;
+    }
+
+    a:after {
+        content: " ["attr(href) "] ";
+    }
+}

@@ -8,7 +8,7 @@ from operator import add
 import matplotlib
 import matplotlib.font_manager as font_manager
 import matplotlib.gridspec as gridspec
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt, mpld3
 import matplotlib.ticker as tkr
 import numpy as np
 import pandas as pd
@@ -35,8 +35,9 @@ def getData(dataDir, force=False):
                 for line in data:
                     arr = line.split(",")
                     newData.append(
-                        "%s,%s"
-                        % (arr[0], parseInt(arr[1]) + parseInt(arr[2]) + parseInt(arr[3]))
+                        str(arr[0])
+                        + ","
+                        + str(parseInt(arr[1]) + parseInt(arr[2]) + parseInt(arr[3]))
                     )
                 data = newData
 
@@ -232,9 +233,6 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
     fignames = ["", "-Nation"]
     titles = ["", " nation"]
 
-    leftLim = dt.strptime("2020-03-01", "%Y-%m-%d")
-    rightLim = dt.today()
-
     for outerI, nations in enumerate(nationList):
         data = {}
         for nation in nations:
@@ -243,7 +241,7 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
         plt.figure()
         fig, ax = plt.subplots()
 
-        figname = plotsDir + "PercentPositive" + fignames[outerI]
+        figname = "PercentPositive" + fignames[outerI]
         title = (
             "UK%s COVID-19 cases compared to percentage of positive tests"
             % titles[outerI]
@@ -285,11 +283,10 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
             threeFigureAxis(ax)
 
             percentAxis(ax2)
-            ax2.hlines(
-                y=5,
-                xmin=leftLim,
-                xmax=rightLim,
-                linestyles="dotted",
+            ax2.axline(
+                (0, 5),
+                slope=0,
+                ls="dotted",
                 color="black",
                 label="WHO 5% reopening threshold",
             )
@@ -306,11 +303,10 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
                     label=nations[i],
                 )
 
-            ax.hlines(
-                y=5,
-                xmin=leftLim,
-                xmax=rightLim,
-                linestyles="dotted",
+            ax.axline(
+                (0, 5),
+                slope=0,
+                ls="dotted",
                 color="black",
                 label="WHO 5% reopening threshold",
             )
@@ -330,10 +326,10 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
         plt.legend()
         removeSpines(ax)
 
-        savePlot(figname, fig)
+        savePlot(plotsDir, figname, fig)
 
         # Double bar chart -------------------------------------------------------------
-        figname = plotsDir + "DoubleBarChart" + fignames[outerI]
+        figname = "DoubleBarChart" + fignames[outerI]
         title = "Number of tests vs positive tests"
         if avg:
             figname += "-Avg"
@@ -426,10 +422,10 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
                 removeSpines(ax)
                 showGrid(ax)
 
-        savePlot(figname, fig)
+        savePlot(plotsDir, figname, fig)
 
         # Testing ----------------------------------------------------------------------
-        figname = plotsDir + "Testing" + fignames[outerI]
+        figname = "Testing" + fignames[outerI]
         title = "Positive test rate of COVID-19 in the UK"
         if avg:
             figname += "-Avg"
@@ -517,7 +513,7 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
                 ax.set_title(nations[j])
                 removeSpines(ax)
 
-        savePlot(figname, fig)
+        savePlot(plotsDir, figname, fig)
 
         # Mortality/Hospitalisation plot -----------------------------------------------
         innerFignames = ["Mortality", "Hospitalisation"]
@@ -531,7 +527,7 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
         ]
 
         for innerI in range(len(innerFignames)):
-            figname = plotsDir + innerFignames[innerI] + fignames[outerI]
+            figname = innerFignames[innerI] + fignames[outerI]
             if avg:
                 figname += "-Avg"
             updateProgressBar(figname, t)
@@ -594,18 +590,19 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
                 title += " (averaged)"
             ax.set_title(title, fontweight="bold")
 
-            ax.set_xlabel(
-                """
-            Note: %s per day divided by the sum of cases in the prior 28 days"""
-                % innerNotes[innerI],
-                color="#666",
+            xLabel = (
+                "\nNote: %s per day divided by the sum of cases in the prior 28 days"
+                % innerNotes[innerI]
             )
+            if innerI == 1 and outerI == 1:
+                xLabel += "\nWales includes suspected COVID-19 patients in hospitalisation figures while the other nations include only confirmed cases."
+            ax.set_xlabel(xLabel, color="#666")
 
             dateAxis(ax)
 
             removeSpines(ax)
 
-            savePlot(figname, fig)
+            savePlot(plotsDir, figname, fig)
 
         if outerI == 0:
             ComparisonUK(plotsDir, avg, t, data)
@@ -614,7 +611,7 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
 
 
 def ComparisonUK(plotsDir, avg, t, data):
-    figname = plotsDir + "Comparison"
+    figname = "Comparison"
     title = "Comparing daily COVID-19 cases, hospitalisation and deaths in the UK"
     if avg:
         figname += "-Avg"
@@ -678,7 +675,7 @@ def ComparisonUK(plotsDir, avg, t, data):
     for axis in axes:
         axis.set_ylim(bottom=0)
 
-    savePlot(figname, fig)
+    savePlot(plotsDir, figname, fig)
 
 
 def ComparisonNation(plotsDir, avg, t, data, nations):
@@ -689,7 +686,7 @@ def ComparisonNation(plotsDir, avg, t, data, nations):
     perCapita = [0, 1]
 
     for i in range(2):
-        figname = plotsDir + "Comparison-Nation" + fignameSuffix[i]
+        figname = "Comparison-Nation" + fignameSuffix[i]
         title = (
             "Comparing daily COVID-19 cases, hospitalisation and deaths in the UK nations"
             + titleSuffix[i]
@@ -796,7 +793,7 @@ def ComparisonNation(plotsDir, avg, t, data, nations):
             color="#666",
         )
 
-        savePlot(figname, fig, size=(24, 12))
+        savePlot(plotsDir, figname, fig, size=(24, 12))
 
 
 def nationReportedPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
@@ -836,7 +833,7 @@ def nationReportedPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
         perCapita = [0, 1]
 
         for i in range(2):
-            figname = plotsDir + fignameTypes[type] + fignameSuffix[i]
+            figname = fignameTypes[type] + fignameSuffix[i]
             title = " by date reported" + titleSuffix[i]
             if avg:
                 figname += "-Avg"
@@ -894,7 +891,7 @@ def nationReportedPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
             removeSpines(ax)
             showGrid(ax)
 
-            savePlot(figname, fig)
+            savePlot(plotsDir, figname, fig)
 
         # Cumulative
         yLabels = ["UK population", "nation"]
@@ -902,7 +899,7 @@ def nationReportedPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
         if not avg:
             for i in range(2):
                 figname = (
-                    plotsDir + fignameTypes[type] + "-Cumulative" + fignameSuffix[i]
+                    fignameTypes[type] + "-Cumulative" + fignameSuffix[i]
                 )
                 updateProgressBar(figname, t)
                 plt.figure()
@@ -954,7 +951,7 @@ def nationReportedPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
                 removeSpines(ax)
                 showGrid(ax)
 
-                savePlot(figname, fig)
+                savePlot(plotsDir, figname, fig)
 
 
 def heatMapPlot(t, dataDir="data/", plotsDir="plots/"):
@@ -1023,7 +1020,7 @@ def heatMapPlot(t, dataDir="data/", plotsDir="plots/"):
         # UK
         dataFrames = getDataframes("UK", casesBoolean[i])
 
-        figname = plotsDir + fignames[i] + "HeatMap"
+        figname = fignames[i] + "HeatMap"
         updateProgressBar(figname, t)
         plt.figure()
         fig, axs = plt.subplots(len(dataFrames), 1, sharex=True)
@@ -1035,7 +1032,7 @@ def heatMapPlot(t, dataDir="data/", plotsDir="plots/"):
 
         fig.suptitle("Heatmap of number of %s per day" % titles[i], fontweight="bold")
 
-        savePlot(figname, fig, (10, 5))
+        savePlot(plotsDir, figname, fig, (10, 5))
 
         # Nations
         nations = ["Scotland", "England", "Northern Ireland", "Wales"]
@@ -1047,7 +1044,7 @@ def heatMapPlot(t, dataDir="data/", plotsDir="plots/"):
 
             nationsDf.append(nationDataFrame)
 
-        figname = plotsDir + fignames[i] + "HeatMap-Nation"
+        figname = fignames[i] + "HeatMap-Nation"
         updateProgressBar(figname, t)
 
         fig = plt.figure(figsize=(20, 10))
@@ -1075,7 +1072,7 @@ def heatMapPlot(t, dataDir="data/", plotsDir="plots/"):
                 plotHeatmap(ax, names[i][j], nationsDf[k][j])
                 fig.add_subplot(ax)
 
-        savePlot(figname, fig, (20, 10))
+        savePlot(plotsDir, figname, fig, (20, 10))
 
 
 # Helpers ------------------------------------------------------------------------------
@@ -1084,12 +1081,13 @@ def updateProgressBar(figname, t):
     t.set_description(figname)
 
 
-def savePlot(figname, fig, size=()):
+def savePlot(plotsDir, figname, fig, size=()):
     if size:
         plt.gcf().set_size_inches(*size)
     else:
         plt.gcf().set_size_inches(12, 8)
-    plt.savefig(figname, bbox_inches="tight", pad_inches=0.25, dpi=200)
+    plt.savefig(plotsDir + figname, bbox_inches="tight", pad_inches=0.25, dpi=200)
+    mpld3.save_json(fig, "d3/" +figname + ".json")
     plt.close(fig)
 
 
@@ -1121,15 +1119,15 @@ def threeFigureAxis(axis):
 
 
 def threeFigureFormatter(x, pos):
-        s = "%d" % x
-        if abs(x) >= 1:
-            groups = []
-            while s and s[-1].isdigit():
-                groups.append(s[-3:])
-                s = s[:-3]
-            return s + ",".join(reversed(groups))
-        else:
-            return s
+    s = "%d" % x
+    if abs(x) >= 1:
+        groups = []
+        while s and s[-1].isdigit():
+            groups.append(s[-3:])
+            s = s[:-3]
+        return s + ",".join(reversed(groups))
+    else:
+        return s
 
 
 def setYLabel(ax, label, avg, color="black"):
