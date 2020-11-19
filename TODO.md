@@ -25,7 +25,7 @@
     - https://github.com/owid/covid-19-data/tree/master/public/data
     - https://github.com/GoogleCloudPlatform/covid-19-open-data
     - https://github.com/datasets/covid-19
-- [ ] Interactive matplotlib+d3 plots
+- [x] Interactive matplotlib+d3 plots
     - https://mpld3.github.io/
 - [ ] GIFs Graphs over time
     - https://towardsdatascience.com/animations-with-matplotlib-d96375c5442c
