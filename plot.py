@@ -8,8 +8,9 @@ from operator import add
 import matplotlib
 import matplotlib.font_manager as font_manager
 import matplotlib.gridspec as gridspec
-import matplotlib.pyplot as plt, mpld3
+import matplotlib.pyplot as plt
 import matplotlib.ticker as tkr
+import mpld3
 import numpy as np
 import pandas as pd
 import requests
@@ -238,7 +239,6 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
         for nation in nations:
             data[nation] = getData(nation)
 
-        plt.figure()
         fig, ax = plt.subplots()
 
         figname = "PercentPositive" + fignames[outerI]
@@ -335,7 +335,6 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
             figname += "-Avg"
             title += " (averaged)"
         updateProgressBar(figname, t)
-        plt.figure()
 
         if outerI == 0:
             fig, ax = plt.subplots()
@@ -431,7 +430,6 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
             figname += "-Avg"
             title = "Average positive test rate of COVID-19 in the UK"
         updateProgressBar(figname, t)
-        plt.figure()
 
         if outerI == 0:
             fig, ax = plt.subplots()
@@ -531,7 +529,6 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
             if avg:
                 figname += "-Avg"
             updateProgressBar(figname, t)
-            plt.figure()
             fig, ax = plt.subplots()
 
             if outerI == 0:
@@ -616,7 +613,6 @@ def ComparisonUK(plotsDir, avg, t, data):
     if avg:
         figname += "-Avg"
     updateProgressBar(figname, t)
-    plt.figure()
     fig, ax = plt.subplots()
 
     fig.subplots_adjust(right=0.75)
@@ -841,7 +837,6 @@ def nationReportedPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
             else:
                 title = titleTypesUpper[type] + title
             updateProgressBar(figname, t)
-            plt.figure()
             fig, ax = plt.subplots()
             ax.set_title(title, fontweight="bold")
 
@@ -902,7 +897,6 @@ def nationReportedPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
                     fignameTypes[type] + "-Cumulative" + fignameSuffix[i]
                 )
                 updateProgressBar(figname, t)
-                plt.figure()
                 fig, ax = plt.subplots()
                 ax.set_title(
                     "Cumulative %s by date reported%s"
@@ -1022,7 +1016,6 @@ def heatMapPlot(t, dataDir="data/", plotsDir="plots/"):
 
         figname = fignames[i] + "HeatMap"
         updateProgressBar(figname, t)
-        plt.figure()
         fig, axs = plt.subplots(len(dataFrames), 1, sharex=True)
 
         for j, ax in enumerate(axs):
@@ -1087,7 +1080,7 @@ def savePlot(plotsDir, figname, fig, size=()):
     else:
         plt.gcf().set_size_inches(12, 8)
     plt.savefig(plotsDir + figname, bbox_inches="tight", pad_inches=0.25, dpi=200)
-    mpld3.save_json(fig, "d3/" +figname + ".json")
+    # mpld3.save_json(fig, "d3/" +figname + ".json")
     plt.close(fig)
 
 

@@ -1,3 +1,11 @@
+- [x] Create hospitalisation graphs
+- [x] Testing graph in the style of the new york times
+    - https://www.nytimes.com/interactive/2020/us/coronavirus-testing.html
+- [x] Interactive matplotlib+d3 plots
+    - https://mpld3.github.io/
+- [x] Fix matplotlib too many plots warning
+    - https://stackoverflow.com/questions/21884271/warning-about-too-many-open-figures
+
 - [ ] Refactor into different files
     - data loading/saving
     - plotting
@@ -5,18 +13,13 @@
     - main
 - [ ] Refactor functions into smaller self contained pieces
 - [ ] Refactor graphs that take the longest to draw
-- [x] Create hospitalisation graphs
 - [ ] Create excess mortality + covid deaths graphs
     - http://old.reddit.com/r/dataisbeautiful/comments/jn8ufq/doing_things_properly_70000_5000_excess_deaths/
     - https://www.ons.gov.uk/peoplepopulationandcommunity/birthsdeathsandmarriages/deaths/datasets/weeklyprovisionalfiguresondeathsregisteredinenglandandwales
     - https://www.nrscotland.gov.uk/statistics-and-data/statistics/statistics-by-theme/vital-events/general-publications/weekly-and-monthly-data-on-births-and-deaths/weekly-data-on-births-and-deaths
     - https://www.nisra.gov.uk/publications/weekly-deaths
-- [x] Testing graph in the style of the new york times
-    - https://www.nytimes.com/interactive/2020/us/coronavirus-testing.html
 - [ ] Heatmap by age group
     - https://russss.github.io/covidtracker/
-- [ ] Fix matplotlib too many plots warning
-    - https://stackoverflow.com/questions/21884271/warning-about-too-many-open-figures
 - [ ] Set up a github action to update the plots every day
 - [ ] Add average toggle to plots
 
@@ -25,8 +28,6 @@
     - https://github.com/owid/covid-19-data/tree/master/public/data
     - https://github.com/GoogleCloudPlatform/covid-19-open-data
     - https://github.com/datasets/covid-19
-- [x] Interactive matplotlib+d3 plots
-    - https://mpld3.github.io/
 - [ ] GIFs Graphs over time
     - https://towardsdatascience.com/animations-with-matplotlib-d96375c5442c
     - https://ndres.me/post/matplotlib-animated-gifs-easily/
