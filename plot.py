@@ -13,99 +13,10 @@ import matplotlib.ticker as tkr
 import mpld3
 import numpy as np
 import pandas as pd
-import requests
 from matplotlib.dates import DateFormatter as df
 from tqdm import tqdm
 
-
-def getData(dataDir, force=False):
-    def getCSV(url, name):
-        r = requests.get(url)
-        text = r.text
-        fileName = dataDir + name + ".csv"
-        if r.status_code == 200:
-            titles, data = text.split("\n", 1)
-
-            data = data.split("\n")
-            data = data[:-1]  # remove last blank line
-            data = list(reversed(data))
-
-            titles = titles.split(",")
-            if "newPillarOneTestsByPublishDate" in titles:
-                newData = []
-                for line in data:
-                    arr = line.split(",")
-                    newData.append(
-                        str(arr[0])
-                        + ","
-                        + str(parseInt(arr[1]) + parseInt(arr[2]) + parseInt(arr[3]))
-                    )
-                data = newData
-
-            data = "\n".join(data)
-
-            with open(fileName, "w") as file:
-                file.writelines(data)
-        elif r.status_code == 204:
-            print("Error: No data returned")
-            exit()
-        else:
-            print("Error " + r.status_code)
-            print(r.headers)
-            exit()
-
-    # check for if there is new data
-    if os.path.isfile(dataDir + "Last-Modified.txt"):
-        with open(dataDir + "Last-Modified.txt") as file:
-            prevLastModified = file.read()
-    else:
-        prevLastModified = ""
-
-    url = "https://api.coronavirus.data.gov.uk/v1/data?filters=areaType=overview&structure=%7B%7D"
-
-    r = requests.get(url)
-    lastModified = r.headers["Last-Modified"]
-
-    if prevLastModified != lastModified or force:
-        print("Getting new data...")
-
-        urlPrefix = 'https://api.coronavirus.data.gov.uk/v1/data?filters=areaType={}&structure=%7B"date":"date",'
-        urls = [
-            '"newPillarOneTestsByPublishDate":"newPillarOneTestsByPublishDate","newPillarTwoTestsByPublishDate":"newPillarTwoTestsByPublishDate","newPillarFourTestsByPublishDate":"newPillarFourTestsByPublishDate"',
-            '"newCasesBySpecimenDate":"newCasesBySpecimenDate"',
-            '"newCasesByPublishDate":"newCasesByPublishDate"',
-            '"newDeaths28DaysByDeathDate":"newDeaths28DaysByDeathDate"',
-            '"newDeaths28DaysByPublishDate":"newDeaths28DaysByPublishDate"',
-            '"newAdmissions":"newAdmissions"',
-        ]
-        urlSuffix = "%7D&format=csv"
-        names = [
-            "testing",
-            "cases",
-            "cases.reported",
-            "deaths",
-            "deaths.reported",
-            "hospitalisations",
-        ]
-
-        nations = ["Scotland", "England", "Northern Ireland", "Wales"]
-
-        for i, name in enumerate(names):
-            suffix = urls[i] + urlSuffix
-            for nation in nations:
-                prefix = urlPrefix.format("nation;areaName={}").format(nation)
-                getCSV(prefix + suffix, nation + "." + name)
-
-            prefix = urlPrefix.format("overview")
-            getCSV(prefix + suffix, "UK." + name)
-
-        with open(dataDir + "Last-Modified.txt", "w") as file:
-            file.write(lastModified)
-
-        print("Done!")
-        return True
-    else:
-        return False
+from getData import getData
 
 
 def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
@@ -893,9 +804,7 @@ def nationReportedPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
 
         if not avg:
             for i in range(2):
-                figname = (
-                    fignameTypes[type] + "-Cumulative" + fignameSuffix[i]
-                )
+                figname = fignameTypes[type] + "-Cumulative" + fignameSuffix[i]
                 updateProgressBar(figname, t)
                 fig, ax = plt.subplots()
                 ax.set_title(
@@ -1080,7 +989,7 @@ def savePlot(plotsDir, figname, fig, size=()):
     else:
         plt.gcf().set_size_inches(12, 8)
     plt.savefig(plotsDir + figname, bbox_inches="tight", pad_inches=0.25, dpi=200)
-    # mpld3.save_json(fig, "d3/" +figname + ".json")
+    mpld3.save_json(fig, "d3/" + figname + ".json")
     plt.close(fig)
 
 
@@ -1156,11 +1065,6 @@ def n_day_sum(xs, n=28):
     return [np.sum(xs[max(0, i + 1 - n) : i + 1]) for i in range(xs.shape[0])]
 
 
-def parseInt(str):
-    str = str.strip()
-    return int(str) if str else 0
-
-
 def decimalPlaces(number, digits):
     s = str(round(number, digits))
     s = s.strip("0")
@@ -1191,7 +1095,7 @@ def defineArgParser():
     parser.add_argument(
         "-D",
         "--dataDir",
-        help="Directory where the dumps, partitions etc will be stored [default: data/]",
+        help="Directory where the csv files will be stored [default: data/]",
         default="data/",
         type=str,
     )

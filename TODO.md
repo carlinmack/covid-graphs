@@ -7,10 +7,10 @@
     - https://stackoverflow.com/questions/21884271/warning-about-too-many-open-figures
 
 - [ ] Refactor into different files
-    - data loading/saving
-    - plotting
-    - data processing
-    - main
+    - [x] data loading/saving
+    - [ ] plotting
+    - [ ] data processing
+    - [ ] main
 - [ ] Refactor functions into smaller self contained pieces
 - [ ] Refactor graphs that take the longest to draw
 - [ ] Create excess mortality + covid deaths graphs
@@ -22,6 +22,20 @@
     - https://russss.github.io/covidtracker/
 - [ ] Set up a github action to update the plots every day
 - [ ] Add average toggle to plots
+- [ ] Graphs showing the cases per capita of Scottish regions
+    - [ ] Group them by tiers?
+- [ ] MPLD3 bugs
+    - [ ] Grey grid lines
+    - [ ] Bold font
+    - [ ] Inter font
+    - [ ] Respect newlines
+    - [ ] Have percentages zoom correctly
+    - [ ] Always show interaction tools
+    - [ ] Fix the legend size and background
+        - Checkout the plugins?
+- [ ] add noscript version of the plots
+
+----------------------------------------------------------------------------------------
 
 - [ ] Compare UK to other countries
     - https://github.com/CSSEGISandData/COVID-19
