@@ -17,15 +17,13 @@ from matplotlib.dates import DateFormatter as df
 from tqdm import tqdm
 
 from getData import getData
-
+from readData import readData
 
 def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
     """avg indicates seven day average of new cases should be used"""
 
     def readFile(name, dictionary=False, raw=False):
-        with open(name, "r") as file:
-            reader = csv.reader(file, delimiter=",")
-            data = [[line[0], int(line[1])] for line in reader]
+        data = readData(name)
         # convert to np array and separate dates from case counts
         casesData = np.array(data)
         casesRawDates = casesData[:, 0]
@@ -721,11 +719,9 @@ def nationReportedPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
     for type in range(2):
         for i, nation in enumerate(data):
             reportedFileName = dataDir + nation["name"] + fileNameTypes[type] + ".csv"
-            with open(reportedFileName, "r") as file:
-                reader = csv.reader(file, delimiter=",")
-                reportedData = [[line[0], int(line[1])] for line in reader]
-
+            reportedData = readData(reportedFileName)
             reportedData = np.array(reportedData)
+
             testDates = reportedData[:, 0]
             testDates = [dt.strptime(x, "%Y-%m-%d") for x in testDates]
             reportedData = reportedData[:, 1].astype(np.float)
@@ -884,12 +880,8 @@ def heatMapPlot(t, dataDir="data/", plotsDir="plots/"):
         data = []
         dataFrames = []
 
-        for i, fileName in enumerate(fileNames):
-            with open(fileName, "r") as file:
-                reader = csv.reader(file, delimiter=",")
-                fileData = [[line[0], int(line[1])] for line in reader]
-
-            data.append(fileData)
+        for fileName in fileNames:
+            data.append(readData(fileName))
 
         for dataSet in data:
             dataFrame = pd.DataFrame(dataSet, columns=["Date", "Number"])
