@@ -34,6 +34,8 @@
     - [ ] Fix the legend size and background
         - Checkout the plugins?
 - [ ] add noscript version of the plots
+- [ ] number of cases line plot with colouring for percent positive
+    - https://twitter.com/DrEricDing/status/1330212172757078017
 
 ----------------------------------------------------------------------------------------
 

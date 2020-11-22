@@ -92,7 +92,7 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
         )
 
         # remove the most recent three dates as they won't be accurate yet
-        skip = 3
+        skip = 4
         nationData["casesDates"] = casesDates[:-skip]
         nationData["cases"] = cases[:-skip]
         nationData["testDates"] = testDates[:-skip]
