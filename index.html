@@ -8,6 +8,7 @@
   <meta name="msapplication-TileColor" content="#e8e6e3">
   <meta name="msapplication-config" content="/Icons/browserconfig.xml">
   <meta name="theme-color" content="#e8e6e3">
+  <link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
 
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="https://fonts.googleapis.com/css?family=EB+Garamond%7COpen+Sans" rel="stylesheet">
@@ -20,7 +21,7 @@
       <div class="post-header">
         <h1 class="title">UK Covid-19 Graphs</h1>
         <p class="subtitle">by carlin mackenzie and isaac neal</p>
-        <div class="meta">Data last updated Sun, 22 Nov 2020 16:05:54 GMT</div>
+        <div class="meta">Data last updated <span id="updated">...</span></div>
       </div>
     </header>
 
@@ -76,6 +77,17 @@
         <p><a href="https://github.com/carlinmack/covid-graphs" target="_blank" rel="noreferrer noopener">GitHub Repository</a></p>
       </div>
     </footer>
+    <script>
+      fetch("data/Last-Modified.txt").then((response) => response.text())
+      .then((text) => {
+        const updated = document.getElementById("updated");
+
+        if (updated) {
+          updated.innerHTML = text;
+        }
+      })
+      .catch(error => console.log(error));
+    </script>
 </body>
 
 </html>
