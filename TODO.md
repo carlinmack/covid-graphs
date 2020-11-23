@@ -5,6 +5,7 @@
     - https://mpld3.github.io/
 - [x] Fix matplotlib too many plots warning
     - https://stackoverflow.com/questions/21884271/warning-about-too-many-open-figures
+- [x] Set up a github action to update the plots every day
 
 - [ ] Refactor into different files
     - [x] data loading/saving
@@ -20,7 +21,6 @@
     - https://www.nisra.gov.uk/publications/weekly-deaths
 - [ ] Heatmap by age group
     - https://russss.github.io/covidtracker/
-- [ ] Set up a github action to update the plots every day
 - [ ] Add average toggle to plots
 - [ ] Graphs showing the cases per capita of Scottish regions
     - [ ] Group them by tiers?
