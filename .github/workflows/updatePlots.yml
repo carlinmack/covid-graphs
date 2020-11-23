@@ -29,8 +29,18 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install flake8 pytest
           pip install -r requirements.txt
     
-      - name: Run a multi-line script
-        run: echo "Done!"
+      - name: Run plot.py
+        run: python plot.py
+        
+      - name: Commit changes
+        uses: EndBug/add-and-commit@v5
+        if: ${{ git status -s --untracked-files=no }}
+        with:
+          author_name: Github Action
+          author_email: carlin.mackenzie@gmail.com
+          message: "Update plots"
+          add: "-u"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
