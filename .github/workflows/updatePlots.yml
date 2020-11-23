@@ -36,7 +36,6 @@ jobs:
         
       - name: Commit changes
         uses: EndBug/add-and-commit@v5
-        if: ${{ git status -s --untracked-files=no }}
         with:
           author_name: Github Action
           author_email: carlin.mackenzie@gmail.com
