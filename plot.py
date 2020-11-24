@@ -145,11 +145,7 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
                 data["UK"]["testDates"], data["UK"]["posTests"], "#333", linewidth=2,
             )
 
-            yLabel = "Percent positive tests per day"
-            if avg:
-                yLabel += " (seven day average)"
-
-            ax2.set_ylabel(yLabel, rotation=270, ha="center", va="bottom")
+            setYLabel(ax2, "Percent positive tests per day", avg, ax2=True)
 
             ax.spines["top"].set_visible(False)
             ax2.spines["top"].set_visible(False)
@@ -396,6 +392,7 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
             "Mortality is calculated as deaths",
             "Hospitalisation rate is calculated as hospitalisations",
         ]
+        innerColors = ["black", "#851bc2"]
 
         for innerI in range(len(innerFignames)):
             figname = innerFignames[innerI] + fignames[outerI]
@@ -421,15 +418,12 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
                 ax2.plot_date(
                     data["UK"][innerYs[innerI]],
                     data["UK"][innerXs[innerI]],
-                    "#333",
+                    innerColors[innerI],
                     linewidth=2,
                 )
 
                 yLabel = "Percent %s per day" % innerYlables[innerI]
-                if avg:
-                    yLabel += " (seven day average)"
-
-                ax2.set_ylabel(yLabel, rotation=270, ha="center", va="bottom")
+                setYLabel(ax2, yLabel, avg, color=innerColors[innerI], ax2=True)
 
                 ax.spines["top"].set_visible(False)
                 ax2.spines["top"].set_visible(False)
@@ -1023,9 +1017,12 @@ def threeFigureFormatter(x, pos):
         return s
 
 
-def setYLabel(ax, label, avg, color="black"):
+def setYLabel(ax, label, avg, color="black", ax2=False):
     if avg:
-        ax.set_ylabel(label + " (seven day average)", color=color)
+        label += " (seven day average)"
+
+    if ax2:
+        ax.set_ylabel(label, rotation=270, ha="center", va="bottom", color=color)
     else:
         ax.set_ylabel(label, color=color)
 
