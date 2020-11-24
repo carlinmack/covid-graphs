@@ -1,5 +1,4 @@
 import argparse
-import csv
 import math
 import os
 from datetime import datetime as dt
@@ -18,6 +17,7 @@ from tqdm import tqdm
 
 from getData import getData
 from readData import readData
+
 
 def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
     """avg indicates seven day average of new cases should be used"""
@@ -142,19 +142,14 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
                 data["UK"]["testDates"], data["UK"]["posTests"], "white", linewidth=3
             )
             ax2.plot_date(
-                data["UK"]["testDates"],
-                data["UK"]["posTests"],
-                "#333",
-                linewidth=2,
+                data["UK"]["testDates"], data["UK"]["posTests"], "#333", linewidth=2,
             )
 
             yLabel = "Percent positive tests per day"
             if avg:
                 yLabel += " (seven day average)"
 
-            ax2.set_ylabel(
-                yLabel, rotation=270, ha="center", va="bottom"
-            )
+            ax2.set_ylabel(yLabel, rotation=270, ha="center", va="bottom")
 
             ax.spines["top"].set_visible(False)
             ax2.spines["top"].set_visible(False)
@@ -396,7 +391,7 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
         innerTitles = ["Mortality", "Hospitalisation rate"]
         innerYs = ["deathDates", "hospitalisationDates"]
         innerXs = ["mortality", "hospitalisationRate"]
-        innerYlables = innerXs
+        innerYlables = ["mortality", "hospitalisation rate"]
         innerNotes = [
             "Mortality is calculated as deaths",
             "Hospitalisation rate is calculated as hospitalisations",
@@ -412,8 +407,8 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
             if outerI == 0:
                 title = "%s of COVID-19 in the UK" % innerTitles[innerI]
 
-                ax.bar(data["UK"]["casesDates"], data["UK"]["cases"], color="#2271d3")
-                setYLabel(ax, "Daily COVID-19 Cases in the UK", avg, color="#2271d3")
+                ax.bar(data["UK"]["casesDates"], data["UK"]["cases"], color="orangered")
+                setYLabel(ax, "Daily COVID-19 Cases in the UK", avg, color="orangered")
 
                 ax2 = ax.twinx()
 
@@ -426,7 +421,7 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
                 ax2.plot_date(
                     data["UK"][innerYs[innerI]],
                     data["UK"][innerXs[innerI]],
-                    "orangered",
+                    "#333",
                     linewidth=2,
                 )
 
@@ -434,9 +429,7 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
                 if avg:
                     yLabel += " (seven day average)"
 
-                ax2.set_ylabel(
-                    yLabel, color="orangered", rotation=270, ha="center", va="bottom"
-                )
+                ax2.set_ylabel(yLabel, rotation=270, ha="center", va="bottom")
 
                 ax.spines["top"].set_visible(False)
                 ax2.spines["top"].set_visible(False)
@@ -669,38 +662,39 @@ def ComparisonNation(plotsDir, avg, t, data, nations):
 
         savePlot(plotsDir, figname, fig, size=(24, 12))
 
+
 def lockdownVlines(ax, outerI=0):
-        nationLockdownDates = [
+    nationLockdownDates = [
+        [
             [
-                [
-                    dt.strptime("2020-03-23", "%Y-%m-%d"),
-                    dt.strptime("2020-11-05", "%Y-%m-%d"),
-                ]
-            ],
-        ]
-        nationLockdownEasing = [
-            [dt.strptime("2020-07-04", "%Y-%m-%d")],
-        ]
+                dt.strptime("2020-03-23", "%Y-%m-%d"),
+                dt.strptime("2020-11-05", "%Y-%m-%d"),
+            ]
+        ],
+    ]
+    nationLockdownEasing = [
+        [dt.strptime("2020-07-04", "%Y-%m-%d")],
+    ]
 
-        ymin, ymax = ax.get_ylim()
-        for date in nationLockdownDates[outerI]:
-            ax.vlines(
-                x=date,
-                ymin=ymin,
-                ymax=ymax,
-                color="#FF4136AF",
-                ls="dashed",
-                label="Start of lockdown",
-            )
-
+    ymin, ymax = ax.get_ylim()
+    for date in nationLockdownDates[outerI]:
         ax.vlines(
-            x=nationLockdownEasing[outerI],
+            x=date,
             ymin=ymin,
             ymax=ymax,
-            color="#3D9970AF",
+            color="#FF4136AF",
             ls="dashed",
-            label="End of lockdown",
+            label="Start of lockdown",
         )
+
+    ax.vlines(
+        x=nationLockdownEasing[outerI],
+        ymin=ymin,
+        ymax=ymax,
+        color="#3D9970AF",
+        ls="dashed",
+        label="End of lockdown",
+    )
 
 
 def nationReportedPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
