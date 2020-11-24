@@ -33,8 +33,8 @@
     --font-size-site-title: 4.375rem;
     --font-size-body: 1.1em;
     --font-size-post-title: 3.5rem;
-    --font-size-post-title-mobile: 2.75em;
-    --font-size-subtitle: 1.375em;
+    --font-size-post-title-mobile: 2.25em;
+    --font-size-subtitle: 1.25em;
 }
 
 *::selection {
@@ -143,7 +143,6 @@ h1 {
 }
 
 .container {
-    max-width: 800px;
     padding: 0;
     grid-column: 1 / span 2;
     grid-row: 2 / span 2;
@@ -223,7 +222,7 @@ footer p {
 }
 
 #content {
-    max-width: 800px;
+    max-width: 80vw;
     min-width: 350px;
     margin: 0 auto 13px;
     display: grid;
@@ -259,11 +258,13 @@ img {
     }
 
     .container {
-        max-width: 90vw;
+        max-width: 100vw;
     }
 
     .image {
-        margin: 0 auto;
+        margin: 2.5vh auto;
+        padding: 0;
+        max-width: 90vw;
     }
 
     #content {

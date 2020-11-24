@@ -13,7 +13,7 @@
     - [ ] data processing
     - [ ] main
 - [ ] Refactor functions into smaller self contained pieces
-- [ ] Refactor graphs that take the longest to draw
+- [ ] Add average toggle to plots
 - [ ] Create excess mortality + covid deaths graphs
     - http://old.reddit.com/r/dataisbeautiful/comments/jn8ufq/doing_things_properly_70000_5000_excess_deaths/
     - https://www.ons.gov.uk/peoplepopulationandcommunity/birthsdeathsandmarriages/deaths/datasets/weeklyprovisionalfiguresondeathsregisteredinenglandandwales
@@ -21,7 +21,6 @@
     - https://www.nisra.gov.uk/publications/weekly-deaths
 - [ ] Heatmap by age group
     - https://russss.github.io/covidtracker/
-- [ ] Add average toggle to plots
 - [ ] Graphs showing the cases per capita of Scottish regions
     - [ ] Group them by tiers?
 - [ ] MPLD3 bugs
@@ -39,6 +38,7 @@
 
 ----------------------------------------------------------------------------------------
 
+- [ ] Refactor graphs that take the longest to draw
 - [ ] Compare UK to other countries
     - https://github.com/CSSEGISandData/COVID-19
     - https://github.com/owid/covid-19-data/tree/master/public/data
