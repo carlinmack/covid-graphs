@@ -19,8 +19,6 @@
     - https://www.ons.gov.uk/peoplepopulationandcommunity/birthsdeathsandmarriages/deaths/datasets/weeklyprovisionalfiguresondeathsregisteredinenglandandwales
     - https://www.nrscotland.gov.uk/statistics-and-data/statistics/statistics-by-theme/vital-events/general-publications/weekly-and-monthly-data-on-births-and-deaths/weekly-data-on-births-and-deaths
     - https://www.nisra.gov.uk/publications/weekly-deaths
-- [ ] Heatmap by age group
-    - https://russss.github.io/covidtracker/
 - [ ] Graphs showing the cases per capita of Scottish regions
     - [ ] Group them by tiers?
 - [ ] MPLD3 bugs
@@ -39,6 +37,8 @@
 ----------------------------------------------------------------------------------------
 
 - [ ] Refactor graphs that take the longest to draw
+- [ ] Heatmap by age group
+    - https://russss.github.io/covidtracker/
 - [ ] Compare UK to other countries
     - https://github.com/CSSEGISandData/COVID-19
     - https://github.com/owid/covid-19-data/tree/master/public/data

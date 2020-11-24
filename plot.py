@@ -107,37 +107,6 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
 
         return nationData
 
-    def lockdownVlines(ax, outerI):
-        nationLockdownDates = [
-            [
-                [
-                    dt.strptime("2020-03-23", "%Y-%m-%d"),
-                    dt.strptime("2020-11-05", "%Y-%m-%d"),
-                ]
-            ],
-        ]
-        nationLockdownEasing = [
-            [dt.strptime("2020-07-04", "%Y-%m-%d")],
-        ]
-
-        ymin, ymax = ax.get_ylim()
-        for date in nationLockdownDates[outerI]:
-            ax.vlines(
-                x=date,
-                ymin=ymin,
-                ymax=ymax,
-                color="#FF41367F",
-                label="Start of lockdown",
-            )
-
-        ax.vlines(
-            x=nationLockdownEasing[outerI],
-            ymin=ymin,
-            ymax=ymax,
-            color="#3D99707F",
-            label="End of lockdown",
-        )
-
     nationList = [["UK"], ["Scotland", "England", "Northern Ireland", "Wales"]]
     colorsList = [["#2271d3"], ["#003078", "#5694CA", "#FFDD00", "#D4351C"]]
     fignames = ["", "-Nation"]
@@ -700,6 +669,37 @@ def ComparisonNation(plotsDir, avg, t, data, nations):
 
         savePlot(plotsDir, figname, fig, size=(24, 12))
 
+def lockdownVlines(ax, outerI=0):
+        nationLockdownDates = [
+            [
+                [
+                    dt.strptime("2020-03-23", "%Y-%m-%d"),
+                    dt.strptime("2020-11-05", "%Y-%m-%d"),
+                ]
+            ],
+        ]
+        nationLockdownEasing = [
+            [dt.strptime("2020-07-04", "%Y-%m-%d")],
+        ]
+
+        ymin, ymax = ax.get_ylim()
+        for date in nationLockdownDates[outerI]:
+            ax.vlines(
+                x=date,
+                ymin=ymin,
+                ymax=ymax,
+                color="#FF41367F",
+                label="Start of lockdown",
+            )
+
+        ax.vlines(
+            x=nationLockdownEasing[outerI],
+            ymin=ymin,
+            ymax=ymax,
+            color="#3D99707F",
+            label="End of lockdown",
+        )
+
 
 def nationReportedPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
     data = [
@@ -773,6 +773,9 @@ def nationReportedPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
                     )
 
                     bottom = list(map(add, reportedData, bottom))
+
+            if not perCapita[i]:
+                lockdownVlines(ax)
 
             dateAxis(ax)
             handles, labels = ax.get_legend_handles_labels()
