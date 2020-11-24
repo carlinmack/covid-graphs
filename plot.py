@@ -132,9 +132,9 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
         ax.set_title(title, fontweight="bold")
 
         if outerI == 0:
-            ax.bar(data["UK"]["casesDates"], data["UK"]["cases"], color="#2271d3")
+            ax.bar(data["UK"]["casesDates"], data["UK"]["cases"], color="orangered")
 
-            setYLabel(ax, "Daily COVID-19 Cases in the UK", avg, color="#2271d3")
+            setYLabel(ax, "Daily COVID-19 Cases in the UK", avg, color="orangered")
 
             ax2 = ax.twinx()
 
@@ -144,7 +144,7 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
             ax2.plot_date(
                 data["UK"]["testDates"],
                 data["UK"]["posTests"],
-                "orangered",
+                "#333",
                 linewidth=2,
             )
 
@@ -153,7 +153,7 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
                 yLabel += " (seven day average)"
 
             ax2.set_ylabel(
-                yLabel, color="orangered", rotation=270, ha="center", va="bottom"
+                yLabel, rotation=270, ha="center", va="bottom"
             )
 
             ax.spines["top"].set_visible(False)
@@ -688,7 +688,8 @@ def lockdownVlines(ax, outerI=0):
                 x=date,
                 ymin=ymin,
                 ymax=ymax,
-                color="#FF41367F",
+                color="#FF4136AF",
+                ls="dashed",
                 label="Start of lockdown",
             )
 
@@ -696,7 +697,8 @@ def lockdownVlines(ax, outerI=0):
             x=nationLockdownEasing[outerI],
             ymin=ymin,
             ymax=ymax,
-            color="#3D99707F",
+            color="#3D9970AF",
+            ls="dashed",
             label="End of lockdown",
         )
 
