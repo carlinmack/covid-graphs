@@ -1128,11 +1128,10 @@ if __name__ == "__main__":
             total=42, bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} {elapsed_s:.0f}s"
         )
 
-        mainPlot(t, dataDir, plotsDir, avg=False)
-        mainPlot(t, dataDir, plotsDir)
-
-        nationReportedPlot(t, dataDir, plotsDir)
-        nationReportedPlot(t, dataDir, plotsDir, avg=False)
+        bools = [False, True]
+        for bool in bools:
+            mainPlot(t, dataDir, plotsDir, avg=bool)
+            nationReportedPlot(t, dataDir, plotsDir, avg=bool)
 
         heatMapPlot(t, dataDir, plotsDir)
 
