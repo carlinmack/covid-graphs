@@ -886,25 +886,31 @@ def heatMapPlot(t, dataDir="data/", plotsDir="plots/"):
 
         return dataFrames
 
-    def plotHeatmap(ax, name, dataFrames):
-        ax.set_ylabel(name, rotation=0, ha="right", va="center")
-        ax.tick_params(axis="y", which="both", left=False, labelleft=False)
-        hm = ax.imshow([dataFrames], cmap="plasma", interpolation="none", aspect="auto")
-        plt.colorbar(hm, ax=ax, format=threeFigureFormatter, aspect=10)
-        # ax.bar(range(7), dataFrames["Number"])
+    def plotHeatmap(ax, name, dataFrames, color, hide=0):
+        if hide == 0:
+            ax.set_ylabel(name, rotation=0, ha="right", va="center")
 
-        removeSpines(ax)
+        ax.bar(range(7), dataFrames["Number"], color=color)
+        ax.yaxis.set_major_locator(plt.MaxNLocator(2))
+        threeFigureAxis(ax)
+
+        removeSpines(ax, all=True)
+        showGrid(ax, color="#bbb")
 
     casesBoolean = [1, 0]
     fignames = ["TestsCases", "Deaths"]
-    titles = ["tests/cases", "deaths"]
+    titles = ["tests and cases", "deaths"]
 
     names = [
         ["Tests", "Cases (reported date)", "Cases (specimen date)"],
         ["Deaths", "Reported Deaths"],
     ]
 
+    colors = [["#2271d3", "orangered", "orangered"], ["#333", "#333", "#333"]]
+
     for i in range(2):
+        title = "Comparison of average number of %s per day" % titles[i]
+
         # UK
         dataFrames = getDataframes("UK", casesBoolean[i])
 
@@ -915,15 +921,17 @@ def heatMapPlot(t, dataDir="data/", plotsDir="plots/"):
         for j, ax in enumerate(axs):
             plt.xticks(ticks=list(range(7)), labels=days)
 
-            plotHeatmap(ax, names[i][j], dataFrames[j])
+            plotHeatmap(ax, names[i][j], dataFrames[j], colors[i][j])
 
-        fig.suptitle("Heatmap of number of %s per day" % titles[i], fontweight="bold")
+        fig.suptitle(title, fontweight="bold")
 
-        savePlot(plotsDir, figname, fig, (10, 5))
+        savePlot(plotsDir, figname, fig)
 
         # Nations
+        figname = fignames[i] + "HeatMap-Nation"
+        updateProgressBar(figname, t)
+
         nations = ["Scotland", "England", "Northern Ireland", "Wales"]
-        colors = ["#003078", "#5694CA", "#FFDD00", "#D4351C"]
         nationsDf = []
 
         for nation in nations:
@@ -931,35 +939,34 @@ def heatMapPlot(t, dataDir="data/", plotsDir="plots/"):
 
             nationsDf.append(nationDataFrame)
 
-        figname = fignames[i] + "HeatMap-Nation"
-        updateProgressBar(figname, t)
-
-        fig = plt.figure(figsize=(20, 10))
+        fig = plt.figure()
         outerAxs = gridspec.GridSpec(2, 2, hspace=0.3)
 
-        fig.suptitle("Heatmap of number of %s per day" % titles[i], fontweight="bold")
+        fig.suptitle(title + ", per nation", fontweight="bold")
 
-        for k in range(4):
+        for k in range(len(nationsDf)):
             inner = outerAxs[k].subgridspec(len(nationsDf[0]), 1, hspace=0.3)
 
-            for j in range(len(nationsDf[0])):
+            axsRows = len(nationsDf[0])
+
+            for j in range(axsRows):
                 ax = fig.add_subplot(inner[j])
                 if j == 0:
                     ax.set_title(nations[k])
                     ax.tick_params(
                         axis="x", which="both", bottom=False, labelbottom=False
                     )
-                elif j == 1:
+                elif j == axsRows - 1 and k > 1:
+                    plt.xticks(ticks=list(range(7)), labels=days)
+                else:
                     ax.tick_params(
                         axis="x", which="both", bottom=False, labelbottom=False
                     )
-                elif j == 2:
-                    plt.xticks(ticks=list(range(7)), labels=days)
 
-                plotHeatmap(ax, names[i][j], nationsDf[k][j])
+                plotHeatmap(ax, names[i][j], nationsDf[k][j], colors[i][j], hide=k % 2)
                 fig.add_subplot(ax)
 
-        savePlot(plotsDir, figname, fig, (20, 10))
+        savePlot(plotsDir, figname, fig, (17.5, 10))
 
 
 # Helpers ------------------------------------------------------------------------------
@@ -987,8 +994,8 @@ def removeSpines(ax, all=False):
 
 
 # Y axis
-def showGrid(ax):
-    ax.grid(color="#e5e5e5", which="major", axis="y", linestyle="solid")
+def showGrid(ax, color="#e5e5e5"):
+    ax.grid(color=color, which="major", axis="y", linestyle="solid")
     ax.set_axisbelow(True)
 
 
@@ -1129,9 +1136,9 @@ if __name__ == "__main__":
         )
 
         bools = [False, True]
-        for bool in bools:
-            mainPlot(t, dataDir, plotsDir, avg=bool)
-            nationReportedPlot(t, dataDir, plotsDir, avg=bool)
+        # for bool in bools:
+        #     mainPlot(t, dataDir, plotsDir, avg=bool)
+        #     nationReportedPlot(t, dataDir, plotsDir, avg=bool)
 
         heatMapPlot(t, dataDir, plotsDir)
 
