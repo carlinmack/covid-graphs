@@ -996,6 +996,7 @@ def removeSpines(ax, all=False):
 # Y axis
 def showGrid(ax, color="#e5e5e5"):
     ax.grid(color=color, which="major", axis="y", linestyle="solid")
+    ax.spines["left"].set_visible(False)
     ax.set_axisbelow(True)
 
 
@@ -1136,9 +1137,9 @@ if __name__ == "__main__":
         )
 
         bools = [False, True]
-        # for bool in bools:
-        #     mainPlot(t, dataDir, plotsDir, avg=bool)
-        #     nationReportedPlot(t, dataDir, plotsDir, avg=bool)
+        for bool in bools:
+            mainPlot(t, dataDir, plotsDir, avg=bool)
+            nationReportedPlot(t, dataDir, plotsDir, avg=bool)
 
         heatMapPlot(t, dataDir, plotsDir)
 
