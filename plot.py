@@ -533,9 +533,6 @@ def ComparisonUK(plotsDir, avg, t, data):
     removeSpines(ax3, all=True)
     ax3.spines["right"].set_visible(True)
 
-    for axis in axes:
-        axis.set_ylim(bottom=0)
-
     savePlot(plotsDir, figname, fig)
 
 
@@ -613,6 +610,7 @@ def ComparisonNation(plotsDir, avg, t, data, nations):
                     percentAxis(axis)
                 else:
                     threeFigureAxis(axis)
+                axis.yaxis.set_major_locator(plt.MaxNLocator(3))
 
             ax.spines["top"].set_visible(False)
             ax2.spines["top"].set_visible(False)
@@ -639,13 +637,13 @@ def ComparisonNation(plotsDir, avg, t, data, nations):
 
         if perCapita[i]:
             for axis in primary_ax:
-                axis.set_ylim(bottom=0, top=axMax[0])
+                axis.set_ylim(top=axMax[0])
 
             for axis in secondary_ax:
-                axis.set_ylim(bottom=0, top=axMax[1])
+                axis.set_ylim(top=axMax[1])
 
             for axis in tertiary_ax:
-                axis.set_ylim(bottom=0, top=axMax[2])
+                axis.set_ylim(top=axMax[2])
 
         plt.annotate(
             "Note: Wales includes suspected COVID-19 patients in hospitalisation figures while the other nations include only confirmed cases.",
@@ -1009,8 +1007,9 @@ def percentAxis(ax):
     ax.yaxis.set_major_formatter(tkr.PercentFormatter(decimals=decimals))
 
 
-def threeFigureAxis(axis):
-    axis.yaxis.set_major_formatter(tkr.FuncFormatter(threeFigureFormatter))
+def threeFigureAxis(ax):
+    ax.set_ylim(bottom=0)
+    ax.yaxis.set_major_formatter(tkr.FuncFormatter(threeFigureFormatter))
 
 
 def threeFigureFormatter(x, pos):
