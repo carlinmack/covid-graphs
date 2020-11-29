@@ -898,7 +898,7 @@ def heatMapPlot(t, dataDir="data/", plotsDir="plots/"):
         showGrid(ax, color="#bbb")
 
     casesBoolean = [1, 0]
-    fignames = ["TestsCases", "Deaths"]
+    fignames = ["Tests-Cases", "Deaths"]
     titles = ["tests and cases", "deaths"]
 
     names = [
@@ -914,7 +914,7 @@ def heatMapPlot(t, dataDir="data/", plotsDir="plots/"):
         # UK
         dataFrames = getDataframes("UK", casesBoolean[i])
 
-        figname = fignames[i] + "HeatMap"
+        figname = "HeatMap-" + fignames[i]
         updateProgressBar(figname, t)
         fig, axs = plt.subplots(len(dataFrames), 1, sharex=True)
 
