@@ -281,6 +281,7 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
 
                 dateAxis(ax)
                 reduceXlabels(ax)
+                reduceYlabels(ax)
 
                 setYLabel(ax, "Number of tests per day", avg)
 
@@ -372,6 +373,7 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
 
                 dateAxis(ax)
                 reduceXlabels(ax)
+                reduceYlabels(ax)
 
                 setYLabel(ax, "% positive tests per day", avg)
                 showGrid(ax)
@@ -1041,10 +1043,14 @@ def dateAxis(ax):
     ax.xaxis.set_major_formatter(df("%d %b"))
 
 
-def reduceXlabels(ax, every_nth=2):
+def reduceXlabels(ax, every_nth=3):
     for n, label in enumerate(ax.xaxis.get_ticklabels()):
         if n % every_nth != 0:
             label.set_visible(False)
+
+
+def reduceYlabels(ax, max=6):
+    ax.yaxis.set_major_locator(plt.MaxNLocator(max))
 
 
 # Math
