@@ -8,7 +8,7 @@
   <meta name="msapplication-TileColor" content="#e8e6e3">
   <meta name="msapplication-config" content="/Icons/browserconfig.xml">
   <meta name="theme-color" content="#e8e6e3">
-  <link rel="shortcut icon" type="image/x-icon" href="static/favicon.ico">
+  <link rel="shortcut icon" type="non image/x-icon" href="static/favicon.ico">
 
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="https://fonts.googleapis.com/css?family=EB+Garamond%7COpen+Sans" rel="stylesheet">
@@ -27,42 +27,43 @@
 
     <div class="container">
       <div class="markdown">
-        <div class="image"><img src="https://raw.githubusercontent.com/carlinmack/covid-graphs/main/plots/Testing.png" /></div>
-        <div class="image"><img src="https://raw.githubusercontent.com/carlinmack/covid-graphs/main/plots/Testing-Avg.png" /></div>
-        <div class="image"><img src="https://raw.githubusercontent.com/carlinmack/covid-graphs/main/plots/Testing-Nation.png" /></div>
-        <div class="image"><img src="https://raw.githubusercontent.com/carlinmack/covid-graphs/main/plots/Testing-Nation-Avg.png" /></div>
-        <div class="image"><img src="https://raw.githubusercontent.com/carlinmack/covid-graphs/main/plots/PercentPositive.png" /></div>
-        <div class="image"><img src="https://raw.githubusercontent.com/carlinmack/covid-graphs/main/plots/PercentPositive-Avg.png" /></div>
-        <div class="image"><img src="https://raw.githubusercontent.com/carlinmack/covid-graphs/main/plots/PercentPositive-Nation.png" /></div>
-        <div class="image"><img src="https://raw.githubusercontent.com/carlinmack/covid-graphs/main/plots/PercentPositive-Nation-Avg.png" /></div>
-        <div class="image"><img src="https://raw.githubusercontent.com/carlinmack/covid-graphs/main/plots/DoubleBarChart.png" /></div>
-        <div class="image"><img src="https://raw.githubusercontent.com/carlinmack/covid-graphs/main/plots/DoubleBarChart-Avg.png" /></div>
-        <div class="image"><img src="https://raw.githubusercontent.com/carlinmack/covid-graphs/main/plots/DoubleBarChart-Nation.png" /></div>
-        <div class="image"><img src="https://raw.githubusercontent.com/carlinmack/covid-graphs/main/plots/DoubleBarChart-Nation-Avg.png" /></div>
-        <div class="image"><img src="https://raw.githubusercontent.com/carlinmack/covid-graphs/main/plots/Comparison.png" /></div>
-        <div class="image"><img src="https://raw.githubusercontent.com/carlinmack/covid-graphs/main/plots/Comparison-Avg.png" /></div>
-        <div class="image"><img src="https://raw.githubusercontent.com/carlinmack/covid-graphs/main/plots/Comparison-Nation.png" /></div>
-        <div class="image"><img src="https://raw.githubusercontent.com/carlinmack/covid-graphs/main/plots/Comparison-Nation-Avg.png" /></div>
-        <div class="image"><img src="https://raw.githubusercontent.com/carlinmack/covid-graphs/main/plots/Comparison-Nation-Per-Capita.png" /></div>
-        <div class="image"><img src="https://raw.githubusercontent.com/carlinmack/covid-graphs/main/plots/Comparison-Nation-Per-Capita-Avg.png" /></div>
-        <div class="image"><img src="https://raw.githubusercontent.com/carlinmack/covid-graphs/main/plots/Hospitalisation.png" /></div>
-        <div class="image"><img src="https://raw.githubusercontent.com/carlinmack/covid-graphs/main/plots/Hospitalisation-Avg.png" /></div>
-        <div class="image"><img src="https://raw.githubusercontent.com/carlinmack/covid-graphs/main/plots/Hospitalisation-Nation.png" /></div>
-        <div class="image"><img src="https://raw.githubusercontent.com/carlinmack/covid-graphs/main/plots/Hospitalisation-Nation-Avg.png" /></div>
-        <div class="image"><img src="https://raw.githubusercontent.com/carlinmack/covid-graphs/main/plots/Mortality.png" /></div>
-        <div class="image"><img src="https://raw.githubusercontent.com/carlinmack/covid-graphs/main/plots/Mortality-Avg.png" /></div>
-        <div class="image"><img src="https://raw.githubusercontent.com/carlinmack/covid-graphs/main/plots/Mortality-Nation.png" /></div>
-        <div class="image"><img src="https://raw.githubusercontent.com/carlinmack/covid-graphs/main/plots/Mortality-Nation-Avg.png" /></div>
-        <div class="image"><img src="https://raw.githubusercontent.com/carlinmack/covid-graphs/main/plots/Nation-Reported-Cases.png" /></div>
-        <div class="image"><img src="https://raw.githubusercontent.com/carlinmack/covid-graphs/main/plots/Nation-Reported-Cases-Avg.png" /></div>
-        <div class="image"><img src="https://raw.githubusercontent.com/carlinmack/covid-graphs/main/plots/Nation-Reported-Cases-Per-Capita.png" /></div>
-        <div class="image"><img src="https://raw.githubusercontent.com/carlinmack/covid-graphs/main/plots/Nation-Reported-Cases-Per-Capita-Avg.png"/></div>
+        <button id="avg">Toggle Average</button>
+        <div class="non image"><img src="https://raw.githubusercontent.com/carlinmack/covid-graphs/main/plots/Testing.png" /></div>
+        <div class="avg image hidden"><img src="https://raw.githubusercontent.com/carlinmack/covid-graphs/main/plots/Testing-Avg.png" /></div>
+        <div class="non image"><img src="https://raw.githubusercontent.com/carlinmack/covid-graphs/main/plots/Testing-Nation.png" /></div>
+        <div class="avg image hidden"><img src="https://raw.githubusercontent.com/carlinmack/covid-graphs/main/plots/Testing-Nation-Avg.png" /></div>
+        <div class="non image"><img src="https://raw.githubusercontent.com/carlinmack/covid-graphs/main/plots/PercentPositive.png" /></div>
+        <div class="avg image hidden"><img src="https://raw.githubusercontent.com/carlinmack/covid-graphs/main/plots/PercentPositive-Avg.png" /></div>
+        <div class="non image"><img src="https://raw.githubusercontent.com/carlinmack/covid-graphs/main/plots/PercentPositive-Nation.png" /></div>
+        <div class="avg image hidden"><img src="https://raw.githubusercontent.com/carlinmack/covid-graphs/main/plots/PercentPositive-Nation-Avg.png" /></div>
+        <div class="non image"><img src="https://raw.githubusercontent.com/carlinmack/covid-graphs/main/plots/DoubleBarChart.png" /></div>
+        <div class="avg image hidden"><img src="https://raw.githubusercontent.com/carlinmack/covid-graphs/main/plots/DoubleBarChart-Avg.png" /></div>
+        <div class="non image"><img src="https://raw.githubusercontent.com/carlinmack/covid-graphs/main/plots/DoubleBarChart-Nation.png" /></div>
+        <div class="avg image hidden"><img src="https://raw.githubusercontent.com/carlinmack/covid-graphs/main/plots/DoubleBarChart-Nation-Avg.png" /></div>
+        <div class="non image"><img src="https://raw.githubusercontent.com/carlinmack/covid-graphs/main/plots/Comparison.png" /></div>
+        <div class="avg image hidden"><img src="https://raw.githubusercontent.com/carlinmack/covid-graphs/main/plots/Comparison-Avg.png" /></div>
+        <div class="non image"><img src="https://raw.githubusercontent.com/carlinmack/covid-graphs/main/plots/Comparison-Nation.png" /></div>
+        <div class="avg image hidden"><img src="https://raw.githubusercontent.com/carlinmack/covid-graphs/main/plots/Comparison-Nation-Avg.png" /></div>
+        <div class="non image"><img src="https://raw.githubusercontent.com/carlinmack/covid-graphs/main/plots/Comparison-Nation-Per-Capita.png" /></div>
+        <div class="avg image hidden"><img src="https://raw.githubusercontent.com/carlinmack/covid-graphs/main/plots/Comparison-Nation-Per-Capita-Avg.png" /></div>
+        <div class="non image"><img src="https://raw.githubusercontent.com/carlinmack/covid-graphs/main/plots/Hospitalisation.png" /></div>
+        <div class="avg image hidden"><img src="https://raw.githubusercontent.com/carlinmack/covid-graphs/main/plots/Hospitalisation-Avg.png" /></div>
+        <div class="non image"><img src="https://raw.githubusercontent.com/carlinmack/covid-graphs/main/plots/Hospitalisation-Nation.png" /></div>
+        <div class="avg image hidden"><img src="https://raw.githubusercontent.com/carlinmack/covid-graphs/main/plots/Hospitalisation-Nation-Avg.png" /></div>
+        <div class="non image"><img src="https://raw.githubusercontent.com/carlinmack/covid-graphs/main/plots/Mortality.png" /></div>
+        <div class="avg image hidden"><img src="https://raw.githubusercontent.com/carlinmack/covid-graphs/main/plots/Mortality-Avg.png" /></div>
+        <div class="non image"><img src="https://raw.githubusercontent.com/carlinmack/covid-graphs/main/plots/Mortality-Nation.png" /></div>
+        <div class="avg image hidden"><img src="https://raw.githubusercontent.com/carlinmack/covid-graphs/main/plots/Mortality-Nation-Avg.png" /></div>
+        <div class="non image"><img src="https://raw.githubusercontent.com/carlinmack/covid-graphs/main/plots/Nation-Reported-Cases.png" /></div>
+        <div class="avg image hidden"><img src="https://raw.githubusercontent.com/carlinmack/covid-graphs/main/plots/Nation-Reported-Cases-Avg.png" /></div>
+        <div class="non image"><img src="https://raw.githubusercontent.com/carlinmack/covid-graphs/main/plots/Nation-Reported-Cases-Per-Capita.png" /></div>
+        <div class="avg image hidden"><img src="https://raw.githubusercontent.com/carlinmack/covid-graphs/main/plots/Nation-Reported-Cases-Per-Capita-Avg.png"/></div>
         <div class="image"><img src="https://raw.githubusercontent.com/carlinmack/covid-graphs/main/plots/Nation-Reported-Cases-Cumulative.png"/></div>
         <div class="image"><img src="https://raw.githubusercontent.com/carlinmack/covid-graphs/main/plots/Nation-Reported-Cases-Cumulative-Per-Capita.png"/></div>
-        <div class="image"><img src="https://raw.githubusercontent.com/carlinmack/covid-graphs/main/plots/Nation-Reported-Deaths.png" /></div>
-        <div class="image"><img src="https://raw.githubusercontent.com/carlinmack/covid-graphs/main/plots/Nation-Reported-Deaths-Avg.png" /></div>
-        <div class="image"><img src="https://raw.githubusercontent.com/carlinmack/covid-graphs/main/plots/Nation-Reported-Deaths-Per-Capita.png" /></div>
-        <div class="image"><img src="https://raw.githubusercontent.com/carlinmack/covid-graphs/main/plots/Nation-Reported-Deaths-Per-Capita-Avg.png"/></div>
+        <div class="non image"><img src="https://raw.githubusercontent.com/carlinmack/covid-graphs/main/plots/Nation-Reported-Deaths.png" /></div>
+        <div class="avg image hidden"><img src="https://raw.githubusercontent.com/carlinmack/covid-graphs/main/plots/Nation-Reported-Deaths-Avg.png" /></div>
+        <div class="non image"><img src="https://raw.githubusercontent.com/carlinmack/covid-graphs/main/plots/Nation-Reported-Deaths-Per-Capita.png" /></div>
+        <div class="avg image hidden"><img src="https://raw.githubusercontent.com/carlinmack/covid-graphs/main/plots/Nation-Reported-Deaths-Per-Capita-Avg.png"/></div>
         <div class="image"><img src="https://raw.githubusercontent.com/carlinmack/covid-graphs/main/plots/Nation-Reported-Deaths-Cumulative.png"/></div>
         <div class="image"><img src="https://raw.githubusercontent.com/carlinmack/covid-graphs/main/plots/Nation-Reported-Deaths-Cumulative-Per-Capita.png"/></div>
         <div class="image"><img src="https://raw.githubusercontent.com/carlinmack/covid-graphs/main/plots/HeatMap-Tests-Cases.png" /></div>
@@ -88,6 +89,7 @@
       })
       .catch(error => console.log(error));
     </script>
+    <script src="static/js/toggleAverage.js"></script>
 </body>
 
 </html>

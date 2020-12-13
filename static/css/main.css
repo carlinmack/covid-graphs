@@ -83,6 +83,32 @@ html {
     background-color: white;
 }
 
+.markdown button {
+    position: sticky;
+    top: 5vh;
+    margin-left: auto;
+    display: block;
+    margin-right: 0.9em;
+    border-radius: 4px;
+    box-shadow: 0 0 5px 0 rgba(0, 0, 0, .3);
+    background: white;
+    font-size: 0.9em;
+    padding: 5px 10px;
+    border: 0;
+    cursor: pointer;
+    text-align: center;
+    transition: background 250ms ease-in-out,
+    transform 150ms ease;
+}
+
+button:hover {
+    transform: scale(1.1);
+}
+
+button:active {
+    transform: scale(1);
+}
+
 a img {
     border: none;
 }
@@ -237,6 +263,10 @@ img {
 
 .image {
     padding: 2.5vh 0;
+}
+
+.hidden {
+    display: none !important;
 }
 
 @media (max-width: 767px) {
