@@ -13,6 +13,7 @@ import mpld3
 import numpy as np
 import pandas as pd
 from matplotlib.dates import DateFormatter as df
+from matplotlib.dates import MonthLocator
 from tqdm import tqdm
 
 from getData import getData
@@ -120,13 +121,17 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
         fig, ax = plt.subplots()
 
         figname = "PercentPositive" + fignames[outerI]
-        title = (
-            "UK%s COVID-19 cases compared to percentage of positive tests"
-            % titles[outerI]
-        )
+        if outerI == 0:
+            title = "UK COVID-19 cases compared to percentage of tests which are positive"
+            if avg:
+                title = "Average " + title
+        elif outerI == 1 and avg:
+            title = "Average percentage of tests which are positive for COVID-19 in UK nations"
+        else:
+            title = "Percentage of tests which are positive for COVID-19 in UK nations"
+
         if avg:
             figname += "-Avg"
-            title = "Average " + title
         updateProgressBar(figname, t)
 
         ax.set_title(title, fontweight="bold")
@@ -659,15 +664,10 @@ def ComparisonNation(plotsDir, avg, t, data, nations):
 
 def lockdownVlines(ax, outerI=0):
     nationLockdownDates = [
-        [
-            [
-                dt.strptime("2020-03-23", "%Y-%m-%d"),
-                dt.strptime("2020-11-05", "%Y-%m-%d"),
-            ]
-        ],
+        [[dt(2020, 3, 23), dt(2020, 11, 5),]],
     ]
     nationLockdownEasing = [
-        [dt.strptime("2020-07-04", "%Y-%m-%d")],
+        [dt(2020, 7, 4)],
     ]
 
     ymin, ymax = ax.get_ylim()
@@ -688,6 +688,24 @@ def lockdownVlines(ax, outerI=0):
         color="#3D9970AF",
         ls="dashed",
         label="End of lockdown",
+    )
+
+    ax.vlines(
+        x=dt(2020, 3, 11),
+        ymin=ymin,
+        ymax=ymax,
+        color="#333",
+        ls="dashed",
+        label="WHO declares pandemic",
+    )
+
+    ax.vlines(
+        x=dt(2020, 5, 18),
+        ymin=ymin,
+        ymax=ymax,
+        color="#55f",
+        ls="dashed",
+        label="Wider testing available",
     )
 
 
@@ -969,6 +987,78 @@ def heatMapPlot(t, dataDir="data/", plotsDir="plots/"):
         savePlot(plotsDir, figname, fig, (17.5, 10))
 
 
+def lockdownPlot(t, dataDir="data/", plotsDir="plots/"):
+    """Wikipedia lockdowns
+    Stay at home order, pubs closed, mask mandate
+    Scotland eased on dt(2020, 7, 15)?
+    norn ireland opened pubs on dt(2020, 9, 23), second lockdown on dt(2020, 10, 16) ?
+    wales eased on dt(2020, 8, 3) ?
+    """
+    data = [
+        {
+            "name": "Scotland",
+            "color": "#003078",
+            "lockdowns": [
+                [dt(2020, 3, 23), dt(2020, 6, 29),],
+                [dt(2020, 10, 9), dt(2021, 1, 16),],
+            ],
+        },
+        {
+            "name": "England",
+            "color": "#5694CA",
+            "lockdowns": [
+                [dt(2020, 3, 23), dt(2020, 7, 4),],
+                [dt(2020, 11, 5), dt(2020, 12, 2),],
+                [dt(2020, 12, 2), dt(2021, 1, 16),],
+            ],
+        },
+        {
+            "name": "Northern Ireland",
+            "color": "#FFDD00",
+            "lockdowns": [
+                [dt(2020, 3, 23), dt(2020, 7, 3),],
+                [dt(2020, 11, 27), dt(2020, 12, 11),],
+                [dt(2020, 12, 28), dt(2021, 1, 18),],
+            ],
+        },
+        {
+            "name": "Wales",
+            "color": "#D4351C",
+            "lockdowns": [
+                [dt(2020, 3, 23), dt(2020, 7, 13),],
+                [dt(2020, 10, 23), dt(2020, 11, 9)],
+                [dt(2020, 12, 20), dt(2021, 1, 18)],
+            ],
+        },
+    ]
+
+    title = "Timeline of COVID-19 restrictions in the UK"
+
+    figname = "Timeline"
+    updateProgressBar(figname, t)
+    fig, axs = plt.subplots(len(data), 1, sharex=True, constrained_layout=True)
+
+    for j, ax in enumerate(axs):
+        ax.set_title(data[j]["name"])
+        ax.set_yticks([0])
+        ax.set_yticklabels(["Lockdown"])
+        for lockdown in data[j]["lockdowns"]:
+            ax.barh(
+                y=0,
+                width=lockdown[1] - lockdown[0],
+                left=lockdown[0],
+                color=data[j]["color"],
+            )
+
+        dateAxis(ax, year=True)
+
+        removeSpines(ax)
+
+    fig.suptitle(title, fontweight="bold")
+
+    savePlot(plotsDir, figname, fig)
+
+
 # Helpers ------------------------------------------------------------------------------
 def updateProgressBar(figname, t):
     t.update()
@@ -1037,8 +1127,12 @@ def setYLabel(ax, label, avg, color="black", ax2=False):
 
 
 # X axis
-def dateAxis(ax):
-    ax.set_xlim(left=dt.strptime("2020-03-01", "%Y-%m-%d"), right=dt.today())
+def dateAxis(ax, year=False):
+    ax.set_xlim(left=dt(2020, 3, 1), right=dt.today())
+    if year:
+        ax.set_xlim(left=dt(2020, 3, 1), right=dt(2021, 3, 1))
+
+    ax.xaxis.set_major_locator(MonthLocator())
     ax.xaxis_date()
     ax.xaxis.set_major_formatter(df("%d %b"))
 
@@ -1147,6 +1241,7 @@ if __name__ == "__main__":
             nationReportedPlot(t, dataDir, plotsDir, avg=bool)
 
         heatMapPlot(t, dataDir, plotsDir)
+        lockdownPlot(t, dataDir, plotsDir)
 
         t.close()
     else:
