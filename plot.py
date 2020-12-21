@@ -111,372 +111,352 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
     nationList = [["UK"], ["Scotland", "England", "Northern Ireland", "Wales"]]
     colorsList = [["#2271d3"], ["#003078", "#5694CA", "#FFDD00", "#D4351C"]]
     fignames = ["", "-Nation"]
-    titles = ["", " nation"]
 
     for outerI, nations in enumerate(nationList):
         data = {}
         for nation in nations:
             data[nation] = getData(nation)
 
-        fig, ax = plt.subplots()
+        testingPlot(fignames, outerI, avg, t, data, nations, plotsDir)
 
-        figname = "PercentPositive" + fignames[outerI]
+        percentPositivePlot(
+            t, plotsDir, avg, colorsList, fignames, outerI, nations, data
+        )
+
+        doubleBarChartPlot(t, plotsDir, avg, fignames, outerI, nations, data)
+
+        mortalityHospitalisationPlot(
+            fignames, outerI, avg, t, data, colorsList, nations, plotsDir
+        )
+
         if outerI == 0:
-            title = "UK COVID-19 cases compared to percentage of tests which are positive"
-            if avg:
-                title = "Average " + title
-        elif outerI == 1 and avg:
-            title = "Average percentage of tests which are positive for COVID-19 in UK nations"
+            ComparisonUK(plotsDir, avg, t, data)
         else:
-            title = "Percentage of tests which are positive for COVID-19 in UK nations"
+            ComparisonNation(plotsDir, avg, t, data, nations)
 
-        if avg:
-            figname += "-Avg"
-        updateProgressBar(figname, t)
+
+def testingPlot(fignames, outerI, avg, t, data, nations, plotsDir):
+    figname = "Testing" + fignames[outerI]
+    title = "Positive test rate of COVID-19 in the UK"
+    if avg:
+        figname += "-Avg"
+        title = "Average positive test rate of COVID-19 in the UK"
+    updateProgressBar(figname, t)
+
+    if outerI == 0:
+        fig, ax = plt.subplots()
 
         ax.set_title(title, fontweight="bold")
 
-        if outerI == 0:
-            ax.bar(data["UK"]["casesDates"], data["UK"]["cases"], color="orangered")
+        ax.plot(data["UK"]["testDates"], data["UK"]["posTests"], color="#333")
 
-            setYLabel(ax, "Daily COVID-19 Cases in the UK", avg, color="orangered")
-
-            ax2 = ax.twinx()
-
-            ax2.plot_date(
-                data["UK"]["testDates"], data["UK"]["posTests"], "white", linewidth=3
-            )
-            ax2.plot_date(
-                data["UK"]["testDates"], data["UK"]["posTests"], "#333", linewidth=2,
-            )
-
-            setYLabel(ax2, "Percent positive tests per day", avg, ax2=True)
-
-            ax.spines["top"].set_visible(False)
-            ax2.spines["top"].set_visible(False)
-            threeFigureAxis(ax)
-
-            percentAxis(ax2)
-            ax2.axline(
-                (0, 5),
-                slope=0,
-                ls="dotted",
-                color="black",
-                label="WHO 5% reopening threshold",
-            )
-
-            lockdownVlines(ax2, outerI)
-        elif outerI == 1:
-            for i, nation in enumerate(data):
-                nationTests = data[nation]["posTests"]
-                ax.plot_date(
-                    data[nation]["testDates"],
-                    nationTests,
-                    colorsList[outerI][i],
-                    linewidth=2,
-                    label=nations[i],
-                )
-
-            ax.axline(
-                (0, 5),
-                slope=0,
-                ls="dotted",
-                color="black",
-                label="WHO 5% reopening threshold",
-            )
-
-            setYLabel(ax, "Percent positive tests per day", avg)
-            percentAxis(ax)
-
-        ax.set_xlabel(
-            """
-        Note: Positive rates should be at or below 5 percent for at least 14 days before
-        a country can safely reopen, according to the World Health Organization.""",
-            color="#666",
+        maxArray = [x >= 5 for x in data["UK"]["posTests"]]
+        minArray = [x <= 5 for x in data["UK"]["posTests"]]
+        ax.fill_between(
+            data["UK"]["testDates"],
+            5,
+            data["UK"]["posTests"],
+            where=maxArray,
+            facecolor="#FF41367F",
+            interpolate=True,
+        )
+        ax.fill_between(
+            data["UK"]["testDates"],
+            5,
+            data["UK"]["posTests"],
+            where=minArray,
+            facecolor="#3D99707F",
+            interpolate=True,
         )
 
         dateAxis(ax)
 
-        plt.legend()
+        ax.set_xlabel(
+            """
+            Note: Target positive testing rate is 5% according to the World Health Organization.""",
+            color="#666",
+        )
+
+        setYLabel(ax, "Percent positive tests per day", avg)
+        percentAxis(ax)
+
         removeSpines(ax)
+        showGrid(ax)
+    else:
+        fig, axs = plt.subplots(2, 2, sharex=True)
+        axs = axs.flatten()
+        fig.suptitle(title, fontweight="bold")
 
-        savePlot(plotsDir, figname, fig)
+        for j, nation in enumerate(data):
+            ax = axs[j]
 
-        # Double bar chart -------------------------------------------------------------
-        figname = "DoubleBarChart" + fignames[outerI]
-        title = "Number of tests vs positive tests"
-        if avg:
-            figname += "-Avg"
-            title += " (averaged)"
-        updateProgressBar(figname, t)
+            ax.plot(data[nation]["testDates"], data[nation]["posTests"], color="#333")
 
-        if outerI == 0:
-            fig, ax = plt.subplots()
-
-            ax.set_title(title, fontweight="bold")
-
-            fivePercent = [x * 0.05 for x in data["UK"]["tests"]]
-
-            ax.bar(
-                data["UK"]["testDates"],
-                data["UK"]["tests"],
-                color="#2271d3",
-                label="Total tests",
-            )
-            ax.bar(
-                data["UK"]["testDates"],
-                fivePercent,
-                color="black",
-                label="WHO 5% reopening threshold",
-            )
-            ax.bar(
-                data["UK"]["casesDates"],
-                data["UK"]["cases"],
-                color="orangered",
-                label="Positive tests",
-            )
-
-            lockdownVlines(ax, outerI)
-
-            dateAxis(ax)
-
-            ax.set_xlabel(
-                """
-                Note: Positive rates should be at or below 5 percent for at least 14 days before
-                a country can safely reopen, according to the World Health Organization.""",
-                color="#666",
-            )
-
-            setYLabel(ax, "Number of tests per day", avg)
-            threeFigureAxis(ax)
-
-            removeSpines(ax)
-            showGrid(ax)
-
-            ax.legend()
-        else:
-            fig, axs = plt.subplots(2, 2, sharex=True)
-            axs = axs.flatten()
-            fig.suptitle(title, fontweight="bold")
-
-            for j, nation in enumerate(data):
-                ax = axs[j]
-                tests = data[nation]["tests"]
-
-                fivePercent = [x * 0.05 for x in tests]
-
-                ax.bar(
-                    data[nation]["testDates"],
-                    tests,
-                    color="#2271d3",
-                    label="Total tests",
-                )
-                ax.bar(
-                    data[nation]["testDates"],
-                    fivePercent,
-                    color="black",
-                    label="WHO 5% reopening threshold",
-                )
-                ax.bar(
-                    data[nation]["casesDates"],
-                    data[nation]["cases"],
-                    color="orangered",
-                    label="Positive tests",
-                )
-
-                dateAxis(ax)
-                reduceXlabels(ax)
-                reduceYlabels(ax)
-
-                setYLabel(ax, "Number of tests per day", avg)
-
-                ax.set_title(nations[j])
-                threeFigureAxis(ax)
-
-                removeSpines(ax)
-                showGrid(ax)
-
-        savePlot(plotsDir, figname, fig)
-
-        # Testing ----------------------------------------------------------------------
-        figname = "Testing" + fignames[outerI]
-        title = "Positive test rate of COVID-19 in the UK"
-        if avg:
-            figname += "-Avg"
-            title = "Average positive test rate of COVID-19 in the UK"
-        updateProgressBar(figname, t)
-
-        if outerI == 0:
-            fig, ax = plt.subplots()
-
-            ax.set_title(title, fontweight="bold")
-
-            ax.plot(data["UK"]["testDates"], data["UK"]["posTests"], color="#333")
-
-            maxArray = [x >= 5 for x in data["UK"]["posTests"]]
-            minArray = [x <= 5 for x in data["UK"]["posTests"]]
+            maxArray = [x >= 5 for x in data[nation]["posTests"]]
+            minArray = [x <= 5 for x in data[nation]["posTests"]]
             ax.fill_between(
-                data["UK"]["testDates"],
+                data[nation]["testDates"],
                 5,
-                data["UK"]["posTests"],
+                data[nation]["posTests"],
                 where=maxArray,
                 facecolor="#FF41367F",
                 interpolate=True,
             )
             ax.fill_between(
-                data["UK"]["testDates"],
+                data[nation]["testDates"],
                 5,
-                data["UK"]["posTests"],
+                data[nation]["posTests"],
                 where=minArray,
                 facecolor="#3D99707F",
                 interpolate=True,
             )
 
             dateAxis(ax)
+            reduceXlabels(ax)
+            reduceYlabels(ax)
 
-            ax.set_xlabel(
-                """
-                Note: Target positive testing rate is 5% according to the World Health Organization.""",
-                color="#666",
-            )
-
-            setYLabel(ax, "Percent positive tests per day", avg)
+            setYLabel(ax, "% positive tests per day", avg)
+            showGrid(ax)
             percentAxis(ax)
 
+            ax.set_title(nations[j])
+            removeSpines(ax)
+
+    savePlot(plotsDir, figname, fig)
+
+
+def percentPositivePlot(t, plotsDir, avg, colorsList, fignames, outerI, nations, data):
+    fig, ax = plt.subplots()
+    figname = "PercentPositive" + fignames[outerI]
+    if outerI == 0:
+        title = "UK COVID-19 cases compared to percentage of tests which are positive"
+        if avg:
+            title = "Average " + title
+    elif outerI == 1 and avg:
+        title = (
+            "Average percentage of tests which are positive for COVID-19 in UK nations"
+        )
+    else:
+        title = "Percentage of tests which are positive for COVID-19 in UK nations"
+    if avg:
+        figname += "-Avg"
+    updateProgressBar(figname, t)
+    ax.set_title(title, fontweight="bold")
+    if outerI == 0:
+        ax.bar(data["UK"]["casesDates"], data["UK"]["cases"], color="orangered")
+        setYLabel(ax, "Daily COVID-19 Cases in the UK", avg, color="orangered")
+        ax2 = ax.twinx()
+        ax2.plot_date(
+            data["UK"]["testDates"], data["UK"]["posTests"], "white", linewidth=3
+        )
+        ax2.plot_date(
+            data["UK"]["testDates"], data["UK"]["posTests"], "#333", linewidth=2,
+        )
+        setYLabel(ax2, "Percent positive tests per day", avg, ax2=True)
+        ax.spines["top"].set_visible(False)
+        ax2.spines["top"].set_visible(False)
+        threeFigureAxis(ax)
+        percentAxis(ax2)
+        ax2.axline(
+            (0, 5),
+            slope=0,
+            ls="dotted",
+            color="black",
+            label="WHO 5% reopening threshold",
+        )
+        lockdownVlines(ax2, outerI)
+    elif outerI == 1:
+        for i, nation in enumerate(data):
+            nationTests = data[nation]["posTests"]
+            ax.plot_date(
+                data[nation]["testDates"],
+                nationTests,
+                colorsList[outerI][i],
+                linewidth=2,
+                label=nations[i],
+            )
+        ax.axline(
+            (0, 5),
+            slope=0,
+            ls="dotted",
+            color="black",
+            label="WHO 5% reopening threshold",
+        )
+        setYLabel(ax, "Percent positive tests per day", avg)
+        percentAxis(ax)
+    ax.set_xlabel(
+        """
+        Note: Positive rates should be at or below 5 percent for at least 14 days before
+        a country can safely reopen, according to the World Health Organization.""",
+        color="#666",
+    )
+    dateAxis(ax)
+    plt.legend()
+    removeSpines(ax)
+    savePlot(plotsDir, figname, fig)
+
+
+def doubleBarChartPlot(t, plotsDir, avg, fignames, outerI, nations, data):
+    figname = "DoubleBarChart" + fignames[outerI]
+    title = "Number of tests vs positive tests"
+    if avg:
+        figname += "-Avg"
+        title += " (averaged)"
+    updateProgressBar(figname, t)
+    if outerI == 0:
+        fig, ax = plt.subplots()
+        ax.set_title(title, fontweight="bold")
+        fivePercent = [x * 0.05 for x in data["UK"]["tests"]]
+        ax.bar(
+            data["UK"]["testDates"],
+            data["UK"]["tests"],
+            color="#2271d3",
+            label="Total tests",
+        )
+        ax.bar(
+            data["UK"]["testDates"],
+            fivePercent,
+            color="black",
+            label="WHO 5% reopening threshold",
+        )
+        ax.bar(
+            data["UK"]["casesDates"],
+            data["UK"]["cases"],
+            color="orangered",
+            label="Positive tests",
+        )
+        lockdownVlines(ax, outerI)
+        dateAxis(ax)
+        ax.set_xlabel(
+            """
+                Note: Positive rates should be at or below 5 percent for at least 14 days before
+                a country can safely reopen, according to the World Health Organization.""",
+            color="#666",
+        )
+        setYLabel(ax, "Number of tests per day", avg)
+        threeFigureAxis(ax)
+        removeSpines(ax)
+        showGrid(ax)
+        ax.legend()
+    else:
+        fig, axs = plt.subplots(2, 2, sharex=True)
+        axs = axs.flatten()
+        fig.suptitle(title, fontweight="bold")
+        for j, nation in enumerate(data):
+            ax = axs[j]
+            tests = data[nation]["tests"]
+            fivePercent = [x * 0.05 for x in tests]
+            ax.bar(
+                data[nation]["testDates"], tests, color="#2271d3", label="Total tests",
+            )
+            ax.bar(
+                data[nation]["testDates"],
+                fivePercent,
+                color="black",
+                label="WHO 5% reopening threshold",
+            )
+            ax.bar(
+                data[nation]["casesDates"],
+                data[nation]["cases"],
+                color="orangered",
+                label="Positive tests",
+            )
+            dateAxis(ax)
+            reduceXlabels(ax)
+            reduceYlabels(ax)
+            setYLabel(ax, "Number of tests per day", avg)
+            ax.set_title(nations[j])
+            threeFigureAxis(ax)
             removeSpines(ax)
             showGrid(ax)
-        else:
-            fig, axs = plt.subplots(2, 2, sharex=True)
-            axs = axs.flatten()
-            fig.suptitle(title, fontweight="bold")
+    savePlot(plotsDir, figname, fig)
 
-            for j, nation in enumerate(data):
-                ax = axs[j]
 
-                ax.plot(
-                    data[nation]["testDates"], data[nation]["posTests"], color="#333"
-                )
+def mortalityHospitalisationPlot(
+    fignames, outerI, avg, t, data, colorsList, nations, plotsDir
+):
+    innerFignames = ["Mortality", "Hospitalisation"]
+    innerTitles = ["Mortality", "Hospitalisation rate"]
+    innerYs = ["deathDates", "hospitalisationDates"]
+    innerXs = ["mortality", "hospitalisationRate"]
+    innerYlables = ["mortality", "hospitalisation rate"]
+    innerNotes = [
+        "Mortality is calculated as deaths",
+        "Hospitalisation rate is calculated as hospitalisations",
+    ]
+    innerColors = ["black", "#851bc2"]
 
-                maxArray = [x >= 5 for x in data[nation]["posTests"]]
-                minArray = [x <= 5 for x in data[nation]["posTests"]]
-                ax.fill_between(
-                    data[nation]["testDates"],
-                    5,
-                    data[nation]["posTests"],
-                    where=maxArray,
-                    facecolor="#FF41367F",
-                    interpolate=True,
-                )
-                ax.fill_between(
-                    data[nation]["testDates"],
-                    5,
-                    data[nation]["posTests"],
-                    where=minArray,
-                    facecolor="#3D99707F",
-                    interpolate=True,
-                )
-
-                dateAxis(ax)
-                reduceXlabels(ax)
-                reduceYlabels(ax)
-
-                setYLabel(ax, "% positive tests per day", avg)
-                showGrid(ax)
-                percentAxis(ax)
-
-                ax.set_title(nations[j])
-                removeSpines(ax)
-
-        savePlot(plotsDir, figname, fig)
-
-        # Mortality/Hospitalisation plot -----------------------------------------------
-        innerFignames = ["Mortality", "Hospitalisation"]
-        innerTitles = ["Mortality", "Hospitalisation rate"]
-        innerYs = ["deathDates", "hospitalisationDates"]
-        innerXs = ["mortality", "hospitalisationRate"]
-        innerYlables = ["mortality", "hospitalisation rate"]
-        innerNotes = [
-            "Mortality is calculated as deaths",
-            "Hospitalisation rate is calculated as hospitalisations",
-        ]
-        innerColors = ["black", "#851bc2"]
-
-        for innerI in range(len(innerFignames)):
-            figname = innerFignames[innerI] + fignames[outerI]
-            if avg:
-                figname += "-Avg"
-            updateProgressBar(figname, t)
-            fig, ax = plt.subplots()
-
-            if outerI == 0:
-                title = "%s of COVID-19 in the UK" % innerTitles[innerI]
-
-                ax.bar(data["UK"]["casesDates"], data["UK"]["cases"], color="orangered")
-                setYLabel(ax, "Daily COVID-19 Cases in the UK", avg, color="orangered")
-
-                ax2 = ax.twinx()
-
-                ax2.plot_date(
-                    data["UK"][innerYs[innerI]],
-                    data["UK"][innerXs[innerI]],
-                    "white",
-                    linewidth=3,
-                )
-                ax2.plot_date(
-                    data["UK"][innerYs[innerI]],
-                    data["UK"][innerXs[innerI]],
-                    innerColors[innerI],
-                    linewidth=2,
-                )
-
-                yLabel = "Percent %s per day" % innerYlables[innerI]
-                setYLabel(ax2, yLabel, avg, color=innerColors[innerI], ax2=True)
-
-                ax.spines["top"].set_visible(False)
-                ax2.spines["top"].set_visible(False)
-
-                threeFigureAxis(ax)
-                percentAxis(ax2)
-            elif outerI == 1:
-                title = "%s of COVID-19 in UK nations" % innerTitles[innerI]
-
-                for i, nation in enumerate(data):
-                    nationDeaths = data[nation][innerXs[innerI]]
-                    ax.plot_date(
-                        data[nation][innerYs[innerI]],
-                        nationDeaths,
-                        colorsList[outerI][i],
-                        linewidth=2,
-                        label=nations[i],
-                    )
-
-                setYLabel(ax, "Percent %s per day" % innerYlables[innerI], avg)
-                percentAxis(ax)
-
-                plt.legend()
-
-            if avg:
-                title += " (averaged)"
-            ax.set_title(title, fontweight="bold")
-
-            xLabel = (
-                "\nNote: %s per day divided by the sum of cases in the prior 28 days"
-                % innerNotes[innerI]
-            )
-            if innerI == 1 and outerI == 1:
-                xLabel += "\nWales includes suspected COVID-19 patients in hospitalisation figures while the other nations include only confirmed cases."
-            ax.set_xlabel(xLabel, color="#666")
-
-            dateAxis(ax)
-
-            removeSpines(ax)
-
-            savePlot(plotsDir, figname, fig)
+    for innerI in range(len(innerFignames)):
+        figname = innerFignames[innerI] + fignames[outerI]
+        if avg:
+            figname += "-Avg"
+        updateProgressBar(figname, t)
+        fig, ax = plt.subplots()
 
         if outerI == 0:
-            ComparisonUK(plotsDir, avg, t, data)
-        else:
-            ComparisonNation(plotsDir, avg, t, data, nations)
+            title = "%s of COVID-19 in the UK" % innerTitles[innerI]
+
+            ax.bar(data["UK"]["casesDates"], data["UK"]["cases"], color="orangered")
+            setYLabel(ax, "Daily COVID-19 Cases in the UK", avg, color="orangered")
+
+            ax2 = ax.twinx()
+
+            ax2.plot_date(
+                data["UK"][innerYs[innerI]],
+                data["UK"][innerXs[innerI]],
+                "white",
+                linewidth=3,
+            )
+            ax2.plot_date(
+                data["UK"][innerYs[innerI]],
+                data["UK"][innerXs[innerI]],
+                innerColors[innerI],
+                linewidth=2,
+            )
+
+            yLabel = "Percent %s per day" % innerYlables[innerI]
+            setYLabel(ax2, yLabel, avg, color=innerColors[innerI], ax2=True)
+
+            ax.spines["top"].set_visible(False)
+            ax2.spines["top"].set_visible(False)
+
+            threeFigureAxis(ax)
+            percentAxis(ax2)
+        elif outerI == 1:
+            title = "%s of COVID-19 in UK nations" % innerTitles[innerI]
+
+            for i, nation in enumerate(data):
+                nationDeaths = data[nation][innerXs[innerI]]
+                ax.plot_date(
+                    data[nation][innerYs[innerI]],
+                    nationDeaths,
+                    colorsList[outerI][i],
+                    linewidth=2,
+                    label=nations[i],
+                )
+
+            setYLabel(ax, "Percent %s per day" % innerYlables[innerI], avg)
+            percentAxis(ax)
+
+            plt.legend()
+
+        if avg:
+            title += " (averaged)"
+        ax.set_title(title, fontweight="bold")
+
+        xLabel = (
+            "\nNote: %s per day divided by the sum of cases in the prior 28 days"
+            % innerNotes[innerI]
+        )
+        if innerI == 1 and outerI == 1:
+            xLabel += "\nWales includes suspected COVID-19 patients in hospitalisation figures while the other nations include only confirmed cases."
+        ax.set_xlabel(xLabel, color="#666")
+
+        dateAxis(ax)
+
+        removeSpines(ax)
+
+        savePlot(plotsDir, figname, fig)
 
 
 def ComparisonUK(plotsDir, avg, t, data):
@@ -1232,7 +1212,7 @@ if __name__ == "__main__":
 
     if newData or clArgs.test or clArgs.dryrun:
         t = tqdm(
-            total=42, bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} {elapsed_s:.0f}s"
+            total=43, bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} {elapsed_s:.0f}s"
         )
 
         bools = [False, True]
