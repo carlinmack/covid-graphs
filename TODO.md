@@ -6,6 +6,8 @@
 - [x] Fix matplotlib too many plots warning
     - https://stackoverflow.com/questions/21884271/warning-about-too-many-open-figures
 - [x] Set up a github action to update the plots every day
+- [x] Add average toggle to plots
+- [x] timeline plot
 
 - [ ] Refactor into different files
     - [x] data loading/saving
@@ -13,7 +15,6 @@
     - [ ] data processing
     - [ ] main
 - [ ] Refactor functions into smaller self contained pieces
-- [ ] Add average toggle to plots
 - [ ] Create excess mortality + covid deaths graphs
     - http://old.reddit.com/r/dataisbeautiful/comments/jn8ufq/doing_things_properly_70000_5000_excess_deaths/
     - https://www.ons.gov.uk/peoplepopulationandcommunity/birthsdeathsandmarriages/deaths/datasets/weeklyprovisionalfiguresondeathsregisteredinenglandandwales
@@ -33,6 +34,8 @@
 - [ ] add noscript version of the plots
 - [ ] number of cases line plot with colouring for percent positive
     - https://twitter.com/DrEricDing/status/1330212172757078017
+    - percent positive
+    - whether under lockdown
 
 ----------------------------------------------------------------------------------------
 

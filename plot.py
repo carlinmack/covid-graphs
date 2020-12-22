@@ -23,28 +23,6 @@ from readData import readData
 def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
     """avg indicates seven day average of new cases should be used"""
 
-    def readFile(name, dictionary=False, raw=False):
-        data = readData(name)
-        # convert to np array and separate dates from case counts
-        casesData = np.array(data)
-        casesRawDates = casesData[:, 0]
-        casesDates = [dt.strptime(x, "%Y-%m-%d") for x in casesRawDates]
-        cases = casesData[:, 1].astype(np.float)
-        mortCases = n_day_sum(cases, 28)
-        # compute seven day average of cases if enabled
-        if avg:
-            cases = n_day_avg(cases, 7)
-
-        if dictionary:
-            casesDict = dict(zip(casesRawDates, cases))
-            mortCasesDict = dict(zip(casesRawDates, mortCases))
-            return cases, casesDates, casesDict, mortCasesDict
-
-        if raw:
-            return cases, casesDates, casesRawDates
-
-        return cases, casesDates
-
     def percentOf28daysCases(deaths, deathDates, mortCasesDict):
         mortality = [0] * len(deaths)
         for j, date in enumerate(deathDates):
@@ -60,7 +38,7 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
                 mortality[j] = 0
         return mortality
 
-    def getData(name):
+    def getData(name, avg):
         casesFileName = dataDir + name + ".cases.csv"
         testsFileName = dataDir + name + ".testing.csv"
         deathsFileName = dataDir + name + ".deaths.csv"
@@ -69,10 +47,10 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
         nationData = {}
 
         cases, casesDates, casesDict, mortCasesDict = readFile(
-            casesFileName, dictionary=True
+            casesFileName, avg, dictionary=True
         )
 
-        testsOriginal, testDates, testRawDates = readFile(testsFileName, raw=True)
+        testsOriginal, testDates, testRawDates = readFile(testsFileName, avg, raw=True)
 
         tests = np.copy(testsOriginal)
 
@@ -82,11 +60,11 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
             else:
                 tests[j] = 0
 
-        deaths, deathDates = readFile(deathsFileName)
+        deaths, deathDates = readFile(deathsFileName, avg)
 
         mortality = percentOf28daysCases(deaths, deathDates, mortCasesDict)
 
-        hospitalisations, hospitalisationDates = readFile(hospitalisationsFileName)
+        hospitalisations, hospitalisationDates = readFile(hospitalisationsFileName, avg)
 
         hospitalisationRate = percentOf28daysCases(
             hospitalisations, hospitalisationDates, mortCasesDict
@@ -115,7 +93,7 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
     for outerI, nations in enumerate(nationList):
         data = {}
         for nation in nations:
-            data[nation] = getData(nation)
+            data[nation] = getData(nation, avg)
 
         testingPlot(fignames, outerI, avg, t, data, nations, plotsDir)
 
@@ -133,6 +111,29 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
             ComparisonUK(plotsDir, avg, t, data)
         else:
             ComparisonNation(plotsDir, avg, t, data, nations)
+
+
+def readFile(name, avg, dictionary=False, raw=False):
+    data = readData(name)
+    # convert to np array and separate dates from case counts
+    casesData = np.array(data)
+    casesRawDates = casesData[:, 0]
+    casesDates = [dt.strptime(x, "%Y-%m-%d") for x in casesRawDates]
+    cases = casesData[:, 1].astype(np.float)
+    mortCases = n_day_sum(cases, 28)
+    # compute seven day average of cases if enabled
+    if avg:
+        cases = n_day_avg(cases, 7)
+
+    if dictionary:
+        casesDict = dict(zip(casesRawDates, cases))
+        mortCasesDict = dict(zip(casesRawDates, mortCases))
+        return cases, casesDates, casesDict, mortCasesDict
+
+    if raw:
+        return cases, casesDates, casesRawDates
+
+    return cases, casesDates
 
 
 def testingPlot(fignames, outerI, avg, t, data, nations, plotsDir):
@@ -644,10 +645,10 @@ def ComparisonNation(plotsDir, avg, t, data, nations):
 
 def lockdownVlines(ax, outerI=0):
     nationLockdownDates = [
-        [[dt(2020, 3, 23), dt(2020, 11, 5),]],
+        [[dt(2020, 3, 23), dt(2020, 11, 5), dt(2020, 12, 20)]],
     ]
     nationLockdownEasing = [
-        [dt(2020, 7, 4)],
+        [dt(2020, 7, 4), dt(2020, 12, 2)],
     ]
 
     ymin, ymax = ax.get_ylim()
@@ -677,15 +678,6 @@ def lockdownVlines(ax, outerI=0):
         color="#333",
         ls="dashed",
         label="WHO declares pandemic",
-    )
-
-    ax.vlines(
-        x=dt(2020, 5, 18),
-        ymin=ymin,
-        ymax=ymax,
-        color="#55f",
-        ls="dashed",
-        label="Wider testing available",
     )
 
 
@@ -967,47 +959,71 @@ def heatMapPlot(t, dataDir="data/", plotsDir="plots/"):
         savePlot(plotsDir, figname, fig, (17.5, 10))
 
 
-def lockdownPlot(t, dataDir="data/", plotsDir="plots/"):
-    """Wikipedia lockdowns
-    Stay at home order, pubs closed, mask mandate
-    Scotland eased on dt(2020, 7, 15)?
-    norn ireland opened pubs on dt(2020, 9, 23), second lockdown on dt(2020, 10, 16) ?
-    wales eased on dt(2020, 8, 3) ?
-    """
+def timelinePlot(t, dataDir="data/", plotsDir="plots/"):
+    """mask mandate"""
     data = [
         {
             "name": "Scotland",
             "color": "#003078",
-            "lockdowns": [
+            "Cases": [[None],],
+            "Deaths": [[None],],
+            "Lockdown": [
                 [dt(2020, 3, 23), dt(2020, 6, 29),],
-                [dt(2020, 10, 9), dt(2021, 1, 16),],
+                [dt(2020, 12, 26), dt(2021, 1, 16)],
+            ],
+            "Tiered system": [[dt(2020, 11, 2), None],],
+            "Closed pubs": [
+                [dt(2020, 3, 20), dt(2020, 7, 15),],
+                [dt(2020, 10, 9), None],
             ],
         },
         {
             "name": "England",
             "color": "#5694CA",
-            "lockdowns": [
+            "Cases": [[None],],
+            "Deaths": [[None],],
+            "Lockdown": [
                 [dt(2020, 3, 23), dt(2020, 7, 4),],
                 [dt(2020, 11, 5), dt(2020, 12, 2),],
-                [dt(2020, 12, 2), dt(2021, 1, 16),],
+                [dt(2020, 12, 26), None,],
+            ],
+            "Tiered system": [[dt(2020, 10, 14), None],],
+            "Closed pubs": [
+                [dt(2020, 3, 23), dt(2020, 7, 4),],
+                [dt(2020, 11, 5), dt(2020, 12, 2),],
+                [dt(2020, 12, 2), None,],
             ],
         },
         {
             "name": "Northern Ireland",
             "color": "#FFDD00",
-            "lockdowns": [
+            "Cases": [[None],],
+            "Deaths": [[None],],
+            "Lockdown": [
                 [dt(2020, 3, 23), dt(2020, 7, 3),],
                 [dt(2020, 11, 27), dt(2020, 12, 11),],
-                [dt(2020, 12, 28), dt(2021, 1, 18),],
+                [dt(2020, 12, 26), dt(2021, 2, 6),],
+            ],
+            "Tiered system": [[None],],
+            "Closed pubs": [
+                [dt(2020, 3, 15), dt(2020, 9, 23),],
+                [dt(2020, 10, 16), None],
             ],
         },
         {
             "name": "Wales",
             "color": "#D4351C",
-            "lockdowns": [
+            "Cases": [[None],],
+            "Deaths": [[None],],
+            "Lockdown": [
                 [dt(2020, 3, 23), dt(2020, 7, 13),],
                 [dt(2020, 10, 23), dt(2020, 11, 9)],
-                [dt(2020, 12, 20), dt(2021, 1, 18)],
+                [dt(2020, 12, 20), None],
+            ],
+            "Tiered system": [[None],],
+            "Closed pubs": [
+                [dt(2020, 3, 23), dt(2020, 8, 3)],
+                [dt(2020, 12, 4), None],
             ],
         },
     ]
@@ -1021,22 +1037,72 @@ def lockdownPlot(t, dataDir="data/", plotsDir="plots/"):
     for j, ax in enumerate(axs):
         ax.set_title(data[j]["name"])
         ax.set_yticks([0])
-        ax.set_yticklabels(["Lockdown"])
-        for lockdown in data[j]["lockdowns"]:
-            ax.barh(
-                y=0,
-                width=lockdown[1] - lockdown[0],
-                left=lockdown[0],
-                color=data[j]["color"],
-            )
+        keys = ["Closed pubs", "Tiered system", "Lockdown", "Deaths", "Cases"]
+
+        for i, key in enumerate(keys):
+            for dates in data[j][key]:
+                if dates[0] == None:
+                    ax.barh(
+                        y=i,
+                        width=dt(2022, 1, 2) - dt(2022, 1, 1),
+                        left=dt(2018, 1, 1),
+                        alpha=0,
+                    )
+                elif dates[1] == None:
+                    ax.barh(
+                        y=i,
+                        width=dt(2022, 1, 1) - dates[0],
+                        left=dates[0],
+                        color=data[j]["color"],
+                        hatch="//",
+                        alpha=0.75,
+                    )
+                else:
+                    ax.barh(
+                        y=i,
+                        width=dates[1] - dates[0],
+                        left=dates[0],
+                        color=data[j]["color"],
+                    )
+        ax.set_yticks(range(len(keys)))
+        ax.set_yticklabels(keys)
+
+        cases, casesDates = readFile(dataDir + data[j]["name"] + ".cases.csv", True)
+        ax2 = ax.twinx()
+        ax2.plot_date(casesDates[:-5], cases[:-5], "orangered")
+        ymin, ymax = ax2.get_ylim()
+        yRange = ymax - ymin
+        ymin = ymin - (5 * yRange)
+        ymax = ymax + (0.25 * yRange)
+        ax2.set_ylim(bottom=ymin, top=ymax)
+        ax2.axes.yaxis.set_visible(False)
+
+        deaths, deathDates = readFile(dataDir + data[j]["name"] + ".deaths.csv", True)
+        ax3 = ax.twinx()
+        ax3.plot_date(deathDates[:-5], deaths[:-5], "#333")
+        ymin, ymax = ax3.get_ylim()
+        yRange = ymax - ymin
+        ymin = ymin - (3.75 * yRange)
+        ymax = ymax + (1.5 * yRange)
+        ax3.set_ylim(bottom=ymin, top=ymax)
+        ax3.axes.yaxis.set_visible(False)
 
         dateAxis(ax, year=True)
 
         removeSpines(ax)
+        removeSpines(ax2)
+        removeSpines(ax3)
+
+        if j == 3:
+            ax.set_xlabel(
+                """
+                Note: Hatching displays when there is no end date specified""",
+                color="#666",
+            )
 
     fig.suptitle(title, fontweight="bold")
 
-    savePlot(plotsDir, figname, fig)
+    savePlot(plotsDir, figname, fig, size=(10, 16))
 
 
 # Helpers ------------------------------------------------------------------------------
@@ -1221,7 +1287,7 @@ if __name__ == "__main__":
             nationReportedPlot(t, dataDir, plotsDir, avg=bool)
 
         heatMapPlot(t, dataDir, plotsDir)
-        lockdownPlot(t, dataDir, plotsDir)
+        timelinePlot(t, dataDir, plotsDir)
 
         t.close()
     else:
