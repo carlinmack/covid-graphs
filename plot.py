@@ -285,6 +285,7 @@ def percentPositivePlot(t, plotsDir, avg, colorsList, fignames, outerI, nations,
         )
         setYLabel(ax, "Percent positive tests per day", avg)
         percentAxis(ax)
+        showGrid(ax)
     ax.set_xlabel(
         """
         Note: Positive rates should be at or below 5 percent for at least 14 days before
@@ -960,7 +961,8 @@ def heatMapPlot(t, dataDir="data/", plotsDir="plots/"):
 
 
 def timelinePlot(t, dataDir="data/", plotsDir="plots/"):
-    """mask mandate"""
+    """mask mandate
+    NI [dt(2020, 9, 22), ?],"""
     data = [
         {
             "name": "Scotland",
@@ -991,7 +993,7 @@ def timelinePlot(t, dataDir="data/", plotsDir="plots/"):
             "Closed pubs": [
                 [dt(2020, 3, 23), dt(2020, 7, 4),],
                 [dt(2020, 11, 5), dt(2020, 12, 2),],
-                [dt(2020, 12, 2), None,],
+                [dt(2020, 12, 26), None,],
             ],
         },
         {
@@ -1023,6 +1025,7 @@ def timelinePlot(t, dataDir="data/", plotsDir="plots/"):
             "Tiered system": [[None],],
             "Closed pubs": [
                 [dt(2020, 3, 23), dt(2020, 8, 3)],
+                [dt(2020, 10, 23), dt(2020, 11, 9)],
                 [dt(2020, 12, 4), None],
             ],
         },
@@ -1032,7 +1035,7 @@ def timelinePlot(t, dataDir="data/", plotsDir="plots/"):
 
     figname = "Timeline"
     updateProgressBar(figname, t)
-    fig, axs = plt.subplots(len(data), 1, sharex=True, constrained_layout=True)
+    fig, axs = plt.subplots(len(data), 1,constrained_layout=True)
 
     for j, ax in enumerate(axs):
         ax.set_title(data[j]["name"])
