@@ -29,6 +29,7 @@ def getData(dataDir, force=False):
             '"newDeaths28DaysByDeathDate":"newDeaths28DaysByDeathDate"',
             '"newDeaths28DaysByPublishDate":"newDeaths28DaysByPublishDate"',
             '"newAdmissions":"newAdmissions"',
+            '"newPeopleReceivingFirstDose":"newPeopleReceivingFirstDose","newPeopleReceivingSecondDose":"newPeopleReceivingSecondDose"',
         ]
         urlSuffix = "%7D&format=csv"
         names = [
@@ -38,12 +39,13 @@ def getData(dataDir, force=False):
             "deaths",
             "deaths.reported",
             "hospitalisations",
+            "vaccinations",
         ]
 
         nations = ["Scotland", "England", "Northern Ireland", "Wales"]
 
         t = tqdm(
-            total=30, bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} {elapsed_s:.0f}s"
+            total=35, bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} {elapsed_s:.0f}s"
         )
 
         for i, name in enumerate(names):
