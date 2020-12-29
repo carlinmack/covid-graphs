@@ -691,13 +691,24 @@ def nationReportedPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
     ]
     totalPopulation = sum([x["population"] for x in data])
 
-    fileNameTypes = [".cases.reported", ".deaths.reported"]
-    fignameTypes = ["Nation-Reported-Cases", "Nation-Reported-Deaths"]
-    titleTypesUpper = ["Cases", "Deaths"]
-    titleTypesLower = ["cases", "deaths"]
-    yLabelTypes = ["tested positive", "who have died within 28 days of a positive test"]
+    fileNameTypes = [".cases.reported", ".deaths.reported", ".vaccinations"]
+    fignameTypes = [
+        "Nation-Reported-Cases",
+        "Nation-Reported-Deaths",
+        "Nation-Vaccinations",
+    ]
+    titleTypesUpper = ["Cases", "Deaths", "Vaccinations"]
+    titleTypesLower = ["cases", "deaths", "vaccinations"]
+    yLabelTypes = [
+        "tested positive",
+        "who have died within 28 days of a positive test",
+        "who have received vaccinations",
+    ]
 
-    for type in range(2):
+    iterations = len(fileNameTypes)
+    if avg:
+        iterations = len(fileNameTypes) - 1
+    for type in range(iterations):
         for i, nation in enumerate(data):
             reportedFileName = dataDir + nation["name"] + fileNameTypes[type] + ".csv"
             reportedData = readData(reportedFileName)
@@ -716,7 +727,13 @@ def nationReportedPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
         titleSuffix = ["", ", per capita"]
         perCapita = [0, 1]
 
-        for i in range(2):
+        barWidth = 0.8
+        alignment = "center"
+        if type == 2:
+            barWidth = -5.6
+            alignment = "edge"
+
+        for i in range(len(fignameSuffix)):
             figname = fignameTypes[type] + fignameSuffix[i]
             title = " by date reported" + titleSuffix[i]
             if avg:
@@ -751,6 +768,8 @@ def nationReportedPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
                         color=nation["color"],
                         label=nation["name"],
                         bottom=bottom,
+                        width=barWidth,
+                        align=alignment,
                     )
 
                     bottom = list(map(add, reportedData, bottom))
@@ -759,6 +778,8 @@ def nationReportedPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
                 lockdownVlines(ax)
 
             dateAxis(ax)
+            if type == 2:
+                dateAxis(ax, left=dt(2020, 12, 1), right=dt(2021, 1, 1))
             handles, labels = ax.get_legend_handles_labels()
             ax.legend(reversed(handles), reversed(labels))
 
@@ -783,7 +804,7 @@ def nationReportedPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
         yLabels = ["UK population", "nation"]
 
         if not avg:
-            for i in range(2):
+            for i in range(len(yLabels)):
                 figname = fignameTypes[type] + "-Cumulative" + fignameSuffix[i]
                 updateProgressBar(figname, t)
                 fig, ax = plt.subplots()
@@ -820,11 +841,15 @@ def nationReportedPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
                             color=nation["color"],
                             label=nation["name"],
                             bottom=bottom,
+                            width=barWidth,
+                            align=alignment,
                         )
 
                         bottom = list(map(add, reportedData, bottom))
 
                 dateAxis(ax)
+                if type == 2:
+                    dateAxis(ax, left=dt(2020, 12, 1), right=dt(2021, 1, 1))
                 handles, labels = ax.get_legend_handles_labels()
                 ax.legend(reversed(handles), reversed(labels))
 
@@ -1035,7 +1060,7 @@ def timelinePlot(t, dataDir="data/", plotsDir="plots/"):
 
     figname = "Timeline"
     updateProgressBar(figname, t)
-    fig, axs = plt.subplots(len(data), 1,constrained_layout=True)
+    fig, axs = plt.subplots(len(data), 1, constrained_layout=True)
 
     for j, ax in enumerate(axs):
         ax.set_title(data[j]["name"])
@@ -1176,10 +1201,10 @@ def setYLabel(ax, label, avg, color="black", ax2=False):
 
 
 # X axis
-def dateAxis(ax, year=False):
-    ax.set_xlim(left=dt(2020, 3, 1), right=dt.today())
+def dateAxis(ax, year=False, left=dt(2020, 3, 1), right=dt.today()):
+    ax.set_xlim(left=left, right=right)
     if year:
-        ax.set_xlim(left=dt(2020, 3, 1), right=dt(2021, 3, 1))
+        ax.set_xlim(left=left, right=dt(2021, 3, 1))
 
     ax.xaxis.set_major_locator(MonthLocator())
     ax.xaxis_date()
