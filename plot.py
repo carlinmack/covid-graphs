@@ -56,8 +56,7 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
 
         for j, date in enumerate(testRawDates):
             if date in casesDict:
-                if casesDict[date] <= tests[j]:
-                    tests[j] = min(casesDict[date] / tests[j] * 100, 100)
+                tests[j] = min(casesDict[date] / tests[j] * 100, 100)
             else:
                 tests[j] = 0
 
@@ -693,8 +692,8 @@ def nationPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
 
     fileNameTypes = [".cases", ".deaths", ".vaccinations"]
     fignameTypes = [
-        "Nation-Cases",
-        "Nation-Deaths",
+        "Nation-Reported-Cases",
+        "Nation-Reported-Deaths",
         "Nation-Vaccinations",
     ]
     titleTypesUpper = ["Cases", "Deaths", "Vaccinations"]
@@ -720,8 +719,9 @@ def nationPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
             if avg:
                 reportedData = n_day_avg(reportedData, 7)
 
-            data[i]["reported"] = reportedData
-            data[i]["dates"] = testDates
+            skip = 5
+            data[i]["reported"] = reportedData[:-skip]
+            data[i]["dates"] = testDates[:-skip]
 
         fignameSuffix = ["", "-Per-Capita"]
         titleSuffix = ["", ", per capita"]
@@ -748,23 +748,24 @@ def nationPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
             bottom = [0] * len(data[0]["reported"])
 
             for j, nation in enumerate(data):
-                reportedData = data[j]["reported"]
+                plotData = data[j]["reported"]
+                dates = data[j]["dates"]
 
                 if perCapita[i]:
-                    reportedData = [
-                        x / nation["population"] * 100 for x in reportedData
+                    plotData = [
+                        x / nation["population"] * 100 for x in plotData
                     ]
                     ax.plot(
-                        data[j]["dates"],
-                        reportedData,
+                        dates,
+                        plotData,
                         color=nation["color"],
                         label=nation["name"],
                         linewidth=2,
                     )
                 else:
                     ax.bar(
-                        data[j]["dates"],
-                        reportedData,
+                        dates,
+                        plotData,
                         color=nation["color"],
                         label=nation["name"],
                         bottom=bottom,
@@ -772,7 +773,7 @@ def nationPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
                         align=alignment,
                     )
 
-                    bottom = list(map(add, reportedData, bottom))
+                    bottom = list(map(add, plotData, bottom))
 
             if not perCapita[i]:
                 lockdownVlines(ax)
@@ -1311,11 +1312,11 @@ if __name__ == "__main__":
 
         bools = [False, True]
         for bool in bools:
-            mainPlot(t, dataDir, plotsDir, avg=bool)
+            # mainPlot(t, dataDir, plotsDir, avg=bool)
             nationPlot(t, dataDir, plotsDir, avg=bool)
 
-        heatMapPlot(t, dataDir, plotsDir)
-        timelinePlot(t, dataDir, plotsDir)
+        # heatMapPlot(t, dataDir, plotsDir)
+        # timelinePlot(t, dataDir, plotsDir)
 
         t.close()
     else:
