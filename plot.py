@@ -56,7 +56,8 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
 
         for j, date in enumerate(testRawDates):
             if date in casesDict:
-                tests[j] = min(casesDict[date] / tests[j] * 100, 100)
+                if casesDict[date] <= tests[j]:
+                    tests[j] = min(casesDict[date] / tests[j] * 100, 100)
             else:
                 tests[j] = 0
 

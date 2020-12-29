@@ -4,6 +4,8 @@ import os
 import requests
 from tqdm import tqdm
 
+from datetime import timedelta, date
+
 
 def getData(dataDir, force=False):
     # check for if there is new data
@@ -93,6 +95,8 @@ def getCSV(url, dataDir, name):
                 )
             data = newData
 
+        data = insertDaysWithZeros(data)
+
         data = "\n".join(data)
 
         with open(fileName, "w") as file:
@@ -106,6 +110,31 @@ def getCSV(url, dataDir, name):
         exit()
 
 
+def insertDaysWithZeros(data):
+    """Converts ["2020-07-02,1508", "2020-07-06,1067"]
+        to ["2020-07-02,1508", "2020-07-03,0", "2020-07-04,0", "2020-07-05,0", 
+            "2020-07-06,1067"]"""
+
+    start_date = date(2020, 1, 3)
+    end_date = date.today() + timedelta(days=1)
+
+    i = 0
+    for curDate in daterange(start_date, end_date):
+        curDate = curDate.strftime("%Y-%m-%d")
+        if i < len(data):
+            dataDate = data[i].split(",")[0]
+            if dataDate == curDate:
+                i += 1
+            else:
+                data.insert(i, curDate + ",0")
+                i += 1
+        else:
+            data.insert(i, curDate + ",0")
+            i += 1
+
+    return data
+
+
 def parseInt(str):
     str = str.strip()
     return int(str) if str else 0
@@ -114,6 +143,11 @@ def parseInt(str):
 def updateProgressBar(figname, t):
     t.update()
     t.set_description(figname)
+
+
+def daterange(start_date, end_date):
+    for n in range(int((end_date - start_date).days)):
+        yield start_date + timedelta(n)
 
 
 def defineArgParser():
