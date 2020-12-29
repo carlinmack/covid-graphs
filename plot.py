@@ -692,8 +692,8 @@ def nationPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
 
     fileNameTypes = [".cases", ".deaths", ".vaccinations"]
     fignameTypes = [
-        "Nation-Reported-Cases",
-        "Nation-Reported-Deaths",
+        "Nation-Cases",
+        "Nation-Deaths",
         "Nation-Vaccinations",
     ]
     titleTypesUpper = ["Cases", "Deaths", "Vaccinations"]
