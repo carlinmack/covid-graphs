@@ -33,7 +33,7 @@ def getData(dataDir, force=False):
         ]
         urlSuffix = "%7D&format=csv"
         names = [
-            "testing",
+            "testing.reported",
             "cases",
             "cases.reported",
             "deaths",

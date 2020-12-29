@@ -40,7 +40,7 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
 
     def getData(name, avg):
         casesFileName = dataDir + name + ".cases.reported.csv"
-        testsFileName = dataDir + name + ".testing.csv"
+        testsFileName = dataDir + name + ".testing.reported.csv"
         deathsFileName = dataDir + name + ".deaths.csv"
         hospitalisationsFileName = dataDir + name + ".hospitalisations.csv"
 
@@ -876,7 +876,7 @@ def heatMapPlot(t, dataDir="data/", plotsDir="plots/"):
     def getDataframes(name, cases):
         if cases:
             fileNames = [
-                dataDir + name + ".testing.csv",
+                dataDir + name + ".testing.reported.csv",
                 dataDir + name + ".cases.reported.csv",
                 dataDir + name + ".cases.csv",
             ]
