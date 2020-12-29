@@ -39,7 +39,7 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
         return mortality
 
     def getData(name, avg):
-        casesFileName = dataDir + name + ".cases.csv"
+        casesFileName = dataDir + name + ".cases.reported.csv"
         testsFileName = dataDir + name + ".testing.csv"
         deathsFileName = dataDir + name + ".deaths.csv"
         hospitalisationsFileName = dataDir + name + ".hospitalisations.csv"
@@ -72,11 +72,11 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
 
         # remove the most recent three dates as they won't be accurate yet
         skip = 4
-        nationData["casesDates"] = casesDates[:-skip]
-        nationData["cases"] = cases[:-skip]
-        nationData["testDates"] = testDates[:-skip]
-        nationData["posTests"] = tests[:-skip]
-        nationData["tests"] = testsOriginal[:-skip]
+        nationData["casesDates"] = casesDates
+        nationData["cases"] = cases
+        nationData["testDates"] = testDates
+        nationData["posTests"] = tests
+        nationData["tests"] = testsOriginal
         nationData["deathDates"] = deathDates[:-skip]
         nationData["deaths"] = deaths[:-skip]
         nationData["mortality"] = mortality[:-skip]
@@ -1306,7 +1306,7 @@ if __name__ == "__main__":
 
     if newData or clArgs.test or clArgs.dryrun:
         t = tqdm(
-            total=43, bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} {elapsed_s:.0f}s"
+            total=47, bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} {elapsed_s:.0f}s"
         )
 
         bools = [False, True]
