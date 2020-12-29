@@ -646,23 +646,13 @@ def ComparisonNation(plotsDir, avg, t, data, nations):
 
 def lockdownVlines(ax, outerI=0):
     nationLockdownDates = [
-        [[dt(2020, 3, 23), dt(2020, 11, 5), dt(2020, 12, 20)]],
+        [dt(2020, 3, 23), dt(2020, 11, 5), dt(2020, 12, 20)],
     ]
     nationLockdownEasing = [
         [dt(2020, 7, 4), dt(2020, 12, 2)],
     ]
 
     ymin, ymax = ax.get_ylim()
-    for date in nationLockdownDates[outerI]:
-        ax.vlines(
-            x=date,
-            ymin=ymin,
-            ymax=ymax,
-            color="#FF4136AF",
-            ls="dashed",
-            label="Start of lockdown",
-        )
-
     ax.vlines(
         x=nationLockdownEasing[outerI],
         ymin=ymin,
@@ -670,6 +660,15 @@ def lockdownVlines(ax, outerI=0):
         color="#3D9970AF",
         ls="dashed",
         label="End of lockdown",
+    )
+
+    ax.vlines(
+        x=nationLockdownDates[outerI],
+        ymin=ymin,
+        ymax=ymax,
+        color="#FF4136AF",
+        ls="dashed",
+        label="Start of lockdown",
     )
 
     ax.vlines(
@@ -682,7 +681,7 @@ def lockdownVlines(ax, outerI=0):
     )
 
 
-def nationReportedPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
+def nationPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
     data = [
         {"name": "England", "color": "#5694CA", "population": 56286961},
         {"name": "Northern Ireland", "color": "#FFDD00", "population": 1893667},
@@ -691,10 +690,10 @@ def nationReportedPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
     ]
     totalPopulation = sum([x["population"] for x in data])
 
-    fileNameTypes = [".cases.reported", ".deaths.reported", ".vaccinations"]
+    fileNameTypes = [".cases", ".deaths", ".vaccinations"]
     fignameTypes = [
-        "Nation-Reported-Cases",
-        "Nation-Reported-Deaths",
+        "Nation-Cases",
+        "Nation-Deaths",
         "Nation-Vaccinations",
     ]
     titleTypesUpper = ["Cases", "Deaths", "Vaccinations"]
@@ -735,7 +734,7 @@ def nationReportedPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
 
         for i in range(len(fignameSuffix)):
             figname = fignameTypes[type] + fignameSuffix[i]
-            title = " by date reported" + titleSuffix[i]
+            title = " " + titleSuffix[i]
             if avg:
                 figname += "-Avg"
                 title = "Average " + titleTypesLower[type] + title
@@ -786,7 +785,7 @@ def nationReportedPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
             if perCapita[i]:
                 yLabel = "Percent of nation " + yLabelTypes[type]
             else:
-                yLabel = "Reported " + titleTypesLower[type]
+                yLabel = titleTypesUpper[type]
 
             setYLabel(ax, yLabel, avg)
 
@@ -809,7 +808,7 @@ def nationReportedPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
                 updateProgressBar(figname, t)
                 fig, ax = plt.subplots()
                 ax.set_title(
-                    "Cumulative %s by date reported%s"
+                    "Cumulative %s %s"
                     % (titleTypesLower[type], titleSuffix[i]),
                     fontweight="bold",
                 )
@@ -1312,7 +1311,7 @@ if __name__ == "__main__":
         bools = [False, True]
         for bool in bools:
             mainPlot(t, dataDir, plotsDir, avg=bool)
-            nationReportedPlot(t, dataDir, plotsDir, avg=bool)
+            nationPlot(t, dataDir, plotsDir, avg=bool)
 
         heatMapPlot(t, dataDir, plotsDir)
         timelinePlot(t, dataDir, plotsDir)
