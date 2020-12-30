@@ -746,7 +746,7 @@ def nationPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
         titleSuffix = ["", ", per capita"]
         perCapita = [0, 1]
 
-        barWidth = 0.8
+        barWidth = 1
         alignment = "center"
         if type == len(fileNameTypes) - 1:
             barWidth = -5.6
@@ -1327,11 +1327,11 @@ if __name__ == "__main__":
 
         bools = [False, True]
         for bool in bools:
-            mainPlot(t, dataDir, plotsDir, avg=bool)
+            # mainPlot(t, dataDir, plotsDir, avg=bool)
             nationPlot(t, dataDir, plotsDir, avg=bool)
 
-        heatMapPlot(t, dataDir, plotsDir)
-        timelinePlot(t, dataDir, plotsDir)
+        # heatMapPlot(t, dataDir, plotsDir)
+        # timelinePlot(t, dataDir, plotsDir)
 
         t.close()
     else:
