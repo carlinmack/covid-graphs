@@ -1,5 +1,3 @@
-![image](Timeline.png)
-
 ![image](Testing.png)
 
 ![image](Testing-Avg.png)
@@ -52,29 +50,53 @@
 
 ![image](Mortality-Nation-Avg.png)
 
-![image](Nation-Reported-Cases.png)
+![image](Nation-Cases.png)
 
-![image](Nation-Reported-Cases-Avg.png)
+![image](Nation-Cases-Reported.png)
 
-![image](Nation-Reported-Cases-Per-Capita.png)
+![image](Nation-Cases-Avg.png)
 
-![image](Nation-Reported-Cases-Per-Capita-Avg.png)
+![image](Nation-Cases-Reported-Avg.png)
 
-![image](Nation-Reported-Cases-Cumulative.png)
+![image](Nation-Cases-Per-Capita.png)
 
-![image](Nation-Reported-Cases-Cumulative-Per-Capita.png)
+![image](Nation-Cases-Reported-Per-Capita.png)
 
-![image](Nation-Reported-Deaths.png)
+![image](Nation-Cases-Per-Capita-Avg.png)
 
-![image](Nation-Reported-Deaths-Avg.png)
+![image](Nation-Cases-Reported-Per-Capita-Avg.png)
 
-![image](Nation-Reported-Deaths-Per-Capita.png)
+![image](Nation-Cases-Cumulative.png)
 
-![image](Nation-Reported-Deaths-Per-Capita-Avg.png)
+![image](Nation-Cases-Reported-Cumulative.png)
 
-![image](Nation-Reported-Deaths-Cumulative.png)
+![image](Nation-Cases-Cumulative-Per-Capita.png)
 
-![image](Nation-Reported-Deaths-Cumulative-Per-Capita.png)
+![image](Nation-Cases-Reported-Cumulative-Per-Capita.png)
+
+![image](Nation-Deaths.png)
+
+[image](Nation-Deaths-Reported.png)
+
+![image](Nation-Deaths-Avg.png)
+
+[image](Nation-Deaths-Reported-Avg.png)
+
+![image](Nation-Deaths-Per-Capita.png)
+
+[image](Nation-Deaths-Reported-Per-Capita.png)
+
+![image](Nation-Deaths-Per-Capita-Avg.png)
+
+[image](Nation-Deaths-Reported-Per-Capita-Avg.png)
+
+![image](Nation-Deaths-Cumulative.png)
+
+[image](Nation-Deaths-Reported-Cumulative.png)
+
+![image](Nation-Deaths-Cumulative-Per-Capita.png)
+
+![image](Nation-Deaths-Reported-Cumulative-Per-Capita.png)
 
 ![image](HeatMap-Tests-Case.png)
 
@@ -83,3 +105,5 @@
 ![image](HeatMap-Deaths.png)
 
 ![image](HeatMap-Deaths-Nation.png)
+
+![image](Timeline.png)

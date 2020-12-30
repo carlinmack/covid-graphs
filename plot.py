@@ -690,18 +690,30 @@ def nationPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
     ]
     totalPopulation = sum([x["population"] for x in data])
 
-    fileNameTypes = [".cases", ".deaths", ".vaccinations"]
+    fileNameTypes = [
+        ".cases.reported",
+        ".deaths.reported",
+        ".cases",
+        ".deaths",
+        ".vaccinations",
+    ]
     fignameTypes = [
+        "Nation-Cases-Reported",
+        "Nation-Deaths-Reported",
         "Nation-Cases",
         "Nation-Deaths",
         "Nation-Vaccinations",
     ]
     titles = [
+        "COVID-19 cases by date reported",
+        "Deaths within 4 weeks of a positive COVID-19 test by date reported",
         "COVID-19 cases in UK Nations",
         "Deaths within 4 weeks of a positive COVID-19 test",
         "COVID-19 vaccinations by nation",
     ]
     yLabelTypes = [
+        "tested positive",
+        "who have died within 28 days of a positive test",
         "tested positive",
         "who have died within 28 days of a positive test",
         "who have received vaccinations",
@@ -712,22 +724,22 @@ def nationPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
         iterations = len(fileNameTypes) - 1
     for type in range(iterations):
         for i, nation in enumerate(data):
-            reportedFileName = dataDir + nation["name"] + fileNameTypes[type] + ".csv"
-            reportedData = readData(reportedFileName)
-            reportedData = np.array(reportedData)
+            fileName = dataDir + nation["name"] + fileNameTypes[type] + ".csv"
+            nationData = readData(fileName)
+            nationData = np.array(nationData)
 
-            testDates = reportedData[:, 0]
+            testDates = nationData[:, 0]
             testDates = [dt.strptime(x, "%Y-%m-%d") for x in testDates]
-            reportedData = reportedData[:, 1].astype(np.float)
+            nationData = nationData[:, 1].astype(np.float)
             if avg:
-                reportedData = n_day_avg(reportedData, 7)
+                nationData = n_day_avg(nationData, 7)
 
-            if type != 2:
+            if type == 2 or type == 3:
                 skip = 5
-                data[i]["reported"] = reportedData[:-skip]
+                data[i]["reported"] = nationData[:-skip]
                 data[i]["dates"] = testDates[:-skip]
             else:
-                data[i]["reported"] = reportedData
+                data[i]["reported"] = nationData
                 data[i]["dates"] = testDates
 
         fignameSuffix = ["", "-Per-Capita"]
@@ -736,7 +748,7 @@ def nationPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
 
         barWidth = 0.8
         alignment = "center"
-        if type == 2:
+        if type == len(fileNameTypes) - 1:
             barWidth = -5.6
             alignment = "edge"
 
@@ -783,7 +795,7 @@ def nationPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
                 lockdownVlines(ax)
 
             dateAxis(ax)
-            if type == 2:
+            if type == len(fileNameTypes) - 1:
                 dateAxis(ax, left=dt(2020, 12, 1), right=dt(2021, 1, 1))
             handles, labels = ax.get_legend_handles_labels()
             ax.legend(reversed(handles), reversed(labels))
@@ -852,7 +864,7 @@ def nationPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
                         bottom = list(map(add, reportedData, bottom))
 
                 dateAxis(ax)
-                if type == 2:
+                if type == len(fileNameTypes) - 1:
                     dateAxis(ax, left=dt(2020, 12, 1), right=dt(2021, 1, 1))
                 handles, labels = ax.get_legend_handles_labels()
                 ax.legend(reversed(handles), reversed(labels))
@@ -948,7 +960,7 @@ def heatMapPlot(t, dataDir="data/", plotsDir="plots/"):
         savePlot(plotsDir, figname, fig)
 
         # Nations
-        figname = fignames[i] + "HeatMap-Nation"
+        figname = "HeatMap-" + fignames[i] + "-Nation"
         updateProgressBar(figname, t)
 
         nations = ["Scotland", "England", "Northern Ireland", "Wales"]
@@ -1310,16 +1322,16 @@ if __name__ == "__main__":
 
     if newData or clArgs.test or clArgs.dryrun:
         t = tqdm(
-            total=47, bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} {elapsed_s:.0f}s"
+            total=59, bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} {elapsed_s:.0f}s"
         )
 
         bools = [False, True]
         for bool in bools:
-            # mainPlot(t, dataDir, plotsDir, avg=bool)
+            mainPlot(t, dataDir, plotsDir, avg=bool)
             nationPlot(t, dataDir, plotsDir, avg=bool)
 
-        # heatMapPlot(t, dataDir, plotsDir)
-        # timelinePlot(t, dataDir, plotsDir)
+        heatMapPlot(t, dataDir, plotsDir)
+        timelinePlot(t, dataDir, plotsDir)
 
         t.close()
     else:

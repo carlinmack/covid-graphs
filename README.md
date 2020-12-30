@@ -14,13 +14,13 @@ If new data is available `python plot.py` will download the new data and update 
 
 ![image](plots/PercentPositive-Avg.png)
 
-![image](plots/Nation-Reported-Cases-Avg.png)
+![image](plots/Nation-Cases-Avg.png)
 
-![image](plots/Nation-Reported-Cases-Cumulative-Per-Capita.png)
+![image](plots/Nation-Cases-Cumulative-Per-Capita.png)
 
-![image](plots/Nation-Reported-Deaths-Avg.png)
+![image](plots/Nation-Deaths-Avg.png)
 
-![image](plots/Nation-Reported-Deaths-Cumulative-Per-Capita.png)
+![image](plots/Nation-Deaths-Cumulative-Per-Capita.png)
 
 ![image](plots/Mortality-Avg.png)
 
