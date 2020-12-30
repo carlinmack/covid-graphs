@@ -696,8 +696,11 @@ def nationPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
         "Nation-Deaths",
         "Nation-Vaccinations",
     ]
-    titleTypesUpper = ["Cases", "Deaths", "Vaccinations"]
-    titleTypesLower = ["cases", "deaths", "vaccinations"]
+    titles = [
+        "COVID-19 cases in UK Nations",
+        "Deaths within 4 weeks of a positive COVID-19 test",
+        "COVID-19 vaccinations by nation",
+    ]
     yLabelTypes = [
         "tested positive",
         "who have died within 28 days of a positive test",
@@ -739,12 +742,11 @@ def nationPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
 
         for i in range(len(fignameSuffix)):
             figname = fignameTypes[type] + fignameSuffix[i]
-            title = " " + titleSuffix[i]
             if avg:
                 figname += "-Avg"
-                title = "Average " + titleTypesLower[type] + title
+                title = "Average " + titles[type] + titleSuffix[i]
             else:
-                title = titleTypesUpper[type] + title
+                title = titles[type] + titleSuffix[i]
             updateProgressBar(figname, t)
             fig, ax = plt.subplots()
             ax.set_title(title, fontweight="bold")
@@ -756,9 +758,7 @@ def nationPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
                 dates = data[j]["dates"]
 
                 if perCapita[i]:
-                    plotData = [
-                        x / nation["population"] * 100 for x in plotData
-                    ]
+                    plotData = [x / nation["population"] * 100 for x in plotData]
                     ax.plot(
                         dates,
                         plotData,
@@ -791,7 +791,7 @@ def nationPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
             if perCapita[i]:
                 yLabel = "Percent of nation " + yLabelTypes[type]
             else:
-                yLabel = titleTypesUpper[type]
+                yLabel = titles[type]
 
             setYLabel(ax, yLabel, avg)
 
@@ -814,8 +814,7 @@ def nationPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
                 updateProgressBar(figname, t)
                 fig, ax = plt.subplots()
                 ax.set_title(
-                    "Cumulative %s %s"
-                    % (titleTypesLower[type], titleSuffix[i]),
+                    "Cumulative %s%s" % (titles[type], titleSuffix[i]),
                     fontweight="bold",
                 )
 
