@@ -97,6 +97,8 @@ def getCSV(url, dataDir, name):
 
         if "newPeopleReceivingFirstDose" in titles:
             data = insertZeros(data, intervalType="weeks")
+        elif "newPillarOneTestsByPublishDate" in titles or "newAdmissions" in titles:
+            pass
         else:
             data = insertZeros(data)
 
@@ -113,12 +115,12 @@ def getCSV(url, dataDir, name):
         exit()
 
 
-def insertZeros(data, intervalType="days"):
+def insertZeros(data, intervalType="days", start=date(2020, 1, 3)):
     """Converts ["2020-07-02,1508", "2020-07-06,1067"]
        to ["2020-07-02,1508", "2020-07-03,0", "2020-07-04,0", "2020-07-05,0", 
            "2020-07-06,1067"]"""
 
-    start_date = date(2020, 1, 3)
+    start_date = start
     end_date = date.today() + timedelta(days=1)
 
     i = 0
