@@ -31,6 +31,7 @@ def getData(dataDir, force=False):
             '"newDeaths28DaysByDeathDate":"newDeaths28DaysByDeathDate"',
             '"newDeaths28DaysByPublishDate":"newDeaths28DaysByPublishDate"',
             '"newAdmissions":"newAdmissions"',
+            '"hospitalCases":"hospitalCases"',
             '"newPeopleReceivingFirstDose":"newPeopleReceivingFirstDose","newPeopleReceivingSecondDose":"newPeopleReceivingSecondDose"',
         ]
         urlSuffix = "%7D&format=csv"
@@ -41,13 +42,14 @@ def getData(dataDir, force=False):
             "deaths",
             "deaths.reported",
             "hospitalisations",
+            "inHospital",
             "vaccinations",
         ]
 
         nations = ["Scotland", "England", "Northern Ireland", "Wales"]
 
         t = tqdm(
-            total=35, bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} {elapsed_s:.0f}s"
+            total=40, bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} {elapsed_s:.0f}s"
         )
 
         for i, name in enumerate(names):
@@ -115,13 +117,18 @@ def getCSV(url, dataDir, name):
         exit()
 
 
-def insertZeros(data, intervalType="days", start=date(2020, 1, 3)):
+def insertZeros(
+    data,
+    intervalType="days",
+    start=date(2020, 1, 3),
+    end=date.today() - timedelta(days=7),
+):
     """Converts ["2020-07-02,1508", "2020-07-06,1067"]
        to ["2020-07-02,1508", "2020-07-03,0", "2020-07-04,0", "2020-07-05,0", 
            "2020-07-06,1067"]"""
 
     start_date = start
-    end_date = date.today() - timedelta(days=7)
+    end_date = end
 
     i = 0
     for curDate in daterange(start_date, end_date):
