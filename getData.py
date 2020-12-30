@@ -121,7 +121,7 @@ def insertZeros(data, intervalType="days", start=date(2020, 1, 3)):
            "2020-07-06,1067"]"""
 
     start_date = start
-    end_date = date.today() + timedelta(days=1)
+    end_date = date.today() - timedelta(days=7)
 
     i = 0
     for curDate in daterange(start_date, end_date):

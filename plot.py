@@ -1327,11 +1327,11 @@ if __name__ == "__main__":
 
         bools = [False, True]
         for bool in bools:
-            # mainPlot(t, dataDir, plotsDir, avg=bool)
+            mainPlot(t, dataDir, plotsDir, avg=bool)
             nationPlot(t, dataDir, plotsDir, avg=bool)
 
-        # heatMapPlot(t, dataDir, plotsDir)
-        # timelinePlot(t, dataDir, plotsDir)
+        heatMapPlot(t, dataDir, plotsDir)
+        timelinePlot(t, dataDir, plotsDir)
 
         t.close()
     else:
