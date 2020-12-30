@@ -719,9 +719,13 @@ def nationPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
             if avg:
                 reportedData = n_day_avg(reportedData, 7)
 
-            skip = 5
-            data[i]["reported"] = reportedData[:-skip]
-            data[i]["dates"] = testDates[:-skip]
+            if type != 2:
+                skip = 5
+                data[i]["reported"] = reportedData[:-skip]
+                data[i]["dates"] = testDates[:-skip]
+            else:
+                data[i]["reported"] = reportedData
+                data[i]["dates"] = testDates
 
         fignameSuffix = ["", "-Per-Capita"]
         titleSuffix = ["", ", per capita"]

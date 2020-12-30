@@ -95,7 +95,10 @@ def getCSV(url, dataDir, name):
                 )
             data = newData
 
-        data = insertDaysWithZeros(data)
+        if "newPeopleReceivingFirstDose" in titles:
+            data = insertZeros(data, intervalType="weeks")
+        else:
+            data = insertZeros(data)
 
         data = "\n".join(data)
 
@@ -110,7 +113,7 @@ def getCSV(url, dataDir, name):
         exit()
 
 
-def insertDaysWithZeros(data):
+def insertZeros(data, intervalType="days"):
     """Converts ["2020-07-02,1508", "2020-07-06,1067"]
        to ["2020-07-02,1508", "2020-07-03,0", "2020-07-04,0", "2020-07-05,0", 
            "2020-07-06,1067"]"""
@@ -120,6 +123,10 @@ def insertDaysWithZeros(data):
 
     i = 0
     for curDate in daterange(start_date, end_date):
+        if intervalType != "days":
+            if curDate.weekday() != 6:
+                continue
+        # print('sunday', curDate, curDate.weekday())
         curDate = curDate.strftime("%Y-%m-%d")
         if i < len(data):
             dataDate = data[i].split(",")[0]
