@@ -698,7 +698,6 @@ def nationPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
         ".deaths.reported",
         ".cases",
         ".deaths",
-        ".inHospital",
         ".vaccinations",
     ]
     fignameTypes = [
@@ -706,7 +705,6 @@ def nationPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
         "Nation-Deaths-Reported",
         "Nation-Cases",
         "Nation-Deaths",
-        "Nation-inHospital",
         "Nation-Vaccinations",
     ]
     titles = [
@@ -714,7 +712,6 @@ def nationPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
         "Deaths within 4 weeks of a positive COVID-19 test by date reported",
         "COVID-19 cases in UK Nations",
         "Deaths within 4 weeks of a positive COVID-19 test",
-        "Patients in hospital with COVID-19",
         "COVID-19 vaccinations by nation",
     ]
     yLabelTypes = [
@@ -722,7 +719,6 @@ def nationPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
         "who have died within 28 days of a positive test",
         "tested positive",
         "who have died within 28 days of a positive test",
-        "who are in hospital",
         "who have received vaccinations",
     ]
 
@@ -1329,7 +1325,7 @@ if __name__ == "__main__":
 
     if newData or clArgs.test or clArgs.dryrun:
         t = tqdm(
-            total=65, bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} {elapsed_s:.0f}s"
+            total=59, bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} {elapsed_s:.0f}s"
         )
 
         bools = [False, True]
