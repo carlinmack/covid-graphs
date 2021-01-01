@@ -8,10 +8,15 @@
 - [x] Set up a github action to update the plots every day
 - [x] Add average toggle to plots
 - [x] timeline plot
+- [x] GIFs Graphs over time
+    - https://towardsdatascience.com/animations-with-matplotlib-d96375c5442c
+    - https://ndres.me/post/matplotlib-animated-gifs-easily/
+    - https://github.com/maxhumber/gif
+- [x] Refactor to use pandas dfs
 
 - [ ] Refactor into different files
     - [x] data loading/saving
-    - [ ] plotting
+    - [x] plotting
     - [ ] data processing
     - [ ] main
 - [ ] Refactor functions into smaller self contained pieces
@@ -47,7 +52,3 @@
     - https://github.com/owid/covid-19-data/tree/master/public/data
     - https://github.com/GoogleCloudPlatform/covid-19-open-data
     - https://github.com/datasets/covid-19
-- [ ] GIFs Graphs over time
-    - https://towardsdatascience.com/animations-with-matplotlib-d96375c5442c
-    - https://ndres.me/post/matplotlib-animated-gifs-easily/
-    - https://github.com/maxhumber/gif

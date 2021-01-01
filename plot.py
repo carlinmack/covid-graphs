@@ -691,6 +691,7 @@ def nationPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
         {"name": "Scotland", "color": "#003078", "population": 5463300},
         {"name": "Wales", "color": "#D4351C", "population": 3152879},
     ]
+
     totalPopulation = sum([x["population"] for x in data])
 
     fileNameTypes = [
@@ -698,6 +699,7 @@ def nationPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
         ".deaths.reported",
         ".cases",
         ".deaths",
+        ".inVentilationBeds",
         ".vaccinations",
     ]
     fignameTypes = [
@@ -705,6 +707,7 @@ def nationPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
         "Nation-Deaths-Reported",
         "Nation-Cases",
         "Nation-Deaths",
+        "Nation-Ventilation",
         "Nation-Vaccinations",
     ]
     titles = [
@@ -712,6 +715,7 @@ def nationPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
         "Deaths within 4 weeks of a positive COVID-19 test by date reported",
         "COVID-19 cases in UK Nations",
         "Deaths within 4 weeks of a positive COVID-19 test",
+        "COVID-19 patients in mechanical ventilation beds by nation",
         "COVID-19 vaccinations by nation",
     ]
     yLabelTypes = [
@@ -719,31 +723,38 @@ def nationPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
         "who have died within 28 days of a positive test",
         "tested positive",
         "who have died within 28 days of a positive test",
+        "who are in mechanical ventilation beds",
         "who have received vaccinations",
     ]
 
     iterations = len(fileNameTypes)
     if avg:
         iterations = len(fileNameTypes) - 1
+
     for type in range(iterations):
+        series = []
         for i, nation in enumerate(data):
             fileName = dataDir + nation["name"] + fileNameTypes[type] + ".csv"
-            nationData = readData(fileName)
-            nationData = np.array(nationData)
-
-            testDates = nationData[:, 0]
-            testDates = [dt.strptime(x, "%Y-%m-%d") for x in testDates]
-            nationData = nationData[:, 1].astype(np.float)
-            if avg:
-                nationData = n_day_avg(nationData, 7)
 
             if type == 2 or type == 3:
-                skip = 5
-                data[i]["reported"] = nationData[:-skip]
-                data[i]["dates"] = testDates[:-skip]
+                nationData = readData(fileName, type="dict", skip=5)
             else:
-                data[i]["reported"] = nationData
-                data[i]["dates"] = testDates
+                nationData = readData(fileName, type="dict")
+
+            nationSeries = pd.Series(nationData, name=nation["name"])
+
+            if avg:
+                nationAvgSeries = pd.Series(
+                    n_day_avg(nationSeries),
+                    index=nationSeries.index,
+                    name=nation["name"],
+                )
+                series.append(nationAvgSeries)
+            else:
+                series.append(nationSeries)
+
+        df = pd.concat(series, axis=1)
+        dates = df.index
 
         fignameSuffix = ["", "-Per-Capita"]
         titleSuffix = ["", ", per capita"]
@@ -766,11 +777,10 @@ def nationPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
             fig, ax = plt.subplots()
             ax.set_title(title, fontweight="bold")
 
-            bottom = [0] * len(data[0]["reported"])
+            bottom = [0] * len(df.index)
 
-            for j, nation in enumerate(data):
-                plotData = data[j]["reported"]
-                dates = data[j]["dates"]
+            for nation in data:
+                plotData = df[nation["name"]]
 
                 if perCapita[i]:
                     plotData = [x / nation["population"] * 100 for x in plotData]
@@ -791,8 +801,7 @@ def nationPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
                         width=barWidth,
                         align=alignment,
                     )
-
-                    bottom = list(map(add, plotData, bottom))
+                    bottom = list(map(add, plotData.fillna(0), bottom))
 
             if not perCapita[i]:
                 lockdownVlines(ax)
@@ -833,10 +842,10 @@ def nationPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
                     fontweight="bold",
                 )
 
-                bottom = [0] * len(data[0]["reported"])
+                bottom = [0] * len(df.index)
 
-                for j, nation in enumerate(data):
-                    reportedData = data[j]["reported"]
+                for nation in data:
+                    reportedData = df[nation["name"]].fillna(0)
                     if perCapita[i]:
                         reportedData = [
                             x / nation["population"] * 100 for x in reportedData
@@ -847,7 +856,7 @@ def nationPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
 
                     if perCapita[i]:
                         ax.plot(
-                            data[j]["dates"],
+                            dates,
                             reportedData,
                             color=nation["color"],
                             label=nation["name"],
@@ -855,7 +864,7 @@ def nationPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
                         )
                     else:
                         ax.bar(
-                            data[j]["dates"],
+                            dates,
                             reportedData,
                             color=nation["color"],
                             label=nation["name"],

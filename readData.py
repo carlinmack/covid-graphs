@@ -1,13 +1,25 @@
 import csv
 import argparse
+from datetime import datetime as dt
 
 
-def readData(fileName):
-    with open(fileName, "r") as file:
-        reader = csv.reader(file, delimiter=",")
-        fileData = [[line[0], int(line[1])] for line in reader]
-
-    return fileData
+def readData(fileName, type="arr", skip=0):
+    if type == "arr":
+        with open(fileName, "r") as file:
+            reader = csv.reader(file, delimiter=",")
+            fileData = [[line[0], int(line[1])] for line in reader]
+        if skip:
+            return fileData[:-skip]
+        return fileData
+    elif type == "dict":
+        with open(fileName, "r") as file:
+            reader = csv.reader(file, delimiter=",")
+            fileData = [[dt.fromisoformat(line[0]), int(line[1])] for line in reader]
+        if skip:
+            return dict(fileData[:-skip])
+        return dict(fileData)
+    
+    return None
 
 
 def defineArgParser():
