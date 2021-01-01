@@ -694,49 +694,55 @@ def nationPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
 
     totalPopulation = sum([x["population"] for x in data])
 
-    fileNameTypes = [
-        ".cases.reported",
-        ".deaths.reported",
-        ".cases",
-        ".deaths",
-        ".inVentilationBeds",
-        ".vaccinations",
-    ]
-    fignameTypes = [
-        "Nation-Cases-Reported",
-        "Nation-Deaths-Reported",
-        "Nation-Cases",
-        "Nation-Deaths",
-        "Nation-Ventilation",
-        "Nation-Vaccinations",
-    ]
-    titles = [
-        "COVID-19 cases by date reported",
-        "Deaths within 4 weeks of a positive COVID-19 test by date reported",
-        "COVID-19 cases in UK Nations",
-        "Deaths within 4 weeks of a positive COVID-19 test",
-        "COVID-19 patients in mechanical ventilation beds by nation",
-        "COVID-19 vaccinations by nation",
-    ]
-    yLabelTypes = [
-        "tested positive",
-        "who have died within 28 days of a positive test",
-        "tested positive",
-        "who have died within 28 days of a positive test",
-        "who are in mechanical ventilation beds",
-        "who have received vaccinations",
+    types = [
+        {
+            "fileName": ".cases.reported",
+            "figname": "Nation-Cases-Reported",
+            "title": "COVID-19 cases by date reported",
+            "yLabel": "tested positive",
+        },
+        {
+            "fileName": ".deaths.reported",
+            "figname": "Nation-Deaths-Reported",
+            "title": "Deaths within 4 weeks of a positive COVID-19 test by date reported",
+            "yLabel": "who have died within 28 days of a positive test",
+        },
+        {
+            "fileName": ".cases",
+            "figname": "Nation-Cases",
+            "title": "COVID-19 cases in UK Nations",
+            "yLabel": "tested positive",
+        },
+        {
+            "fileName": ".deaths",
+            "figname": "Nation-Deaths",
+            "title": "Deaths within 4 weeks of a positive COVID-19 test",
+            "yLabel": "who have died within 28 days of a positive test",
+        },
+        {
+            "fileName": ".inVentilationBeds",
+            "figname": "Nation-Ventilation",
+            "title": "COVID-19 patients in mechanical ventilation beds by nation",
+            "yLabel": "who are in mechanical ventilation beds",
+        },
+        {
+            "fileName": ".vaccinations",
+            "figname": "Nation-Vaccinations",
+            "title": "COVID-19 vaccinations by nation",
+            "yLabel": "who have received vaccinations",
+        },
     ]
 
-    iterations = len(fileNameTypes)
+    iterations = len(types)
     if avg:
-        iterations = len(fileNameTypes) - 1
+        iterations = len(types) - 1
 
-    for type in range(iterations):
+    for figType in range(iterations):
         series = []
         for i, nation in enumerate(data):
-            fileName = dataDir + nation["name"] + fileNameTypes[type] + ".csv"
+            fileName = dataDir + nation["name"] + types[figType]["fileName"] + ".csv"
 
-            if type == 2 or type == 3:
+            if figType == 2 or figType == 3:
                 nationData = readData(fileName, type="dict", skip=5)
             else:
                 nationData = readData(fileName, type="dict")
@@ -762,17 +768,17 @@ def nationPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
 
         barWidth = 1
         alignment = "center"
-        if type == len(fileNameTypes) - 1:
+        if figType == len(types) - 1:
             barWidth = -5.6
             alignment = "edge"
 
         for i in range(len(fignameSuffix)):
-            figname = fignameTypes[type] + fignameSuffix[i]
+            figname = types[figType]["figname"] + fignameSuffix[i]
             if avg:
                 figname += "-Avg"
-                title = "Average " + titles[type] + titleSuffix[i]
+                title = "Average " + types[figType]["title"] + titleSuffix[i]
             else:
-                title = titles[type] + titleSuffix[i]
+                title = types[figType]["title"] + titleSuffix[i]
             updateProgressBar(figname, t)
             fig, ax = plt.subplots()
             ax.set_title(title, fontweight="bold")
@@ -807,15 +813,15 @@ def nationPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
                 lockdownVlines(ax)
 
             dateAxis(ax)
-            if type == len(fileNameTypes) - 1:
+            if figType == len(types) - 1:
                 dateAxis(ax, left=dt(2020, 12, 1), right=dt(2021, 1, 1))
             handles, labels = ax.get_legend_handles_labels()
             ax.legend(reversed(handles), reversed(labels))
 
             if perCapita[i]:
-                yLabel = "Percent of nation " + yLabelTypes[type]
+                yLabel = "Percent of nation " + types[figType]["yLabel"]
             else:
-                yLabel = titles[type]
+                yLabel = types[figType]["title"]
 
             setYLabel(ax, yLabel, avg)
 
@@ -834,11 +840,11 @@ def nationPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
 
         if not avg:
             for i in range(len(yLabels)):
-                figname = fignameTypes[type] + "-Cumulative" + fignameSuffix[i]
+                figname = types[figType]["figname"] + "-Cumulative" + fignameSuffix[i]
                 updateProgressBar(figname, t)
                 fig, ax = plt.subplots()
                 ax.set_title(
-                    "Cumulative %s%s" % (titles[type], titleSuffix[i]),
+                    "Cumulative %s%s" % (types[figType]["title"], titleSuffix[i]),
                     fontweight="bold",
                 )
 
@@ -876,13 +882,13 @@ def nationPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
                         bottom = list(map(add, reportedData, bottom))
 
                 dateAxis(ax)
-                if type == len(fileNameTypes) - 1:
+                if type == len(types) - 1:
                     dateAxis(ax, left=dt(2020, 12, 1), right=dt(2021, 1, 1))
                 handles, labels = ax.get_legend_handles_labels()
                 ax.legend(reversed(handles), reversed(labels))
 
                 percentAxis(ax)
-                setYLabel(ax, "Percent of " + yLabels[i] + " " + yLabelTypes[type], avg)
+                setYLabel(ax, "Percent of " + yLabels[i] + " " + types[figType]["yLabel"], avg)
 
                 removeSpines(ax)
                 showGrid(ax)
@@ -1334,7 +1340,7 @@ if __name__ == "__main__":
 
     if newData or clArgs.test or clArgs.dryrun:
         t = tqdm(
-            total=59, bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} {elapsed_s:.0f}s"
+            total=65, bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} {elapsed_s:.0f}s"
         )
 
         bools = [False, True]
