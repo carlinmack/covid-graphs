@@ -18,54 +18,11 @@ from tqdm import tqdm
 
 from getData import getData
 from readData import readData
+from processData import processData
 
 
 def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
     """avg indicates seven day average of new cases should be used"""
-
-    def getData(name, avg):
-        fileNames = [
-            ".cases.reported.csv",
-            ".testing.reported.csv",
-            ".deaths.csv",
-            ".hospitalisations.csv",
-        ]
-        names = ["cases", "tests", "deaths", "hospitalisations"]
-
-        nationSeries = []
-        for i, fileName in enumerate(fileNames):
-            fileName = dataDir + name + fileName
-            if i == 0 or i == 1:
-                data = readData(fileName, type="dict")
-            else:
-                data = readData(fileName, type="dict", skip=5)
-            series = pd.Series(data, name=names[i])
-            if avg:
-                avgSeries = pd.Series(
-                    n_day_avg(series), index=series.index, name=names[i],
-                )
-                nationSeries.append(avgSeries)
-            else:
-                nationSeries.append(series)
-
-        nationData = pd.concat(nationSeries, axis=1)
-
-        nationData["posTests"] = nationData.apply(
-            lambda row: min(row["cases"] / row["tests"] * 100, 100), axis=1
-        )
-
-        nationData["mortCases"] = nationData["cases"].rolling(28).sum()
-
-        nationData["mortality"] = nationData.apply(
-            lambda row: min(row["deaths"] / row["mortCases"] * 100, 100), axis=1
-        )
-        nationData["hospitalisationRate"] = nationData.apply(
-            lambda row: min(row["hospitalisations"] / row["mortCases"] * 100, 100),
-            axis=1,
-        )
-
-        return nationData
-
     nationList = [["UK"], ["Scotland", "England", "Northern Ireland", "Wales"]]
     colorsList = [["#2271d3"], ["#003078", "#5694CA", "#FFDD00", "#D4351C"]]
     fignames = ["", "-Nation"]
@@ -73,7 +30,14 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
     for outerI, nations in enumerate(nationList):
         data = {}
         for nation in nations:
-            data[nation] = getData(nation, avg)
+            if avg:
+                data[nation] = pd.read_csv(
+                    dataDir + nation + ".avg.csv", index_col=0, parse_dates=True
+                )
+            else:
+                data[nation] = pd.read_csv(
+                    dataDir + nation + ".csv", index_col=0, parse_dates=True
+                )
 
         testingPlot(fignames, outerI, avg, t, data, nations, plotsDir)
 
@@ -93,25 +57,17 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
             ComparisonNation(plotsDir, avg, t, data, nations)
 
 
-def readFile(name, avg, dictionary=False, raw=False):
+def readFile(name, avg):
     data = readData(name)
     # convert to np array and separate dates from case counts
     casesData = np.array(data)
     casesRawDates = casesData[:, 0]
     casesDates = [dt.strptime(x, "%Y-%m-%d") for x in casesRawDates]
     cases = casesData[:, 1].astype(np.float)
-    mortCases = n_day_sum(cases, 28)
+
     # compute seven day average of cases if enabled
     if avg:
         cases = n_day_avg(cases, 7)
-
-    if dictionary:
-        casesDict = dict(zip(casesRawDates, cases))
-        mortCasesDict = dict(zip(casesRawDates, mortCases))
-        return cases, casesDates, casesDict, mortCasesDict
-
-    if raw:
-        return cases, casesDates, casesRawDates
 
     return cases, casesDates
 
@@ -225,7 +181,7 @@ def percentPositivePlot(t, plotsDir, avg, colorsList, fignames, outerI, nations,
     updateProgressBar(figname, t)
     ax.set_title(title, fontweight="bold")
     if outerI == 0:
-        ax.bar(data["UK"].index, data["UK"]["cases"], color="orangered")
+        ax.bar(data["UK"].index, data["UK"]["reportedCases"], color="orangered")
         setYLabel(ax, "Daily COVID-19 Cases in the UK", avg, color="orangered")
         ax2 = ax.twinx()
         ax2.plot_date(data["UK"].index, data["UK"]["posTests"], "white", linewidth=3)
@@ -287,9 +243,12 @@ def doubleBarChartPlot(t, plotsDir, avg, fignames, outerI, nations, data):
     if outerI == 0:
         fig, ax = plt.subplots()
         ax.set_title(title, fontweight="bold")
-        fivePercent = [x * 0.05 for x in data["UK"]["tests"]]
+        fivePercent = [x * 0.05 for x in data["UK"]["reportedTests"]]
         ax.bar(
-            data["UK"].index, data["UK"]["tests"], color="#2271d3", label="Total tests",
+            data["UK"].index,
+            data["UK"]["reportedTests"],
+            color="#2271d3",
+            label="Total tests",
         )
         ax.bar(
             data["UK"].index,
@@ -299,7 +258,7 @@ def doubleBarChartPlot(t, plotsDir, avg, fignames, outerI, nations, data):
         )
         ax.bar(
             data["UK"].index,
-            data["UK"]["cases"],
+            data["UK"]["reportedCases"],
             color="orangered",
             label="Positive tests",
         )
@@ -322,7 +281,7 @@ def doubleBarChartPlot(t, plotsDir, avg, fignames, outerI, nations, data):
         fig.suptitle(title, fontweight="bold")
         for j, nation in enumerate(data):
             ax = axs[j]
-            tests = data[nation]["tests"]
+            tests = data[nation]["reportedTests"]
             fivePercent = [x * 0.05 for x in tests]
             ax.bar(
                 data[nation].index, tests, color="#2271d3", label="Total tests",
@@ -335,7 +294,7 @@ def doubleBarChartPlot(t, plotsDir, avg, fignames, outerI, nations, data):
             )
             ax.bar(
                 data[nation].index,
-                data[nation]["cases"],
+                data[nation]["reportedCases"],
                 color="orangered",
                 label="Positive tests",
             )
@@ -374,7 +333,7 @@ def mortalityHospitalisationPlot(
         if outerI == 0:
             title = "%s of COVID-19 in the UK" % innerTitles[innerI]
 
-            ax.bar(data["UK"].index, data["UK"]["cases"], color="orangered")
+            ax.bar(data["UK"].index, data["UK"]["reportedCases"], color="orangered")
             setYLabel(ax, "Daily COVID-19 Cases in the UK", avg, color="orangered")
 
             ax2 = ax.twinx()
@@ -454,7 +413,11 @@ def ComparisonUK(plotsDir, avg, t, data):
     ax3.spines["right"].set_visible(True)
 
     (p1,) = ax.plot(
-        data["UK"].index, data["UK"]["cases"], "orangered", ls="-", label="Cases",
+        data["UK"].index,
+        data["UK"]["reportedCases"],
+        "orangered",
+        ls="-",
+        label="Cases",
     )
     (p2,) = ax2.plot(
         data["UK"].index,
@@ -464,7 +427,7 @@ def ComparisonUK(plotsDir, avg, t, data):
         label="Hospitalisations",
     )
     (p3,) = ax3.plot(
-        data["UK"].index, data["UK"]["deaths"], "#333", ls="-", label="Deaths",
+        data["UK"].index, data["UK"]["specimenDeaths"], "#333", ls="-", label="Deaths",
     )
 
     setYLabel(ax, "Cases", avg)
@@ -535,9 +498,9 @@ def ComparisonNation(plotsDir, avg, t, data, nations):
             # Second, show the right spine.
             ax3.spines["right"].set_visible(True)
 
-            cases = data[nation]["cases"]
+            cases = data[nation]["reportedCases"]
             hospitalisations = data[nation]["hospitalisations"]
-            deaths = data[nation]["deaths"]
+            deaths = data[nation]["specimenDeaths"]
 
             if perCapita[i]:
                 cases = [x / populations[j] * 100 for x in cases]
@@ -843,7 +806,7 @@ def nationPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
                         bottom = list(map(add, reportedData, bottom))
 
                 dateAxis(ax)
-                if type == len(types) - 1:
+                if figType == len(types) - 1:
                     dateAxis(ax, left=dt(2020, 12, 1), right=dt(2021, 1, 1))
                 handles, labels = ax.get_legend_handles_labels()
                 ax.legend(reversed(handles), reversed(labels))
@@ -1302,6 +1265,8 @@ if __name__ == "__main__":
         newData = getData(dataDir, clArgs.force)
 
     if newData or clArgs.test or clArgs.dryrun:
+        processData()
+
         t = tqdm(
             total=65, bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} {elapsed_s:.0f}s"
         )

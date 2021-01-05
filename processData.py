@@ -52,13 +52,19 @@ def processData(dataDir="data/"):
         )
 
         nationData.to_csv(dataDir + nation + ".csv")
-
-        print(nationData.dtypes)
-        print(nationData.index.dtype)
-        exit()
         
-        for column in nationData:
+        for column in names:
             nationData[column] = pd.Series(n_day_avg(nationData[column]), index=nationData.index)
+
+        nationData["posTests"] = nationData.apply(
+            lambda row: min(row["reportedCases"] / row["reportedTests"] * 100, 100), axis=1
+        )
+
+        nationData["mortCases"] = nationData["reportedCases"].rolling(28).sum()
+
+        nationData["mortality"] = nationData.apply(
+            lambda row: min(row["specimenDeaths"] / row["mortCases"] * 100, 100), axis=1
+        )
 
         nationData.to_csv(dataDir + nation + ".avg.csv")
     
