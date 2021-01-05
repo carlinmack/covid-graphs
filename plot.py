@@ -23,69 +23,46 @@ from readData import readData
 def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
     """avg indicates seven day average of new cases should be used"""
 
-    def percentOf28daysCases(deaths, deathDates, mortCasesDict):
-        mortality = [0] * len(deaths)
-        for j, date in enumerate(deathDates):
-            casesDate = date.strftime("%Y-%m-%d")
-
-            if (
-                deaths[j]
-                and casesDate in mortCasesDict
-                and mortCasesDict[casesDate] > 0
-            ):
-                mortality[j] = min(deaths[j] / mortCasesDict[casesDate] * 100, 100)
-            else:
-                mortality[j] = 0
-        return mortality
-
     def getData(name, avg):
-        casesFileName = dataDir + name + ".cases.reported.csv"
-        testsFileName = dataDir + name + ".testing.reported.csv"
-        deathsFileName = dataDir + name + ".deaths.csv"
-        hospitalisationsFileName = dataDir + name + ".hospitalisations.csv"
+        fileNames = [
+            ".cases.reported.csv",
+            ".testing.reported.csv",
+            ".deaths.csv",
+            ".hospitalisations.csv",
+        ]
+        names = ["cases", "tests", "deaths", "hospitalisations"]
 
-        nationData = {}
-
-        cases, casesDates, casesDict, mortCasesDict = readFile(
-            casesFileName, avg, dictionary=True
-        )
-
-        testsOriginal, testDates, testRawDates = readFile(testsFileName, avg, raw=True)
-
-        tests = np.copy(testsOriginal)
-
-        for j, date in enumerate(testRawDates):
-            if date in casesDict:
-                if tests[j] == 0 and casesDict[date] > 0:
-                    tests[j] = 100
-                else:
-                    tests[j] = min(casesDict[date] / tests[j] * 100, 100)
+        nationSeries = []
+        for i, fileName in enumerate(fileNames):
+            fileName = dataDir + name + fileName
+            if i == 0 or i == 1:
+                data = readData(fileName, type="dict")
             else:
-                tests[j] = 0
+                data = readData(fileName, type="dict", skip=5)
+            series = pd.Series(data, name=names[i])
+            if avg:
+                avgSeries = pd.Series(
+                    n_day_avg(series), index=series.index, name=names[i],
+                )
+                nationSeries.append(avgSeries)
+            else:
+                nationSeries.append(series)
 
-        deaths, deathDates = readFile(deathsFileName, avg)
+        nationData = pd.concat(nationSeries, axis=1)
 
-        mortality = percentOf28daysCases(deaths, deathDates, mortCasesDict)
-
-        hospitalisations, hospitalisationDates = readFile(hospitalisationsFileName, avg)
-
-        hospitalisationRate = percentOf28daysCases(
-            hospitalisations, hospitalisationDates, mortCasesDict
+        nationData["posTests"] = nationData.apply(
+            lambda row: min(row["cases"] / row["tests"] * 100, 100), axis=1
         )
 
-        # remove the most recent three dates as they won't be accurate yet
-        skip = 4
-        nationData["casesDates"] = casesDates
-        nationData["cases"] = cases
-        nationData["testDates"] = testDates
-        nationData["posTests"] = tests
-        nationData["tests"] = testsOriginal
-        nationData["deathDates"] = deathDates[:-skip]
-        nationData["deaths"] = deaths[:-skip]
-        nationData["mortality"] = mortality[:-skip]
-        nationData["hospitalisationDates"] = hospitalisationDates[:-skip]
-        nationData["hospitalisations"] = hospitalisations[:-skip]
-        nationData["hospitalisationRate"] = hospitalisationRate[:-skip]
+        nationData["mortCases"] = nationData["cases"].rolling(28).sum()
+
+        nationData["mortality"] = nationData.apply(
+            lambda row: min(row["deaths"] / row["mortCases"] * 100, 100), axis=1
+        )
+        nationData["hospitalisationRate"] = nationData.apply(
+            lambda row: min(row["hospitalisations"] / row["mortCases"] * 100, 100),
+            axis=1,
+        )
 
         return nationData
 
@@ -152,22 +129,23 @@ def testingPlot(fignames, outerI, avg, t, data, nations, plotsDir):
 
         ax.set_title(title, fontweight="bold")
 
-        ax.plot(data["UK"]["testDates"], data["UK"]["posTests"], color="#333")
+        ax.plot(data["UK"].index, data["UK"]["posTests"], color="#333")
 
         maxArray = [x >= 5 for x in data["UK"]["posTests"]]
         minArray = [x <= 5 for x in data["UK"]["posTests"]]
+
         ax.fill_between(
-            data["UK"]["testDates"],
+            data["UK"].index,
             5,
-            data["UK"]["posTests"],
+            data["UK"]["posTests"].fillna(0),
             where=maxArray,
             facecolor="#FF41367F",
             interpolate=True,
         )
         ax.fill_between(
-            data["UK"]["testDates"],
+            data["UK"].index,
             5,
-            data["UK"]["posTests"],
+            data["UK"]["posTests"].fillna(0),
             where=minArray,
             facecolor="#3D99707F",
             interpolate=True,
@@ -194,22 +172,22 @@ def testingPlot(fignames, outerI, avg, t, data, nations, plotsDir):
         for j, nation in enumerate(data):
             ax = axs[j]
 
-            ax.plot(data[nation]["testDates"], data[nation]["posTests"], color="#333")
+            ax.plot(data[nation].index, data[nation]["posTests"], color="#333")
 
             maxArray = [x >= 5 for x in data[nation]["posTests"]]
             minArray = [x <= 5 for x in data[nation]["posTests"]]
             ax.fill_between(
-                data[nation]["testDates"],
+                data[nation].index,
                 5,
-                data[nation]["posTests"],
+                data[nation]["posTests"].fillna(0),
                 where=maxArray,
                 facecolor="#FF41367F",
                 interpolate=True,
             )
             ax.fill_between(
-                data[nation]["testDates"],
+                data[nation].index,
                 5,
-                data[nation]["posTests"],
+                data[nation]["posTests"].fillna(0),
                 where=minArray,
                 facecolor="#3D99707F",
                 interpolate=True,
@@ -247,14 +225,12 @@ def percentPositivePlot(t, plotsDir, avg, colorsList, fignames, outerI, nations,
     updateProgressBar(figname, t)
     ax.set_title(title, fontweight="bold")
     if outerI == 0:
-        ax.bar(data["UK"]["casesDates"], data["UK"]["cases"], color="orangered")
+        ax.bar(data["UK"].index, data["UK"]["cases"], color="orangered")
         setYLabel(ax, "Daily COVID-19 Cases in the UK", avg, color="orangered")
         ax2 = ax.twinx()
+        ax2.plot_date(data["UK"].index, data["UK"]["posTests"], "white", linewidth=3)
         ax2.plot_date(
-            data["UK"]["testDates"], data["UK"]["posTests"], "white", linewidth=3
-        )
-        ax2.plot_date(
-            data["UK"]["testDates"], data["UK"]["posTests"], "#333", linewidth=2,
+            data["UK"].index, data["UK"]["posTests"], "#333", linewidth=2,
         )
         setYLabel(ax2, "Percent positive tests per day", avg, ax2=True)
         ax.spines["top"].set_visible(False)
@@ -273,7 +249,7 @@ def percentPositivePlot(t, plotsDir, avg, colorsList, fignames, outerI, nations,
         for i, nation in enumerate(data):
             nationTests = data[nation]["posTests"]
             ax.plot_date(
-                data[nation]["testDates"],
+                data[nation].index,
                 nationTests,
                 colorsList[outerI][i],
                 linewidth=2,
@@ -313,19 +289,16 @@ def doubleBarChartPlot(t, plotsDir, avg, fignames, outerI, nations, data):
         ax.set_title(title, fontweight="bold")
         fivePercent = [x * 0.05 for x in data["UK"]["tests"]]
         ax.bar(
-            data["UK"]["testDates"],
-            data["UK"]["tests"],
-            color="#2271d3",
-            label="Total tests",
+            data["UK"].index, data["UK"]["tests"], color="#2271d3", label="Total tests",
         )
         ax.bar(
-            data["UK"]["testDates"],
+            data["UK"].index,
             fivePercent,
             color="black",
             label="WHO 5% reopening threshold",
         )
         ax.bar(
-            data["UK"]["casesDates"],
+            data["UK"].index,
             data["UK"]["cases"],
             color="orangered",
             label="Positive tests",
@@ -352,16 +325,16 @@ def doubleBarChartPlot(t, plotsDir, avg, fignames, outerI, nations, data):
             tests = data[nation]["tests"]
             fivePercent = [x * 0.05 for x in tests]
             ax.bar(
-                data[nation]["testDates"], tests, color="#2271d3", label="Total tests",
+                data[nation].index, tests, color="#2271d3", label="Total tests",
             )
             ax.bar(
-                data[nation]["testDates"],
+                data[nation].index,
                 fivePercent,
                 color="black",
                 label="WHO 5% reopening threshold",
             )
             ax.bar(
-                data[nation]["casesDates"],
+                data[nation].index,
                 data[nation]["cases"],
                 color="orangered",
                 label="Positive tests",
@@ -401,19 +374,16 @@ def mortalityHospitalisationPlot(
         if outerI == 0:
             title = "%s of COVID-19 in the UK" % innerTitles[innerI]
 
-            ax.bar(data["UK"]["casesDates"], data["UK"]["cases"], color="orangered")
+            ax.bar(data["UK"].index, data["UK"]["cases"], color="orangered")
             setYLabel(ax, "Daily COVID-19 Cases in the UK", avg, color="orangered")
 
             ax2 = ax.twinx()
 
             ax2.plot_date(
-                data["UK"][innerYs[innerI]],
-                data["UK"][innerXs[innerI]],
-                "white",
-                linewidth=3,
+                data["UK"].index, data["UK"][innerXs[innerI]], "white", linewidth=3,
             )
             ax2.plot_date(
-                data["UK"][innerYs[innerI]],
+                data["UK"].index,
                 data["UK"][innerXs[innerI]],
                 innerColors[innerI],
                 linewidth=2,
@@ -433,7 +403,7 @@ def mortalityHospitalisationPlot(
             for i, nation in enumerate(data):
                 nationDeaths = data[nation][innerXs[innerI]]
                 ax.plot_date(
-                    data[nation][innerYs[innerI]],
+                    data[nation].index,
                     nationDeaths,
                     colorsList[outerI][i],
                     linewidth=2,
@@ -484,21 +454,17 @@ def ComparisonUK(plotsDir, avg, t, data):
     ax3.spines["right"].set_visible(True)
 
     (p1,) = ax.plot(
-        data["UK"]["casesDates"],
-        data["UK"]["cases"],
-        "orangered",
-        ls="-",
-        label="Cases",
+        data["UK"].index, data["UK"]["cases"], "orangered", ls="-", label="Cases",
     )
     (p2,) = ax2.plot(
-        data["UK"]["hospitalisationDates"],
+        data["UK"].index,
         data["UK"]["hospitalisations"],
         "#851bc2",
         ls="-",
         label="Hospitalisations",
     )
     (p3,) = ax3.plot(
-        data["UK"]["deathDates"], data["UK"]["deaths"], "#333", ls="-", label="Deaths",
+        data["UK"].index, data["UK"]["deaths"], "#333", ls="-", label="Deaths",
     )
 
     setYLabel(ax, "Cases", avg)
@@ -578,14 +544,9 @@ def ComparisonNation(plotsDir, avg, t, data, nations):
                 hospitalisations = [x / populations[j] * 100 for x in hospitalisations]
                 deaths = [x / populations[j] * 100 for x in deaths]
 
-            (p1,) = ax.plot(data[nation]["casesDates"], cases, "orangered", ls="-")
-            (p2,) = ax2.plot(
-                data[nation]["hospitalisationDates"],
-                hospitalisations,
-                "#851bc2",
-                ls="-",
-            )
-            ax3.plot(data[nation]["deathDates"], deaths, "#333", ls="-")
+            (p1,) = ax.plot(data[nation].index, cases, "orangered", ls="-")
+            (p2,) = ax2.plot(data[nation].index, hospitalisations, "#851bc2", ls="-",)
+            ax3.plot(data[nation].index, deaths, "#333", ls="-")
 
             setYLabel(ax, "Cases", avg)
             setYLabel(ax2, "Hospitalisations", avg)
@@ -888,7 +849,9 @@ def nationPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
                 ax.legend(reversed(handles), reversed(labels))
 
                 percentAxis(ax)
-                setYLabel(ax, "Percent of " + yLabels[i] + " " + types[figType]["yLabel"], avg)
+                setYLabel(
+                    ax, "Percent of " + yLabels[i] + " " + types[figType]["yLabel"], avg
+                )
 
                 removeSpines(ax)
                 showGrid(ax)
