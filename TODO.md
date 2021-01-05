@@ -16,8 +16,8 @@
 
 - [ ] Refactor into different files
     - [x] data loading/saving
-    - [x] plotting
-    - [ ] data processing
+    - [ ] plotting
+    - [x] data processing
     - [ ] main
 - [ ] Refactor functions into smaller self contained pieces
 - [ ] Create excess mortality + covid deaths graphs
