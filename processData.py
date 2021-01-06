@@ -29,50 +29,44 @@ def processData(dataDir="data/"):
         nationSeries = []
         for i, fileName in enumerate(fileNames):
             fileName = dataDir + nation + fileName
-            if i == 0 or i == 1 or i == 3:
-                data = readData(fileName, type="dict")
-            else:
+            if i in [2, 4]:
                 data = readData(fileName, type="dict", skip=5)
+            else:
+                data = readData(fileName, type="dict")
             series = pd.Series(data, name=names[i])
             nationSeries.append(series)
 
         nationData = pd.concat(nationSeries, axis=1)
 
-        nationData["posTests"] = nationData.apply(
-            lambda row: min(row["reportedCases"] / row["reportedTests"] * 100, 100), axis=1
-        )
-
-        nationData["mortCases"] = nationData["reportedCases"].rolling(28).sum()
-
-        nationData["mortality"] = nationData.apply(
-            lambda row: min(row["specimenDeaths"] / row["mortCases"] * 100, 100), axis=1
-        )
-        nationData["hospitalisationRate"] = nationData.apply(
-            lambda row: min(row["hospitalisations"] / row["mortCases"] * 100, 100), axis=1,
-        )
+        calculateFeatures(nationData)
 
         nationData.to_csv(dataDir + nation + ".csv")
-        
+
         for column in names:
-            nationData[column] = pd.Series(n_day_avg(nationData[column]), index=nationData.index)
+            nationData[column].loc[
+                nationData[column].first_valid_index() : nationData[column].last_valid_index()
+            ].fillna(0, inplace=True)
+            nationData[column] = nationData[column].rolling(7).mean()
 
-        nationData["posTests"] = nationData.apply(
-            lambda row: min(row["reportedCases"] / row["reportedTests"] * 100, 100), axis=1
-        )
-
-        nationData["mortCases"] = nationData["reportedCases"].rolling(28).sum()
-
-        nationData["mortality"] = nationData.apply(
-            lambda row: min(row["specimenDeaths"] / row["mortCases"] * 100, 100), axis=1
-        )
+        calculateFeatures(nationData)
 
         nationData.to_csv(dataDir + nation + ".avg.csv")
-    
 
-def n_day_avg(xs, n=7):
-    """compute n day average of time series, using maximum possible number of days at
-    start of series"""
-    return [np.mean(xs[max(0, i + 1 - n) : i + 1]) for i in range(xs.shape[0])]
+
+def calculateFeatures(nationData):
+    nationData["posTests"] = nationData.apply(
+        lambda row: min(row["reportedCases"] / row["reportedTests"] * 100, 100), axis=1,
+    )
+
+    nationData["mortCases"] = nationData["reportedCases"].rolling(28).sum()
+
+    nationData["mortality"] = nationData.apply(
+        lambda row: min(row["specimenDeaths"] / row["mortCases"] * 100, 100), axis=1
+    )
+    nationData["hospitalisationRate"] = nationData.apply(
+        lambda row: min(row["hospitalisations"] / row["mortCases"] * 100, 100), axis=1,
+    )
+
 
 def defineArgParser():
     """Creates parser for command line arguments"""
@@ -94,5 +88,5 @@ def defineArgParser():
 if __name__ == "__main__":
     argParser = defineArgParser()
     clArgs = argParser.parse_args()
-    
+
     processData(clArgs.dataDir)
