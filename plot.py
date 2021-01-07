@@ -738,7 +738,7 @@ def nationPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
 
             dateAxis(ax)
             if figType == len(types) - 1:
-                dateAxis(ax, left=dt(2020, 12, 1), right=dt(2021, 1, 1))
+                dateAxis(ax, left=dt(2020, 12, 1), right=dt(2021, 2, 1))
             handles, labels = ax.get_legend_handles_labels()
             ax.legend(reversed(handles), reversed(labels))
 
@@ -807,7 +807,7 @@ def nationPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
 
                 dateAxis(ax)
                 if figType == len(types) - 1:
-                    dateAxis(ax, left=dt(2020, 12, 1), right=dt(2021, 1, 1))
+                    dateAxis(ax, left=dt(2020, 12, 1), right=dt(2021, 2, 1))
                 handles, labels = ax.get_legend_handles_labels()
                 ax.legend(reversed(handles), reversed(labels))
 

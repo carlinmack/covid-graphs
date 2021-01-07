@@ -41,6 +41,7 @@
     - https://twitter.com/DrEricDing/status/1330212172757078017
     - percent positive
     - whether under lockdown
+- [ ] Cumulative etc by demographics
 
 ----------------------------------------------------------------------------------------
 
