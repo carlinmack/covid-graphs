@@ -1093,6 +1093,133 @@ def timelinePlot(t, dataDir="data/", plotsDir="plots/"):
     savePlot(plotsDir, figname, fig, size=(10, 16))
 
 
+def demographicsPlot(t, dataDir="data/", plotsDir="plots/"):
+    df = pd.read_csv(
+        "data/England.cases.demographics.csv",
+        index_col=[0, 1],
+        usecols=[0, 5, 6],
+        parse_dates=True,
+    )
+    df = df.unstack(level=0)
+    # from ONS Mid 2019 Estimates of the population for the UK, England and Wales, Scotland and Northern Ireland
+    populations = {
+        "00-04": 3299637,
+        "05-09": 3538206,
+        "10-14": 3354246,
+        "15-19": 3090232,
+        "20-24": 3487863,
+        "25-29": 3801409,
+        "30-34": 3807954,
+        "35-39": 3733642,
+        "40-44": 3414297,
+        "45-49": 3715812,
+        "50-54": 3907461,
+        "55-59": 3670651,
+        "60-64": 3111835,
+        "65-69": 2796740,
+        "70-74": 2779326,
+        "75-79": 1940686,
+        "80-84": 1439913,
+        "85-89": 879778,
+        "90+": 517273,
+        "00-09": 3299637 + 3538206,
+        "10-19": 3354246 + 3090232,
+        "20-29": 3487863 + 3801409,
+        "30-39": 3807954 + 3733642,
+        "40-49": 3414297 + 3715812,
+        "50-59": 3907461 + 3670651,
+        "60-69": 3111835 + 2796740,
+        "70-79": 2779326 + 1940686,
+        "80-89": 1439913 + 879778,
+        "00_59": 3299637
+        + 3538206
+        + 3354246
+        + 3090232
+        + 3487863
+        + 3801409
+        + 3807954
+        + 3733642
+        + 3414297
+        + 3715812
+        + 3907461
+        + 3670651,
+        "60+": 3111835 + 2796740 + 2779326 + 1940686 + 1439913 + 879778 + 517273,
+    }
+
+    df1 = pd.DataFrame()
+    df1["00-09"] = df.loc["00_04"] + df.loc["05_09"]
+    df1["10-19"] = df.loc["10_14"] + df.loc["15_19"]
+    df1["20-29"] = df.loc["20_24"] + df.loc["25_29"]
+    df1["30-39"] = df.loc["30_34"] + df.loc["35_39"]
+    df1["40-49"] = df.loc["40_44"] + df.loc["45_49"]
+    df1["50-59"] = df.loc["50_54"] + df.loc["55_59"]
+    df1["60-69"] = df.loc["60_64"] + df.loc["65_69"]
+    df1["70-79"] = df.loc["70_74"] + df.loc["75_79"]
+    df1["80-89"] = df.loc["80_84"] + df.loc["85_89"]
+    df1["90+"] = df.loc["90+"]
+    df1 = df1.transpose()
+    df2 = df.loc[["00_59", "60+"]]
+
+    dfs = [df1, df2]
+    names = [
+        "",
+        "-General",
+    ]
+    bools = [False, True]
+
+    for i, df in enumerate(dfs):
+        for perCapBool in bools:
+            for cumBool in bools:
+                figname = "Demographics" + names[i]
+                title = "COVID-19 cases per demographic in England"
+                if cumBool:
+                    figname += "-Cumulative"
+                    title = "Cumulative " + title
+                if perCapBool:
+                    figname += "-Per-Capita"
+                    title += ", per capita"
+
+                updateProgressBar(figname, t)
+                fig, ax = plt.subplots()
+
+                for label, col in df.iterrows():
+                    if perCapBool:
+                        col = col.apply(
+                            lambda row: row / populations[label] * 100
+                        )
+
+                    if cumBool:
+                        ax.plot(col.index.get_level_values(1), col.cumsum(), label=label)
+                    else:
+                        ax.plot(
+                            col.index.get_level_values(1), col.rolling(7).mean(), label=label
+                        )
+
+                ax.set_title(title, fontweight="bold")
+
+                lockdownVlines(ax)
+
+                # dateAxis(ax)
+                handles, labels = ax.get_legend_handles_labels()
+                ax.legend(reversed(handles), reversed(labels))
+
+                ylabel = "COVID-19 cases"
+                if perCapBool:
+                    ylabel = "Percent of demographic tested positive"
+
+                setYLabel(ax, ylabel, 1)
+
+                if perCapBool:
+                    percentAxis(ax)
+                else:
+                    threeFigureAxis(ax)
+
+                removeSpines(ax)
+                showGrid(ax)
+
+                savePlot(plotsDir, figname, fig)
+
+
 # Helpers ------------------------------------------------------------------------------
 def updateProgressBar(figname, t):
     t.update()
@@ -1268,7 +1395,7 @@ if __name__ == "__main__":
         processData()
 
         t = tqdm(
-            total=65, bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} {elapsed_s:.0f}s"
+            total=73, bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} {elapsed_s:.0f}s"
         )
 
         bools = [False, True]
@@ -1278,6 +1405,7 @@ if __name__ == "__main__":
 
         heatMapPlot(t, dataDir, plotsDir)
         timelinePlot(t, dataDir, plotsDir)
+        demographicsPlot(t, dataDir, plotsDir)
 
         t.close()
     else:
