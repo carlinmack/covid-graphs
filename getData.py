@@ -104,8 +104,7 @@ def getCSV(url, dataDir, name):
         with open(fileName, "w") as file:
             file.writelines(data)
     elif r.status_code == 204:
-        print("Error: No data returned")
-        exit()
+        print("Error: No data returned for " + name)
     else:
         print("Error " + r.status_code)
         print(r.headers)
