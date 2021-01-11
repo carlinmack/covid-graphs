@@ -13,6 +13,7 @@
     - https://ndres.me/post/matplotlib-animated-gifs-easily/
     - https://github.com/maxhumber/gif
 - [x] Refactor to use pandas dfs
+- [x] Cumulative etc by demographics
 
 - [ ] Refactor into different files
     - [x] data loading/saving
@@ -41,7 +42,6 @@
     - https://twitter.com/DrEricDing/status/1330212172757078017
     - percent positive
     - whether under lockdown
-- [ ] Cumulative etc by demographics
 
 ----------------------------------------------------------------------------------------
 

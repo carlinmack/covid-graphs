@@ -6,15 +6,11 @@ If new data is available `python plot.py` will download the new data and update 
 
 ![image](plots/Testing-Avg.png)
 
-![image](plots/Timeline.png)
-
 ![image](plots/Comparison-Avg.png)
 
 ![image](plots/DoubleBarChart-Avg.png)
 
-![image](plots/PercentPositive-Avg.png)
-
-![image](plots/Nation-Cases-Avg.png)
+![image](plots/Nation-Cases-Reported-Avg.png)
 
 ![image](plots/Nation-Cases-Cumulative-Per-Capita.png)
 
@@ -25,3 +21,9 @@ If new data is available `python plot.py` will download the new data and update 
 ![image](plots/Mortality-Avg.png)
 
 ![image](plots/Mortality-Nation-Avg.png)
+
+![image](plots/Nation-inHospital-Avg.png)
+
+![image](plots/Nation-inHospital-Per-Capita-Avg.png)
+
+![image](plots/Timeline.png)

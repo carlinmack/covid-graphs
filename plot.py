@@ -74,16 +74,16 @@ def readFile(name, avg):
 
 def testingPlot(fignames, outerI, avg, t, data, nations, plotsDir):
     figname = "Testing" + fignames[outerI]
-    title = "Positive test rate of COVID-19 in the UK"
+    title = "positive test rate of COVID-19 in the UK"
     if avg:
         figname += "-Avg"
-        title = "Average positive test rate of COVID-19 in the UK"
+        title = "average " + title
     updateProgressBar(figname, t)
 
     if outerI == 0:
         fig, ax = plt.subplots()
 
-        ax.set_title(title, fontweight="bold")
+        setTitle(ax, title)
 
         ax.plot(data["UK"].index, data["UK"]["posTests"], color="#333")
 
@@ -123,7 +123,8 @@ def testingPlot(fignames, outerI, avg, t, data, nations, plotsDir):
     else:
         fig, axs = plt.subplots(2, 2, sharex=True)
         axs = axs.flatten()
-        fig.suptitle(title, fontweight="bold")
+
+        setSupTitle(fig, title)
 
         for j, nation in enumerate(data):
             ax = axs[j]
@@ -168,18 +169,13 @@ def percentPositivePlot(t, plotsDir, avg, colorsList, fignames, outerI, nations,
     figname = "PercentPositive" + fignames[outerI]
     if outerI == 0:
         title = "UK COVID-19 cases compared to percentage of tests which are positive"
-        if avg:
-            title = "Average " + title
-    elif outerI == 1 and avg:
-        title = (
-            "Average percentage of tests which are positive for COVID-19 in UK nations"
-        )
     else:
-        title = "Percentage of tests which are positive for COVID-19 in UK nations"
+        title = "percentage of tests which are positive for COVID-19 in UK nations"
     if avg:
         figname += "-Avg"
+        title = "Average " + title
     updateProgressBar(figname, t)
-    ax.set_title(title, fontweight="bold")
+    setTitle(ax, title)
     if outerI == 0:
         ax.bar(data["UK"].index, data["UK"]["reportedCases"], color="orangered")
         setYLabel(ax, "Daily COVID-19 Cases in the UK", avg, color="orangered")
@@ -628,7 +624,7 @@ def nationPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
         {
             "fileName": ".deaths.reported",
             "figname": "Nation-Deaths-Reported",
-            "title": "Deaths within 4 weeks of a positive COVID-19 test by date reported",
+            "title": "deaths within 4 weeks of a positive COVID-19 test by date reported",
             "yLabel": "who have died within 28 days of a positive test",
         },
         {
@@ -640,8 +636,14 @@ def nationPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
         {
             "fileName": ".deaths",
             "figname": "Nation-Deaths",
-            "title": "Deaths within 4 weeks of a positive COVID-19 test",
+            "title": "deaths within 4 weeks of a positive COVID-19 test",
             "yLabel": "who have died within 28 days of a positive test",
+        },
+        {
+            "fileName": ".inHospital",
+            "figname": "Nation-inHospital",
+            "title": "patients in hospital with COVID-19",
+            "yLabel": "Patients in hospital with COVID-19",
         },
         {
             "fileName": ".inVentilationBeds",
@@ -705,7 +707,7 @@ def nationPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
                 title = types[figType]["title"] + titleSuffix[i]
             updateProgressBar(figname, t)
             fig, ax = plt.subplots()
-            ax.set_title(title, fontweight="bold")
+            setTitle(ax, title)
 
             bottom = [0] * len(df.index)
 
@@ -759,67 +761,74 @@ def nationPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
 
             savePlot(plotsDir, figname, fig)
 
-        # Cumulative
-        yLabels = ["UK population", "nation"]
+        if figType not in [4, 5]:
+            # Cumulative
+            yLabels = ["UK population", "nation"]
 
-        if not avg:
-            for i in range(len(yLabels)):
-                figname = types[figType]["figname"] + "-Cumulative" + fignameSuffix[i]
-                updateProgressBar(figname, t)
-                fig, ax = plt.subplots()
-                ax.set_title(
-                    "Cumulative %s%s" % (types[figType]["title"], titleSuffix[i]),
-                    fontweight="bold",
-                )
+            if not avg:
+                for i in range(len(yLabels)):
+                    figname = (
+                        types[figType]["figname"] + "-Cumulative" + fignameSuffix[i]
+                    )
+                    updateProgressBar(figname, t)
+                    fig, ax = plt.subplots()
+                    ax.set_title(
+                        "Cumulative %s%s" % (types[figType]["title"], titleSuffix[i]),
+                        fontweight="bold",
+                    )
 
-                bottom = [0] * len(df.index)
+                    bottom = [0] * len(df.index)
 
-                for nation in data:
-                    reportedData = df[nation["name"]].fillna(0)
-                    if perCapita[i]:
-                        reportedData = [
-                            x / nation["population"] * 100 for x in reportedData
-                        ]
-                    else:
-                        reportedData = [x / totalPopulation * 100 for x in reportedData]
-                    reportedData = np.cumsum(reportedData)
+                    for nation in data:
+                        reportedData = df[nation["name"]].fillna(0)
+                        if perCapita[i]:
+                            reportedData = [
+                                x / nation["population"] * 100 for x in reportedData
+                            ]
+                        else:
+                            reportedData = [
+                                x / totalPopulation * 100 for x in reportedData
+                            ]
+                        reportedData = np.cumsum(reportedData)
 
-                    if perCapita[i]:
-                        ax.plot(
-                            dates,
-                            reportedData,
-                            color=nation["color"],
-                            label=nation["name"],
-                            linewidth=2,
-                        )
-                    else:
-                        ax.bar(
-                            dates,
-                            reportedData,
-                            color=nation["color"],
-                            label=nation["name"],
-                            bottom=bottom,
-                            width=barWidth,
-                            align=alignment,
-                        )
+                        if perCapita[i]:
+                            ax.plot(
+                                dates,
+                                reportedData,
+                                color=nation["color"],
+                                label=nation["name"],
+                                linewidth=2,
+                            )
+                        else:
+                            ax.bar(
+                                dates,
+                                reportedData,
+                                color=nation["color"],
+                                label=nation["name"],
+                                bottom=bottom,
+                                width=barWidth,
+                                align=alignment,
+                            )
 
-                        bottom = list(map(add, reportedData, bottom))
+                            bottom = list(map(add, reportedData, bottom))
 
-                dateAxis(ax)
-                if figType == len(types) - 1:
-                    dateAxis(ax, left=dt(2020, 12, 1), right=dt(2021, 2, 1))
-                handles, labels = ax.get_legend_handles_labels()
-                ax.legend(reversed(handles), reversed(labels))
+                    dateAxis(ax)
+                    if figType == len(types) - 1:
+                        dateAxis(ax, left=dt(2020, 12, 1), right=dt(2021, 2, 1))
+                    handles, labels = ax.get_legend_handles_labels()
+                    ax.legend(reversed(handles), reversed(labels))
 
-                percentAxis(ax)
-                setYLabel(
-                    ax, "Percent of " + yLabels[i] + " " + types[figType]["yLabel"], avg
-                )
+                    percentAxis(ax)
+                    setYLabel(
+                        ax,
+                        "Percent of " + yLabels[i] + " " + types[figType]["yLabel"],
+                        avg,
+                    )
 
-                removeSpines(ax)
-                showGrid(ax)
+                    removeSpines(ax)
+                    showGrid(ax)
 
-                savePlot(plotsDir, figname, fig)
+                    savePlot(plotsDir, figname, fig)
 
 
 def heatMapPlot(t, dataDir="data/", plotsDir="plots/"):
@@ -1252,6 +1261,18 @@ def removeSpines(ax, all=False):
         ax.spines["left"].set_visible(False)
 
 
+def capitalise(title):
+    return title[0].upper() + title[1:]
+
+
+def setTitle(ax, title: str):
+    ax.set_title(capitalise(title), fontweight="bold")
+
+
+def setSupTitle(fig, title: str):
+    fig.suptitle(capitalise(title), fontweight="bold")
+
+
 # Y axis
 def showGrid(ax, color="#e5e5e5"):
     ax.grid(color=color, which="major", axis="y", linestyle="solid")
@@ -1403,7 +1424,7 @@ if __name__ == "__main__":
         processData()
 
         t = tqdm(
-            total=81, bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} {elapsed_s:.0f}s"
+            total=83, bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} {elapsed_s:.0f}s"
         )
 
         bools = [False, True]
