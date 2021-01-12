@@ -32,9 +32,10 @@ def getData(dataDir, force=False):
             '"newDeaths28DaysByPublishDate":"newDeaths28DaysByPublishDate"',
             '"newAdmissions":"newAdmissions"',
             '"hospitalCases":"hospitalCases"',
-            '"newPeopleReceivingFirstDose":"newPeopleReceivingFirstDose","newPeopleReceivingSecondDose":"newPeopleReceivingSecondDose"',
+            '"weeklyPeopleVaccinatedFirstDoseByVaccinationDate":"weeklyPeopleVaccinatedFirstDoseByVaccinationDate","22weeklyPeopleVaccinatedSecondDoseByVaccinationDate":"22weeklyPeopleVaccinatedSecondDoseByVaccinationDate"',
             '"covidOccupiedMVBeds":"covidOccupiedMVBeds"'
         ]
+
         urlSuffix = "%7D&format=csv"
         names = [
             "testing.reported",
