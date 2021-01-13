@@ -417,10 +417,10 @@ def ComparisonUK(plotsDir, avg, t, data):
     )
     (p2,) = ax2.plot(
         data["UK"].index,
-        data["UK"]["hospitalisations"],
+        data["UK"]["inHospital"],
         "#851bc2",
         ls="-",
-        label="Hospitalisations",
+        label="Patients in hospital",
     )
     (p3,) = ax3.plot(
         data["UK"].index, data["UK"]["specimenDeaths"], "#333", ls="-", label="Deaths",
@@ -495,20 +495,20 @@ def ComparisonNation(plotsDir, avg, t, data, nations):
             ax3.spines["right"].set_visible(True)
 
             cases = data[nation]["reportedCases"]
-            hospitalisations = data[nation]["hospitalisations"]
+            inHospital = data[nation]["inHospital"]
             deaths = data[nation]["specimenDeaths"]
 
             if perCapita[i]:
                 cases = [x / populations[j] * 100 for x in cases]
-                hospitalisations = [x / populations[j] * 100 for x in hospitalisations]
+                inHospital = [x / populations[j] * 100 for x in inHospital]
                 deaths = [x / populations[j] * 100 for x in deaths]
 
             (p1,) = ax.plot(data[nation].index, cases, "orangered", ls="-")
-            (p2,) = ax2.plot(data[nation].index, hospitalisations, "#851bc2", ls="-",)
+            (p2,) = ax2.plot(data[nation].index, inHospital, "#851bc2", ls="-",)
             ax3.plot(data[nation].index, deaths, "#333", ls="-")
 
             setYLabel(ax, "Cases", avg)
-            setYLabel(ax2, "Hospitalisations", avg)
+            setYLabel(ax2, "Patients in hospital", avg)
             setYLabel(ax3, "Deaths", avg)
 
             ax.yaxis.label.set_color(p1.get_color())

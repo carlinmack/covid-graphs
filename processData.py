@@ -12,6 +12,7 @@ def processData(dataDir="data/"):
         ".deaths.reported.csv",
         ".deaths.csv",
         ".hospitalisations.csv",
+        ".inHospital.csv"
     ]
 
     names = [
@@ -21,6 +22,7 @@ def processData(dataDir="data/"):
         "reportedDeaths",
         "specimenDeaths",
         "hospitalisations",
+        "inHospital",
     ]
 
     nationList = ["UK", "Scotland", "England", "Northern Ireland", "Wales"]
