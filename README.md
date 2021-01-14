@@ -6,7 +6,7 @@ If new data is available `python plot.py` will download the new data and update 
 
 ![image](plots/Testing-Avg.png)
 
-![image](plots/Comparison-Avg.png)
+![image](plots/Comparison-Avg.svg)
 
 ![image](plots/DoubleBarChart-Avg.png)
 

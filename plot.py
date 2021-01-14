@@ -1248,7 +1248,7 @@ def savePlot(plotsDir, figname, fig, size=()):
         plt.gcf().set_size_inches(*size)
     else:
         plt.gcf().set_size_inches(12, 8)
-    plt.savefig(plotsDir + figname, bbox_inches="tight", pad_inches=0.25, dpi=200)
+    plt.savefig(plotsDir + figname + ".svg", bbox_inches="tight", pad_inches=0.25, dpi=200, format="svg")
     # mpld3.save_json(fig, "d3/" + figname + ".json")
     plt.close(fig)
 
