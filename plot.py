@@ -19,6 +19,7 @@ from tqdm import tqdm
 from getData import getData
 from readData import readData
 from processData import processData
+from tidySVG import tidySVG
 
 
 def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
@@ -692,7 +693,7 @@ def nationPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
         titleSuffix = ["", ", per capita"]
         perCapita = [0, 1]
 
-        barWidth = 1
+        barWidth = 0.8
         alignment = "center"
         if figType == len(types) - 1:
             barWidth = -5.6
@@ -1248,7 +1249,11 @@ def savePlot(plotsDir, figname, fig, size=()):
         plt.gcf().set_size_inches(*size)
     else:
         plt.gcf().set_size_inches(12, 8)
-    plt.savefig(plotsDir + figname + ".svg", bbox_inches="tight", pad_inches=0.25, dpi=200, format="svg")
+    fileName = plotsDir + figname + ".svg"
+    
+    plt.savefig(fileName, bbox_inches="tight", pad_inches=0.25, dpi=200, format="svg")
+    tidySVG(fileName)
+
     # mpld3.save_json(fig, "d3/" + figname + ".json")
     plt.close(fig)
 
