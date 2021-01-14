@@ -1250,12 +1250,13 @@ def savePlot(plotsDir, figname, fig, size=()):
     else:
         plt.gcf().set_size_inches(12, 8)
 
-    fileName = plotsDir + "png/" + figname
-    plt.savefig(fileName, bbox_inches="tight", pad_inches=0.25, dpi=200)
-
-    fileName = plotsDir + "svg/" + figname + ".svg"
-    plt.savefig(fileName, bbox_inches="tight", pad_inches=0.25, dpi=200, format="svg")
-    tidySVG(fileName)
+    if False:
+        fileName = plotsDir + "png/" + figname
+        plt.savefig(fileName, bbox_inches="tight", pad_inches=0.25, dpi=200)
+    else:
+        fileName = plotsDir + "svg/" + figname + ".svg"
+        plt.savefig(fileName, bbox_inches="tight", pad_inches=0.25, dpi=200, format="svg")
+        tidySVG(fileName)
 
     # mpld3.save_json(fig, "d3/" + figname + ".json")
     plt.close(fig)
