@@ -1,7 +1,7 @@
 import argparse
 import math
 import os
-from datetime import datetime as dt
+from datetime import datetime as dt, timedelta
 from operator import add
 
 import matplotlib
@@ -40,17 +40,19 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
                     dataDir + nation + ".csv", index_col=0, parse_dates=True
                 )
 
-        testingPlot(fignames, outerI, avg, t, data, nations, plotsDir)
+        testingPlot(fignames[outerI], outerI, avg, t, data, nations, plotsDir)
 
         percentPositivePlot(
-            t, plotsDir, avg, colorsList, fignames, outerI, nations, data
+            t, plotsDir, avg, colorsList[outerI], fignames[outerI], outerI, nations, data
         )
 
-        doubleBarChartPlot(t, plotsDir, avg, fignames, outerI, nations, data)
+        doubleBarChartPlot(t, plotsDir, avg, fignames[outerI], outerI, nations, data)
 
         mortalityHospitalisationPlot(
-            fignames, outerI, avg, t, data, colorsList, nations, plotsDir
+            fignames[outerI], outerI, avg, t, data, colorsList[outerI], nations, plotsDir
         )
+
+        weeklyIncreasePlot(data, nations, fignames[outerI], outerI, t, plotsDir)
 
         if outerI == 0:
             ComparisonUK(plotsDir, avg, t, data)
@@ -73,8 +75,8 @@ def readFile(name, avg):
     return cases, casesDates
 
 
-def testingPlot(fignames, outerI, avg, t, data, nations, plotsDir):
-    figname = "Testing" + fignames[outerI]
+def testingPlot(suffix, outerI, avg, t, data, nations, plotsDir):
+    figname = "Testing" + suffix
     title = "positive test rate of COVID-19 in the UK"
     if avg:
         figname += "-Avg"
@@ -165,9 +167,9 @@ def testingPlot(fignames, outerI, avg, t, data, nations, plotsDir):
     savePlot(plotsDir, figname, fig)
 
 
-def percentPositivePlot(t, plotsDir, avg, colorsList, fignames, outerI, nations, data):
+def percentPositivePlot(t, plotsDir, avg, colors, suffix, outerI, nations, data):
     fig, ax = plt.subplots()
-    figname = "PercentPositive" + fignames[outerI]
+    figname = "PercentPositive" + suffix
     if outerI == 0:
         title = "UK COVID-19 cases compared to percentage of tests which are positive"
     else:
@@ -204,7 +206,7 @@ def percentPositivePlot(t, plotsDir, avg, colorsList, fignames, outerI, nations,
             ax.plot_date(
                 data[nation].index,
                 nationTests,
-                colorsList[outerI][i],
+                colors[i],
                 linewidth=2,
                 label=nations[i],
             )
@@ -230,8 +232,8 @@ def percentPositivePlot(t, plotsDir, avg, colorsList, fignames, outerI, nations,
     savePlot(plotsDir, figname, fig)
 
 
-def doubleBarChartPlot(t, plotsDir, avg, fignames, outerI, nations, data):
-    figname = "DoubleBarChart" + fignames[outerI]
+def doubleBarChartPlot(t, plotsDir, avg, suffix, outerI, nations, data):
+    figname = "DoubleBarChart" + suffix
     title = "Number of tests vs positive tests"
     if avg:
         figname += "-Avg"
@@ -307,7 +309,7 @@ def doubleBarChartPlot(t, plotsDir, avg, fignames, outerI, nations, data):
 
 
 def mortalityHospitalisationPlot(
-    fignames, outerI, avg, t, data, colorsList, nations, plotsDir
+    suffix, outerI, avg, t, data, colors, nations, plotsDir
 ):
     innerFignames = ["Mortality", "Hospitalisation"]
     innerTitles = ["Mortality", "Hospitalisation rate"]
@@ -321,7 +323,7 @@ def mortalityHospitalisationPlot(
     innerColors = ["black", "#851bc2"]
 
     for innerI in range(len(innerFignames)):
-        figname = innerFignames[innerI] + fignames[outerI]
+        figname = innerFignames[innerI] + suffix
         if avg:
             figname += "-Avg"
         updateProgressBar(figname, t)
@@ -361,7 +363,7 @@ def mortalityHospitalisationPlot(
                 ax.plot_date(
                     data[nation].index,
                     nationDeaths,
-                    colorsList[outerI][i],
+                    colors[i],
                     linewidth=2,
                     label=nations[i],
                 )
@@ -388,6 +390,90 @@ def mortalityHospitalisationPlot(
         removeSpines(ax)
 
         savePlot(plotsDir, figname, fig)
+
+
+def weeklyIncreasePlot(data, nations, suffix, outerI, t, plotsDir="plots/"):
+
+    if outerI == 0:
+        df = data[nations[0]]
+        grouped = df.resample("W").sum()
+        types = [
+            {
+                "title": "reported cases",
+                "figname": "-Cases-Reported",
+                "col": "reportedCases",
+            },
+            {
+                "title": "cases",
+                "figname": "-Cases-Specimen",
+                "col": "specimenCases",
+            },
+            {
+                "title": "reported deaths",
+                "figname": "-Deaths-Reported",
+                "col": "reportedDeaths",
+            },
+            {
+                "title": "deaths",
+                "figname": "-Deaths-Specimen",
+                "col": "specimenDeaths",
+            },
+            {
+                "title": "patients in hospital",
+                "figname": "-inHospital",
+                "col": "inHospital",
+            },
+        ]
+
+        for figtype in types:
+            figname = "Increase" + suffix + figtype["figname"]
+            title = "weekly increase of COVID-19 %s in the UK" % figtype["title"]
+            updateProgressBar(figname, t)
+            lastSunday = df[figtype["col"]].last_valid_index() - timedelta(
+                df[figtype["col"]].last_valid_index().isoweekday()
+            )
+            plotData = grouped[grouped[figtype["col"]].gt(1000).idxmax() : lastSunday][
+                figtype["col"]
+            ].pct_change()
+
+            fig, ax = plt.subplots()
+
+            setTitle(ax, title)
+
+            ax.plot(plotData.index, plotData, lw=2, color="#333")
+
+            maxArray = [x >= 0 for x in plotData]
+            minArray = [x <= 0 for x in plotData]
+
+            ax.fill_between(
+                plotData.index,
+                0,
+                plotData.fillna(0),
+                where=maxArray,
+                facecolor="#FF41367F",
+                interpolate=True,
+            )
+            ax.fill_between(
+                plotData.index,
+                0,
+                plotData.fillna(0),
+                where=minArray,
+                facecolor="#3D99707F",
+                interpolate=True,
+            )
+
+            dateAxis(ax)
+
+            setYLabel(ax, "Weekly increase in COVID-19 %s" % figtype["title"], 0)
+            percentAxis(ax, setBottom=0)
+
+            removeSpines(ax)
+            showGrid(ax)
+
+            savePlot(plotsDir, figname, fig)
+    else:
+        pass
+    
 
 
 def ComparisonUK(plotsDir, avg, t, data):
@@ -1255,7 +1341,9 @@ def savePlot(plotsDir, figname, fig, size=()):
         plt.savefig(fileName, bbox_inches="tight", pad_inches=0.25, dpi=200)
     else:
         fileName = plotsDir + "svg/" + figname + ".svg"
-        plt.savefig(fileName, bbox_inches="tight", pad_inches=0.25, dpi=200, format="svg")
+        plt.savefig(
+            fileName, bbox_inches="tight", pad_inches=0.25, dpi=200, format="svg"
+        )
         tidySVG(fileName)
 
     # mpld3.save_json(fig, "d3/" + figname + ".json")
@@ -1289,8 +1377,9 @@ def showGrid(ax, color="#e5e5e5"):
     ax.set_axisbelow(True)
 
 
-def percentAxis(ax):
-    ax.set_ylim(bottom=0)
+def percentAxis(ax, setBottom=1):
+    if setBottom:
+        ax.set_ylim(bottom=0)
     ticks = ax.get_yticks()
     dataRange = max(ticks) - min(ticks)
     roundingDecimals = math.ceil(2.0 - math.log10(2.0 * dataRange))
@@ -1433,7 +1522,7 @@ if __name__ == "__main__":
         processData()
 
         t = tqdm(
-            total=83, bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} {elapsed_s:.0f}s"
+            total=87, bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} {elapsed_s:.0f}s"
         )
 
         bools = [False, True]
