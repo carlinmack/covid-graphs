@@ -40,19 +40,21 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
                     dataDir + nation + ".csv", index_col=0, parse_dates=True
                 )
 
-        testingPlot(fignames[outerI], outerI, avg, t, data, nations, plotsDir)
+        # testingPlot(fignames[outerI], outerI, avg, t, data, nations, plotsDir)
 
-        percentPositivePlot(
-            t, plotsDir, avg, colorsList[outerI], fignames[outerI], outerI, nations, data
-        )
+        # percentPositivePlot(
+        #     t, plotsDir, avg, colorsList[outerI], fignames[outerI], outerI, nations, data
+        # )
 
-        doubleBarChartPlot(t, plotsDir, avg, fignames[outerI], outerI, nations, data)
+        # doubleBarChartPlot(t, plotsDir, avg, fignames[outerI], outerI, nations, data)
 
-        mortalityHospitalisationPlot(
-            fignames[outerI], outerI, avg, t, data, colorsList[outerI], nations, plotsDir
-        )
+        # mortalityHospitalisationPlot(
+        #     fignames[outerI], outerI, avg, t, data, colorsList[outerI], nations, plotsDir
+        # )
 
         weeklyIncreasePlot(data, nations, fignames[outerI], outerI, t, plotsDir)
+
+        exit()
 
         if outerI == 0:
             ComparisonUK(plotsDir, avg, t, data)
@@ -463,6 +465,8 @@ def weeklyIncreasePlot(data, nations, suffix, outerI, t, plotsDir="plots/"):
             )
 
             dateAxis(ax)
+
+            lockdownVlines(ax)
 
             setYLabel(ax, "Weekly increase in COVID-19 %s" % figtype["title"], 0)
             percentAxis(ax, setBottom=0)
@@ -1336,7 +1340,7 @@ def savePlot(plotsDir, figname, fig, size=()):
     else:
         plt.gcf().set_size_inches(12, 8)
 
-    if False:
+    if True:
         fileName = plotsDir + "png/" + figname
         plt.savefig(fileName, bbox_inches="tight", pad_inches=0.25, dpi=200)
     else:
