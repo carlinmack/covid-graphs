@@ -40,21 +40,19 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
                     dataDir + nation + ".csv", index_col=0, parse_dates=True
                 )
 
-        # testingPlot(fignames[outerI], outerI, avg, t, data, nations, plotsDir)
+        testingPlot(fignames[outerI], outerI, avg, t, data, nations, plotsDir)
 
-        # percentPositivePlot(
-        #     t, plotsDir, avg, colorsList[outerI], fignames[outerI], outerI, nations, data
-        # )
+        percentPositivePlot(
+            t, plotsDir, avg, colorsList[outerI], fignames[outerI], outerI, nations, data
+        )
 
-        # doubleBarChartPlot(t, plotsDir, avg, fignames[outerI], outerI, nations, data)
+        doubleBarChartPlot(t, plotsDir, avg, fignames[outerI], outerI, nations, data)
 
-        # mortalityHospitalisationPlot(
-        #     fignames[outerI], outerI, avg, t, data, colorsList[outerI], nations, plotsDir
-        # )
+        mortalityHospitalisationPlot(
+            fignames[outerI], outerI, avg, t, data, colorsList[outerI], nations, plotsDir
+        )
 
         weeklyIncreasePlot(data, nations, fignames[outerI], outerI, t, plotsDir)
-
-        exit()
 
         if outerI == 0:
             ComparisonUK(plotsDir, avg, t, data)
@@ -201,7 +199,7 @@ def percentPositivePlot(t, plotsDir, avg, colors, suffix, outerI, nations, data)
             color="black",
             label="WHO 5% reopening threshold",
         )
-        lockdownVlines(ax2, outerI)
+        lockdownVlines(ax2)
     elif outerI == 1:
         for i, nation in enumerate(data):
             nationTests = data[nation]["posTests"]
@@ -263,7 +261,7 @@ def doubleBarChartPlot(t, plotsDir, avg, suffix, outerI, nations, data):
             color="orangered",
             label="Positive tests",
         )
-        lockdownVlines(ax, outerI)
+        lockdownVlines(ax)
         dateAxis(ax)
         ax.set_xlabel(
             """
@@ -464,9 +462,9 @@ def weeklyIncreasePlot(data, nations, suffix, outerI, t, plotsDir="plots/"):
                 interpolate=True,
             )
 
-            dateAxis(ax)
-
             lockdownVlines(ax)
+
+            dateAxis(ax)
 
             setYLabel(ax, "Weekly increase in COVID-19 %s" % figtype["title"], 0)
             percentAxis(ax, setBottom=0)
@@ -658,32 +656,13 @@ def ComparisonNation(plotsDir, avg, t, data, nations):
         savePlot(plotsDir, figname, fig, size=(24, 12))
 
 
-def lockdownVlines(ax, outerI=0):
-    nationLockdownDates = [
-        [dt(2020, 3, 23), dt(2020, 11, 5), dt(2020, 12, 20)],
-    ]
-    nationLockdownEasing = [
-        [dt(2020, 7, 4), dt(2020, 12, 2)],
-    ]
+def lockdownVlines(ax):
+    nationLockdownDates = [dt(2020, 3, 23), dt(2020, 11, 5), dt(2020, 12, 20)]
+    nationLockdownEasing = [dt(2020, 7, 4), dt(2020, 12, 2), dt(2022,1,1)]
 
     ymin, ymax = ax.get_ylim()
-    ax.vlines(
-        x=nationLockdownEasing[outerI],
-        ymin=ymin,
-        ymax=ymax,
-        color="#3D9970AF",
-        ls="dashed",
-        label="End of lockdown",
-    )
-
-    ax.vlines(
-        x=nationLockdownDates[outerI],
-        ymin=ymin,
-        ymax=ymax,
-        color="#FF4136AF",
-        ls="dashed",
-        label="Start of lockdown",
-    )
+    for i, (x1, x2 )in enumerate(zip(nationLockdownDates, nationLockdownEasing)):
+        ax.axvspan(x1, x2, alpha=0.15, color='#777', label="Lockdown" if i == 0 else "", zorder=0.99)
 
     ax.vlines(
         x=dt(2020, 3, 11),
@@ -693,6 +672,8 @@ def lockdownVlines(ax, outerI=0):
         ls="dashed",
         label="WHO declares pandemic",
     )
+
+    plt.legend()
 
 
 def nationPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
@@ -1340,7 +1321,7 @@ def savePlot(plotsDir, figname, fig, size=()):
     else:
         plt.gcf().set_size_inches(12, 8)
 
-    if True:
+    if False:
         fileName = plotsDir + "png/" + figname
         plt.savefig(fileName, bbox_inches="tight", pad_inches=0.25, dpi=200)
     else:
