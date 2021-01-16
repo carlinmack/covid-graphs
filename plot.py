@@ -40,19 +40,22 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
                     dataDir + nation + ".csv", index_col=0, parse_dates=True
                 )
 
-        testingPlot(fignames[outerI], outerI, avg, t, data, nations, plotsDir)
+        suffix = fignames[outerI]
+
+        testingPlot(suffix, outerI, avg, t, data, nations, plotsDir)
 
         percentPositivePlot(
-            t, plotsDir, avg, colorsList[outerI], fignames[outerI], outerI, nations, data
+            t, plotsDir, avg, colorsList[outerI], suffix, outerI, nations, data,
         )
 
-        doubleBarChartPlot(t, plotsDir, avg, fignames[outerI], outerI, nations, data)
+        doubleBarChartPlot(t, plotsDir, avg, suffix, outerI, nations, data)
 
         mortalityHospitalisationPlot(
-            fignames[outerI], outerI, avg, t, data, colorsList[outerI], nations, plotsDir
+            suffix, outerI, avg, t, data, colorsList[outerI], nations, plotsDir,
         )
 
-        weeklyIncreasePlot(data, nations, fignames[outerI], outerI, t, plotsDir)
+        if avg == False:
+            weeklyIncreasePlot(data, nations, suffix, outerI, t, plotsDir)
 
         if outerI == 0:
             ComparisonUK(plotsDir, avg, t, data)
@@ -403,11 +406,7 @@ def weeklyIncreasePlot(data, nations, suffix, outerI, t, plotsDir="plots/"):
                 "figname": "-Cases-Reported",
                 "col": "reportedCases",
             },
-            {
-                "title": "cases",
-                "figname": "-Cases-Specimen",
-                "col": "specimenCases",
-            },
+            {"title": "cases", "figname": "-Cases-Specimen", "col": "specimenCases",},
             {
                 "title": "reported deaths",
                 "figname": "-Deaths-Reported",
@@ -436,30 +435,17 @@ def weeklyIncreasePlot(data, nations, suffix, outerI, t, plotsDir="plots/"):
                 figtype["col"]
             ].pct_change()
 
+            positive = plotData <= 0
+
             fig, ax = plt.subplots()
 
             setTitle(ax, title)
 
-            ax.plot(plotData.index, plotData, lw=2, color="#333")
-
-            maxArray = [x >= 0 for x in plotData]
-            minArray = [x <= 0 for x in plotData]
-
-            ax.fill_between(
+            ax.bar(
                 plotData.index,
-                0,
-                plotData.fillna(0),
-                where=maxArray,
-                facecolor="#FF41367F",
-                interpolate=True,
-            )
-            ax.fill_between(
-                plotData.index,
-                0,
-                plotData.fillna(0),
-                where=minArray,
-                facecolor="#3D99707F",
-                interpolate=True,
+                plotData,
+                color=positive.map({True: "#9ECCB8", False: "#FFA09B"}),
+                width=5.6,
             )
 
             lockdownVlines(ax)
@@ -475,7 +461,6 @@ def weeklyIncreasePlot(data, nations, suffix, outerI, t, plotsDir="plots/"):
             savePlot(plotsDir, figname, fig)
     else:
         pass
-    
 
 
 def ComparisonUK(plotsDir, avg, t, data):
@@ -658,11 +643,18 @@ def ComparisonNation(plotsDir, avg, t, data, nations):
 
 def lockdownVlines(ax):
     nationLockdownDates = [dt(2020, 3, 23), dt(2020, 11, 5), dt(2020, 12, 20)]
-    nationLockdownEasing = [dt(2020, 7, 4), dt(2020, 12, 2), dt(2022,1,1)]
+    nationLockdownEasing = [dt(2020, 7, 4), dt(2020, 12, 2), dt(2022, 1, 1)]
 
     ymin, ymax = ax.get_ylim()
-    for i, (x1, x2 )in enumerate(zip(nationLockdownDates, nationLockdownEasing)):
-        ax.axvspan(x1, x2, alpha=0.15, color='#777', label="Lockdown" if i == 0 else "", zorder=0.99)
+    for i, (x1, x2) in enumerate(zip(nationLockdownDates, nationLockdownEasing)):
+        ax.axvspan(
+            x1,
+            x2,
+            alpha=0.15,
+            color="#777",
+            label="Lockdown" if i == 0 else "",
+            zorder=0.99,
+        )
 
     ax.vlines(
         x=dt(2020, 3, 11),
