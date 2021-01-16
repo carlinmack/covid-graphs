@@ -32,7 +32,7 @@ def getData(dataDir, force=False):
             '"newDeaths28DaysByPublishDate":"newDeaths28DaysByPublishDate"',
             '"newAdmissions":"newAdmissions"',
             '"hospitalCases":"hospitalCases"',
-            '"weeklyPeopleVaccinatedFirstDoseByVaccinationDate":"weeklyPeopleVaccinatedFirstDoseByVaccinationDate","22weeklyPeopleVaccinatedSecondDoseByVaccinationDate":"22weeklyPeopleVaccinatedSecondDoseByVaccinationDate"',
+            '"weeklyPeopleVaccinatedFirstDoseByVaccinationDate":"weeklyPeopleVaccinatedFirstDoseByVaccinationDate","weeklyPeopleVaccinatedSecondDoseByVaccinationDate":"weeklyPeopleVaccinatedSecondDoseByVaccinationDate"',
             '"covidOccupiedMVBeds":"covidOccupiedMVBeds"'
         ]
 
