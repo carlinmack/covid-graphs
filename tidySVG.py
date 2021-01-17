@@ -1,5 +1,3 @@
-from matplotlib.pyplot import connect
-from bs4 import BeautifulSoup
 import re
 
 def tidySVG(filename):
