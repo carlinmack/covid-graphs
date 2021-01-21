@@ -1029,7 +1029,7 @@ def timelinePlot(t, dataDir="data/", plotsDir="plots/"):
             "Deaths": [[None],],
             "Lockdown": [
                 [dt(2020, 3, 23), dt(2020, 6, 29),],
-                [dt(2020, 12, 26), dt(2021, 1, 16)],
+                [dt(2020, 12, 26), dt(2021, 2, 21)],
             ],
             "Tiered system": [[dt(2020, 11, 2), None],],
             "Closed pubs": [
