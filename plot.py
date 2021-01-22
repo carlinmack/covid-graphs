@@ -1385,6 +1385,8 @@ def setYLabel(ax, label, avg, color="black", ax2=False):
     if avg:
         label += " (seven day average)"
 
+    label = capitalise(label)
+
     if ax2:
         ax.set_ylabel(label, rotation=270, ha="center", va="bottom", color=color)
     else:
