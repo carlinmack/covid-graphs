@@ -954,7 +954,7 @@ def heatMapPlot(t, dataDir="data/", plotsDir="plots/"):
             "colors": ["#333", "#333"],
         },
         {
-            "fileNames": [".vaccinations.csv"],
+            "fileNames": [".vaccinations.reported.csv"],
             "figname": "Vaccinations",
             "title": "vaccinations",
             "yLabels": ["Reported Vaccinations"],
@@ -1329,7 +1329,7 @@ def savePlot(plotsDir, figname, fig, size=()):
     else:
         plt.gcf().set_size_inches(12, 8)
 
-    if True:
+    if False:
         fileName = plotsDir + "png/" + figname
         plt.savefig(fileName, bbox_inches="tight", pad_inches=0.25, dpi=200)
     else:
@@ -1521,13 +1521,13 @@ if __name__ == "__main__":
         )
 
         bools = [False, True]
-        # for bool in bools:
-        #     mainPlot(t, dataDir, plotsDir, avg=bool)
-        #     nationPlot(t, dataDir, plotsDir, avg=bool)
+        for bool in bools:
+            mainPlot(t, dataDir, plotsDir, avg=bool)
+            nationPlot(t, dataDir, plotsDir, avg=bool)
 
-        # demographicsPlot(t, dataDir, plotsDir)
+        demographicsPlot(t, dataDir, plotsDir)
         heatMapPlot(t, dataDir, plotsDir)
-        # timelinePlot(t, dataDir, plotsDir)
+        timelinePlot(t, dataDir, plotsDir)
 
         t.close()
     else:

@@ -47,7 +47,7 @@ def getData(dataDir, force=False):
             "hospitalisations",
             "inHospital",
             "vaccinations.weekly",
-            "vaccinations",
+            "vaccinations.reported",
             "inVentilationBeds",
         ]
 
