@@ -33,7 +33,8 @@ def getData(dataDir, force=False):
             '"newAdmissions":"newAdmissions"',
             '"hospitalCases":"hospitalCases"',
             '"weeklyPeopleVaccinatedFirstDoseByVaccinationDate":"weeklyPeopleVaccinatedFirstDoseByVaccinationDate","weeklyPeopleVaccinatedSecondDoseByVaccinationDate":"weeklyPeopleVaccinatedSecondDoseByVaccinationDate"',
-            '"covidOccupiedMVBeds":"covidOccupiedMVBeds"'
+            '"newPeopleVaccinatedFirstDoseByPublishDate":"newPeopleVaccinatedFirstDoseByPublishDate","newPeopleVaccinatedSecondDoseByPublishDate":"newPeopleVaccinatedSecondDoseByPublishDate"',
+            '"covidOccupiedMVBeds":"covidOccupiedMVBeds"',
         ]
 
         urlSuffix = "%7D&format=csv"
@@ -45,14 +46,16 @@ def getData(dataDir, force=False):
             "deaths.reported",
             "hospitalisations",
             "inHospital",
+            "vaccinations.weekly",
             "vaccinations",
-            "inVentilationBeds"
+            "inVentilationBeds",
         ]
 
         nations = ["Scotland", "England", "Northern Ireland", "Wales"]
 
         t = tqdm(
-            total=45, bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} {elapsed_s:.0f}s"
+            total=len(names) * 5,
+            bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} {elapsed_s:.0f}s",
         )
 
         for i, name in enumerate(names):

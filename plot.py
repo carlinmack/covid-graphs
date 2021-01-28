@@ -716,7 +716,7 @@ def nationPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
             "yLabel": "who are in mechanical ventilation beds",
         },
         {
-            "fileName": ".vaccinations",
+            "fileName": ".vaccinations.weekly",
             "figname": "Nation-Vaccinations",
             "title": "COVID-19 vaccinations by nation",
             "yLabel": "who have received vaccinations",
@@ -906,32 +906,24 @@ def heatMapPlot(t, dataDir="data/", plotsDir="plots/"):
         "Sunday",
     ]
 
-    def getDataframes(name, cases):
-        if cases:
-            fileNames = [
-                dataDir + name + ".testing.reported.csv",
-                dataDir + name + ".cases.reported.csv",
-                dataDir + name + ".cases.csv",
-            ]
-        else:
-            fileNames = [
-                dataDir + name + ".deaths.csv",
-                dataDir + name + ".deaths.reported.csv",
-            ]
-
+    def getDataframes(name, fileNames):
         data = []
         dataFrames = []
 
         for fileName in fileNames:
-            data.append(readData(fileName))
+            data.append(readData(dataDir + name + fileName))
 
         for dataSet in data:
-            dataFrame = pd.DataFrame(dataSet, columns=["Date", "Number"])
-            dataFrame["Date"] = pd.to_datetime(dataFrame["Date"])
-            dataFrame = (
-                dataFrame.groupby(dataFrame["Date"].dt.day_name()).mean().reindex(days)
+            df = pd.DataFrame(dataSet, columns=["Date", "Number"])
+            df.set_index("Date", inplace=True)
+            df.index = pd.to_datetime(df.index)
+            lastSunday = df["Number"].last_valid_index() - timedelta(
+                df["Number"].last_valid_index().isoweekday()
             )
-            dataFrames.append(dataFrame)
+            df = (
+                df[:lastSunday].groupby(df[:lastSunday].index.day_name()).mean().reindex(days)
+            )
+            dataFrames.append(df)
 
         return dataFrames
 
@@ -946,45 +938,63 @@ def heatMapPlot(t, dataDir="data/", plotsDir="plots/"):
         removeSpines(ax, all=True)
         showGrid(ax, color="#bbb")
 
-    casesBoolean = [1, 0]
-    fignames = ["Tests-Cases", "Deaths"]
-    titles = ["tests and cases", "deaths"]
-
-    names = [
-        ["Tests", "Cases (reported date)", "Cases (specimen date)"],
-        ["Deaths", "Reported Deaths"],
+    types = [
+        {
+            "fileNames": [".testing.reported.csv", ".cases.reported.csv", ".cases.csv"],
+            "figname": "Tests-Cases",
+            "title": "tests and cases",
+            "yLabels": ["Tests", "Cases (reported date)", "Cases (specimen date)"],
+            "colors": ["#2271d3", "orangered", "orangered"],
+        },
+        {
+            "fileNames": [".deaths.csv", ".deaths.reported.csv"],
+            "figname": "Deaths",
+            "title": "deaths",
+            "yLabels": ["Deaths", "Reported Deaths"],
+            "colors": ["#333", "#333"],
+        },
+        {
+            "fileNames": [".vaccinations.csv"],
+            "figname": "Vaccinations",
+            "title": "vaccinations",
+            "yLabels": ["Vaccinations"],
+            "colors": ["#00BFBF"],
+        },
     ]
 
-    colors = [["#2271d3", "orangered", "orangered"], ["#333", "#333", "#333"]]
-
-    for i in range(2):
-        title = "Comparison of average number of %s per day" % titles[i]
+    for i, figtype in enumerate(types):
+        title = "Comparison of average number of %s per day" % figtype["title"]
 
         # UK
-        dataFrames = getDataframes("UK", casesBoolean[i])
+        dataFrames = getDataframes("UK", figtype["fileNames"])
 
-        figname = "HeatMap-" + fignames[i]
+        figname = "HeatMap-" + figtype["figname"]
         updateProgressBar(figname, t)
         fig, axs = plt.subplots(len(dataFrames), 1, sharex=True)
 
-        for j, ax in enumerate(axs):
+        if len(dataFrames) == 1:
             plt.xticks(ticks=list(range(7)), labels=days)
 
-            plotHeatmap(ax, names[i][j], dataFrames[j], colors[i][j])
+            plotHeatmap(axs, figtype["yLabels"][0], dataFrames[0], figtype["colors"][0])
+        else:
+            for j, ax in enumerate(axs):
+                plt.xticks(ticks=list(range(7)), labels=days)
+
+                plotHeatmap(ax, figtype["yLabels"][j], dataFrames[j], figtype["colors"][j])
 
         fig.suptitle(title, fontweight="bold")
 
         savePlot(plotsDir, figname, fig)
 
         # Nations
-        figname = "HeatMap-" + fignames[i] + "-Nation"
+        figname = "HeatMap-" + figtype["figname"] + "-Nation"
         updateProgressBar(figname, t)
 
         nations = ["Scotland", "England", "Northern Ireland", "Wales"]
         nationsDf = []
 
         for nation in nations:
-            nationDataFrame = getDataframes(nation, casesBoolean[i])
+            nationDataFrame = getDataframes(nation, figtype["fileNames"])
 
             nationsDf.append(nationDataFrame)
 
@@ -1012,7 +1022,13 @@ def heatMapPlot(t, dataDir="data/", plotsDir="plots/"):
                         axis="x", which="both", bottom=False, labelbottom=False
                     )
 
-                plotHeatmap(ax, names[i][j], nationsDf[k][j], colors[i][j], hide=k % 2)
+                plotHeatmap(
+                    ax,
+                    figtype["yLabels"][j],
+                    nationsDf[k][j],
+                    figtype["colors"][j],
+                    hide=k % 2,
+                )
                 fig.add_subplot(ax)
 
         savePlot(plotsDir, figname, fig, (17.5, 10))

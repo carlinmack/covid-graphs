@@ -89,11 +89,16 @@
 ![image](svg/Nation-Ventilation-Per-Capita.svg)
 ![image](svg/Nation-Ventilation-Per-Capita-Avg.svg)
 
+## Heatmaps
+
 ![image](svg/HeatMap-Tests-Case.svg)
 ![image](svg/HeatMap-Tests-Cases-Nation.svg)
 
 ![image](svg/HeatMap-Deaths.svg)
 ![image](svg/HeatMap-Deaths-Nation.svg)
+
+![image](svg/HeatMap-Vaccinations.svg)
+![image](svg/HeatMap-Vaccinations-Nation.svg)
 
 ## English cases by demographics
 ![image](Demographics-Cases)
