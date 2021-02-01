@@ -112,6 +112,7 @@ def testingPlot(suffix, outerI, avg, t, data, nations, plotsDir):
             facecolor="#3D99707F",
             interpolate=True,
         )
+        lockdownVlines(ax)
 
         dateAxis(ax)
 
