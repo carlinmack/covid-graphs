@@ -465,6 +465,24 @@ def deathsPlot(suffix, outerI, avg, t, data, nations, plotsDir, dataDir):
         for j, nation in enumerate(data):
             ax = axs[j]
 
+            excessDeaths = readData(dataDir + nation + ".deaths.excess.csv", type="dict")
+            excessSeries = pd.Series(excessDeaths)
+
+            ax.fill_between(
+                excessSeries.index,
+                0,
+                excessSeries,
+                facecolor="#f4f4f4",
+                interpolate=True,
+                label="Excess deaths"
+            )
+            
+            ax.plot(
+                excessSeries.index,
+                excessSeries,
+                color="#f4f4f4",
+            )
+
             ax.plot(
                 data[nation].index,
                 data[nation]["reportedDeaths"],

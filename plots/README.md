@@ -82,12 +82,12 @@
 ![image](svg/Deaths-Nation.svg)
 ![image](svg/Deaths-Nation-Avg.svg)
 
-## Hospitalisations
+## In hospital
 
-![image](svg/Nation-Hospitalisations.svg)
-![image](svg/Nation-Hospitalisations-Avg.svg)
-![image](svg/Nation-Hospitalisations-Per-Capita.svg)
-![image](svg/Nation-Hospitalisations-Per-Capita-Avg.svg)
+![image](svg/Nation-inHospital-svg)
+![image](svg/Nation-inHospital-Avg.svg)
+![image](svg/Nation-inHospital-Per-Capita.svg)
+![image](svg/Nation-inHospital-Per-Capita-Avg.svg)
 
 ## Ventilation beds
 

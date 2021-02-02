@@ -124,15 +124,26 @@ def getExcessDeaths(dataDir):
     data = pd.read_csv(
         "https://raw.githubusercontent.com/TheEconomist/covid-19-excess-deaths-tracker/master/output-data/excess-deaths/britain_excess_deaths.csv",
         parse_dates=True,
-        usecols=["end_date", "excess_deaths"],
-        index_col=0,
+        usecols=["region", "end_date", "excess_deaths"],
+        index_col=[0, 1],
     )
 
-    data.excess_deaths = data.excess_deaths / 7
-    data.excess_deaths = data.excess_deaths.round().astype(int)
-    data.index = data.index - timedelta(3)
+    data = data.unstack("region")
+    data.loc[:,("excess_deaths","UK")] = data["excess_deaths"]["Britain"]
+    data.loc[:,("excess_deaths","England")] = (
+        data["excess_deaths"]["England and Wales"] - data["excess_deaths"]["Wales"]
+    )
 
-    data.to_csv(dataDir + "UK.deaths.excess.csv", header=False)
+    nations = ["UK", "Scotland", "England", "Wales", "Northern Ireland"]
+
+    for nation in nations:
+        series = data.loc[:,("excess_deaths", nation)]
+
+        series = series / 7
+        series = series.round().astype(int)
+        series.index = series.index - timedelta(3)
+
+        series.to_csv(dataDir + nation + ".deaths.excess.csv", header=False)
 
 
 def parseInt(str):
