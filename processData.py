@@ -11,6 +11,7 @@ def processData(dataDir="data/"):
         ".cases.csv",
         ".deaths.reported.csv",
         ".deaths.csv",
+        ".deaths.onCertificate.csv",
         ".hospitalisations.csv",
         ".inHospital.csv"
     ]
@@ -21,6 +22,7 @@ def processData(dataDir="data/"):
         "specimenCases",
         "reportedDeaths",
         "specimenDeaths",
+        "certificateDeaths",
         "hospitalisations",
         "inHospital",
     ]
@@ -33,6 +35,8 @@ def processData(dataDir="data/"):
             fileName = dataDir + nation + fileName
             if i in [2, 4]:
                 data = readData(fileName, type="dict", skip=5)
+            elif fileName == ".deaths.onCertificate.csv":
+                data = readData(fileName, type="dict", skip=11)
             else:
                 data = readData(fileName, type="dict")
             series = pd.Series(data, name=names[i])

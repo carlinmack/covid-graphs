@@ -54,6 +54,8 @@ def mainPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
             suffix, outerI, avg, t, data, colorsList[outerI], nations, plotsDir,
         )
 
+        deathsPlot(suffix, outerI, avg, t, data, nations, plotsDir, dataDir)
+
         if avg == False:
             weeklyIncreasePlot(data, nations, suffix, outerI, t, plotsDir)
 
@@ -394,6 +396,108 @@ def mortalityHospitalisationPlot(
         removeSpines(ax)
 
         savePlot(plotsDir, figname, fig)
+
+
+def deathsPlot(suffix, outerI, avg, t, data, nations, plotsDir, dataDir):
+    figname = "Deaths" + suffix
+    title = "Comparing four different death metrics in the UK for COVID-19"
+    if avg:
+        figname += "-Avg"
+        title = "average " + title
+    updateProgressBar(figname, t)
+
+    if outerI == 0:
+        fig, ax = plt.subplots()
+
+        setTitle(ax, title)
+
+        excessDeaths = readData(dataDir + "UK.deaths.excess.csv", type="dict")
+        excessSeries = pd.Series(excessDeaths)
+
+        ax.fill_between(
+            excessSeries.index,
+            0,
+            excessSeries,
+            facecolor="#f4f4f4",
+            interpolate=True,
+            label="Excess deaths"
+        )
+        
+        ax.plot(
+            excessSeries.index,
+            excessSeries,
+            color="#f4f4f4",
+        )
+        
+        ax.plot(
+            data["UK"].index,
+            data["UK"]["reportedDeaths"],
+            color="#bebebe",
+            label="Deaths by reported date",
+        )
+        ax.plot(
+            data["UK"].index,
+            data["UK"]["specimenDeaths"],
+            color="#6a6a6a",
+            label="Deaths by date of death",
+        )
+        ax.plot(
+            data["UK"].index,
+            data["UK"]["certificateDeaths"],
+            color="#000",
+            label="Death certificates with COVID-19 as a cause",
+        )
+
+        dateAxis(ax)
+
+        setYLabel(ax, "Deaths per day", avg)
+        threeFigureAxis(ax, bottom=None)
+        plt.legend()
+
+        removeSpines(ax)
+        showGrid(ax)
+    else:
+        fig, axs = plt.subplots(2, 2, sharex=True)
+        axs = axs.flatten()
+
+        setSupTitle(fig, title)
+
+        for j, nation in enumerate(data):
+            ax = axs[j]
+
+            ax.plot(
+                data[nation].index,
+                data[nation]["reportedDeaths"],
+                color="#DFDFDF",
+                label="Reported deaths",
+            )
+            ax.plot(
+                data[nation].index,
+                data[nation]["specimenDeaths"],
+                color="#6C6C6C",
+                label="Deaths by date of death",
+            )
+            ax.plot(
+                data[nation].index,
+                data[nation]["certificateDeaths"],
+                color="#000",
+                label="Death certificates",
+            )
+
+            dateAxis(ax)
+            reduceXlabels(ax)
+            reduceYlabels(ax)
+            if j == 0:
+                plt.legend()
+
+            setYLabel(ax, "deaths per day", avg)
+            showGrid(ax)
+            threeFigureAxis(ax)
+
+            ax.set_title(nations[j])
+            removeSpines(ax)
+
+    savePlot(plotsDir, figname, fig)
 
 
 def weeklyIncreasePlot(data, nations, suffix, outerI, t, plotsDir="plots/"):
@@ -922,7 +1026,10 @@ def heatMapPlot(t, dataDir="data/", plotsDir="plots/"):
                 df["Number"].last_valid_index().isoweekday()
             )
             df = (
-                df[:lastSunday].groupby(df[:lastSunday].index.day_name()).mean().reindex(days)
+                df[:lastSunday]
+                .groupby(df[:lastSunday].index.day_name())
+                .mean()
+                .reindex(days)
             )
             dataFrames.append(df)
 
@@ -981,7 +1088,9 @@ def heatMapPlot(t, dataDir="data/", plotsDir="plots/"):
             for j, ax in enumerate(axs):
                 plt.xticks(ticks=list(range(7)), labels=days)
 
-                plotHeatmap(ax, figtype["yLabels"][j], dataFrames[j], figtype["colors"][j])
+                plotHeatmap(
+                    ax, figtype["yLabels"][j], dataFrames[j], figtype["colors"][j]
+                )
 
         fig.suptitle(title, fontweight="bold")
 
@@ -1381,8 +1490,8 @@ def percentAxis(ax, setBottom=1):
     ax.yaxis.set_major_formatter(tkr.PercentFormatter(decimals=decimals))
 
 
-def threeFigureAxis(ax):
-    ax.set_ylim(bottom=0)
+def threeFigureAxis(ax, bottom=0):
+    ax.set_ylim(bottom=bottom)
     ax.yaxis.set_major_formatter(tkr.FuncFormatter(threeFigureFormatter))
 
 
@@ -1518,7 +1627,7 @@ if __name__ == "__main__":
         processData()
 
         t = tqdm(
-            total=87, bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} {elapsed_s:.0f}s"
+            total=94, bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} {elapsed_s:.0f}s"
         )
 
         bools = [False, True]

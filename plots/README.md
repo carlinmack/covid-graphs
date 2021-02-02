@@ -75,6 +75,13 @@
 ![image](svg/Nation-Deaths-Reported-Cumulative.svg)
 ![image](svg/Nation-Deaths-Reported-Cumulative-Per-Capita.svg)
 
+## Deaths
+
+![image](svg/Deaths.svg)
+![image](svg/Deaths-Avg.svg)
+![image](svg/Deaths-Nation.svg)
+![image](svg/Deaths-Nation-Avg.svg)
+
 ## Hospitalisations
 
 ![image](svg/Nation-Hospitalisations.svg)

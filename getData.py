@@ -1,6 +1,7 @@
 import argparse
 import os
 
+import pandas as pd
 import requests
 from tqdm import tqdm
 
@@ -30,6 +31,7 @@ def getData(dataDir, force=False):
             '"newCasesByPublishDate":"newCasesByPublishDate"',
             '"newDeaths28DaysByDeathDate":"newDeaths28DaysByDeathDate"',
             '"newDeaths28DaysByPublishDate":"newDeaths28DaysByPublishDate"',
+            '"newDailyNsoDeathsByDeathDate":"newDailyNsoDeathsByDeathDate"',
             '"newAdmissions":"newAdmissions"',
             '"hospitalCases":"hospitalCases"',
             '"weeklyPeopleVaccinatedFirstDoseByVaccinationDate":"weeklyPeopleVaccinatedFirstDoseByVaccinationDate","weeklyPeopleVaccinatedSecondDoseByVaccinationDate":"weeklyPeopleVaccinatedSecondDoseByVaccinationDate"',
@@ -44,6 +46,7 @@ def getData(dataDir, force=False):
             "cases.reported",
             "deaths",
             "deaths.reported",
+            "deaths.onCertificate",
             "hospitalisations",
             "inHospital",
             "vaccinations.weekly",
@@ -73,6 +76,8 @@ def getData(dataDir, force=False):
 
         with open(dataDir + "Last-Modified.txt", "w") as file:
             file.write(lastModified)
+
+        getExcessDeaths(dataDir)
 
         print("Done!")
         return True
@@ -113,6 +118,21 @@ def getCSV(url, dataDir, name):
         print("Error " + str(r.status_code))
         print(r.content)
         exit()
+
+
+def getExcessDeaths(dataDir):
+    data = pd.read_csv(
+        "https://raw.githubusercontent.com/TheEconomist/covid-19-excess-deaths-tracker/master/output-data/excess-deaths/britain_excess_deaths.csv",
+        parse_dates=True,
+        usecols=["end_date", "excess_deaths"],
+        index_col=0,
+    )
+
+    data.excess_deaths = data.excess_deaths / 7
+    data.excess_deaths = data.excess_deaths.round().astype(int)
+    data.index = data.index - timedelta(3)
+
+    data.to_csv(dataDir + "UK.deaths.excess.csv", header=False)
 
 
 def parseInt(str):
