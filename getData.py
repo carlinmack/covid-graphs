@@ -77,7 +77,7 @@ def getData(dataDir, force=False):
         with open(dataDir + "Last-Modified.txt", "w") as file:
             file.write(lastModified)
 
-        getExcessDeaths(dataDir)
+        # getExcessDeaths(dataDir)
 
         print("Done!")
         return True
@@ -129,6 +129,7 @@ def getExcessDeaths(dataDir):
     )
 
     data = data.unstack("region")
+    print(data)
     data.loc[:,("excess_deaths","UK")] = data["excess_deaths"]["Britain"]
     data.loc[:,("excess_deaths","England")] = (
         data["excess_deaths"]["England and Wales"] - data["excess_deaths"]["Wales"]
