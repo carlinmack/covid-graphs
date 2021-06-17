@@ -714,6 +714,7 @@ def ComparisonNation(plotsDir, avg, t, data, nations):
             ax.set_title(title, fontweight="bold")
 
             dateAxis(ax)
+            reduceXlabels(ax)
             for axis in axes:
                 if perCapita[i]:
                     percentAxis(axis)
@@ -1538,7 +1539,7 @@ def setYLabel(ax, label, avg, color="black", ax2=False):
 
 
 # X axis
-def dateAxis(ax, year=False, left=dt(2020, 3, 1), right=dt.today()):
+def dateAxis(ax, year=False, left=dt(2020, 3, 1), right=dt.today(), skip_dates=True):
     ax.set_xlim(left=left, right=right)
     if year:
         ax.set_xlim(left=left, right=dt(2021, 3, 1))
@@ -1546,6 +1547,9 @@ def dateAxis(ax, year=False, left=dt(2020, 3, 1), right=dt.today()):
     ax.xaxis.set_major_locator(MonthLocator())
     ax.xaxis_date()
     ax.xaxis.set_major_formatter(df("%d %b"))
+    
+    if skip_dates:
+        reduceXlabels(ax, every_nth=2)
 
 
 def reduceXlabels(ax, every_nth=3):
