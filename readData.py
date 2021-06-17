@@ -7,7 +7,12 @@ def readData(fileName, type="arr", skip=0):
     if type == "arr":
         with open(fileName, "r") as file:
             reader = csv.reader(file, delimiter=",")
-            fileData = [[line[0], int(line[1])] for line in reader]
+            fileData = []
+            for line in reader:
+                if line[1]:
+                    fileData.append([line[0], int(line[1])])
+                else:
+                    fileData.append([line[0], 0])
         if skip:
             return fileData[:-skip]
         return fileData
