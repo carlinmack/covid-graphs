@@ -767,7 +767,7 @@ def ComparisonNation(plotsDir, avg, t, data, nations):
 
 def lockdownVlines(ax):
     nationLockdownDates = [dt(2020, 3, 23), dt(2020, 11, 5), dt(2020, 12, 20)]
-    nationLockdownEasing = [dt(2020, 7, 4), dt(2020, 12, 2), dt(2022, 1, 1)]
+    nationLockdownEasing = [dt(2020, 7, 4), dt(2020, 12, 2), dt(2021, 7, 19)]
 
     ymin, ymax = ax.get_ylim()
     for i, (x1, x2) in enumerate(zip(nationLockdownDates, nationLockdownEasing)):
