@@ -1,5 +1,6 @@
 import argparse
 import os
+import re
 
 import pandas as pd
 import requests
@@ -108,10 +109,12 @@ def getCSV(url, dataDir, name):
                 )
             data = newData
 
+        data = [tuple for tuple in data if not re.match(r"[\d-]+,$", tuple) and tuple[-2:] != ",,"]
         data = "\n".join(data)
 
         with open(fileName, "w") as file:
             file.writelines(data)
+
     elif r.status_code == 204:
         print("Error: No data returned for " + name)
     else:

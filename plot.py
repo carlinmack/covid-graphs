@@ -9,7 +9,7 @@ import matplotlib.font_manager as font_manager
 import matplotlib.gridspec as gridspec
 import matplotlib.pyplot as plt
 import matplotlib.ticker as tkr
-import mpld3
+# import mpld3
 import numpy as np
 import pandas as pd
 from matplotlib.dates import DateFormatter as df
