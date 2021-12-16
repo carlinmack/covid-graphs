@@ -651,7 +651,7 @@ def ComparisonUK(plotsDir, avg, t, data):
 
 
 def ComparisonNation(plotsDir, avg, t, data, nations):
-    populations = [5463300, 56286961, 1893667, 3152879]
+    populations = [5466000, 56550138, 1895510, 3169586]
 
     fignameSuffix = ["", "-Per-Capita"]
     titleSuffix = ["", ", per capita"]
@@ -794,10 +794,10 @@ def lockdownVlines(ax):
 
 def nationPlot(t, dataDir="data/", plotsDir="plots/", avg=True):
     data = [
-        {"name": "England", "color": "#5694CA", "population": 56286961},
-        {"name": "Northern Ireland", "color": "#FFDD00", "population": 1893667},
-        {"name": "Scotland", "color": "#003078", "population": 5463300},
-        {"name": "Wales", "color": "#D4351C", "population": 3152879},
+        {"name": "England", "color": "#5694CA", "population": 56550138},
+        {"name": "Northern Ireland", "color": "#FFDD00", "population": 1895510},
+        {"name": "Scotland", "color": "#003078", "population": 5466000},
+        {"name": "Wales", "color": "#D4351C", "population": 3169586},
     ]
 
     totalPopulation = sum([x["population"] for x in data])
