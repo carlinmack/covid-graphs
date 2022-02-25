@@ -5,7 +5,7 @@ name: Update Plots
 # Controls when the action will run. 
 on:
   schedule:
-  - cron: "* 17 * * *"
+  - cron: "* 17 * * 1-5"
     
   workflow_dispatch:
 
