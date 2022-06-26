@@ -33,5 +33,3 @@ It's recommended to clone the repository without the entire history: `git clone 
 ![image](plots/svg/Nation-inHospital-Avg.svg)
 
 ![image](plots/svg/Nation-inHospital-Per-Capita-Avg.svg)
-
-![image](plots/svg/Timeline.svg)
