@@ -14,7 +14,7 @@ import numpy as np
 import pandas as pd
 from matplotlib.dates import DateFormatter as df
 from matplotlib.dates import MonthLocator
-from tqdm import tqdm
+from tqdm.rich import tqdm
 
 from getData import getData
 from readData import readData
@@ -71,7 +71,7 @@ def readFile(name, avg):
     casesData = np.array(data)
     casesRawDates = casesData[:, 0]
     casesDates = [dt.strptime(x, "%Y-%m-%d") for x in casesRawDates]
-    cases = casesData[:, 1].astype(np.float)
+    cases = casesData[:, 1].astype(float)
 
     # compute seven day average of cases if enabled
     if avg:
@@ -1649,7 +1649,7 @@ if __name__ == "__main__":
         processData()
 
         t = tqdm(
-            total=94, bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} {elapsed_s:.0f}s"
+            total=94, bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} {elapsed_s:.1f}s"
         )
 
         bools = [False, True]

@@ -4,7 +4,7 @@ import re
 
 import pandas as pd
 import requests
-from tqdm import tqdm
+from tqdm.rich import tqdm
 
 from datetime import timedelta, date
 
@@ -59,7 +59,7 @@ def getData(dataDir, force=False):
 
         t = tqdm(
             total=len(names) * 5,
-            bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} {elapsed_s:.0f}s",
+            bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} {elapsed_s:.1f}s",
         )
 
         for i, name in enumerate(names):
