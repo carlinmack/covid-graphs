@@ -1,3 +1,7 @@
+## Due to the data now being inconsistently released, I have decided to stop maintaining this repository. 
+
+### However if you would like me to try fix some of the charts do let me know and I'll see if they can be improved :)
+
 👉 [View all graphs](https://carlinmack.github.io/covid-graphs/)
 
 Plots are updated daily and are available as PNG and SVG. Issues and PRs welcome. The raw data can be viewed in the `data/` directory, especially `UK.csv` and `UK.avg.csv` which is the processed output of the gov.uk data
